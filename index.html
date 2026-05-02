@@ -250,19 +250,13 @@ function logout() {
 // ---- DATA ----
 async function loadData() {
     try {
-        // Get fresh download URL via API (bypasses CDN cache)
-        const metaResp = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_PATH}`, {
+        const resp = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
             headers: { 'Authorization': `token ${TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
         });
-        if (!metaResp.ok) { emailsData = []; renderAll(); return; }
-        const meta = await metaResp.json();
-        // Use git blob API for large files (no 1MB limit)
-        const blobResp = await fetch(meta.git_url, {
-            headers: { 'Authorization': `token ${TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
-        });
-        const blob = await blobResp.json();
-        const decoded = decodeURIComponent(escape(atob(blob.content.replace(/\n/g, ''))));
-        const data = JSON.parse(decoded);
+        if (!resp.ok) { emailsData = []; renderAll(); return; }
+        const gist = await resp.json();
+        const content = gist.files['emails.json'].content;
+        const data = JSON.parse(content);
         emailsData = data.emails || [];
         leadsData = data.leads || [];
         renderAll();
