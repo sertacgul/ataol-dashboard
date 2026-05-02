@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATAOL AI Techs - Outreach Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; }
+
+        /* Login */
+        .login-screen {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        .login-box {
+            background: #fff; padding: 40px; border-radius: 16px; width: 400px; max-width: 90vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .login-box h1 { font-size: 22px; margin-bottom: 8px; }
+        .login-box h1 span { color: #4fc3f7; }
+        .login-box p { color: #888; font-size: 13px; margin-bottom: 24px; }
+        .login-box input {
+            width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; margin-bottom: 16px; font-family: monospace;
+        }
+        .login-box button {
+            width: 100%; padding: 12px; background: #1976d2; color: #fff; border: none;
+            border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
+        }
+        .login-box button:hover { background: #1565c0; }
+        .login-error { color: #c62828; font-size: 13px; margin-top: 8px; display: none; }
+
+        /* Navbar */
+        .navbar {
+            background: #1a1a2e; padding: 0 20px; display: flex; align-items: center; height: 52px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100;
+        }
+        .navbar .logo { color: #fff; font-size: 16px; font-weight: 700; text-decoration: none; }
+        .navbar .logo span { color: #4fc3f7; }
+        .navbar nav { margin-left: 32px; display: flex; gap: 4px; }
+        .navbar nav a {
+            color: #b0bec5; text-decoration: none; padding: 6px 14px; border-radius: 6px;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+        }
+        .navbar nav a:hover, .navbar nav a.active { color: #fff; background: rgba(255,255,255,0.1); }
+        .navbar .logout { margin-left: auto; color: #b0bec5; font-size: 12px; cursor: pointer; padding: 6px 12px; border-radius: 6px; }
+        .navbar .logout:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+        /* Main */
+        .container { max-width: 900px; margin: 20px auto; padding: 0 16px; }
+        .hidden { display: none !important; }
+
+        /* Stats */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: #fff; padding: 16px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .stat-card .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .value { font-size: 24px; font-weight: 700; margin-top: 4px; }
+        .stat-card .value.blue { color: #1976d2; }
+        .stat-card .value.green { color: #2e7d32; }
+        .stat-card .value.orange { color: #ef6c00; }
+
+        /* Cards */
+        .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 12px; }
+
+        /* Email item */
+        .email-item {
+            background: #fff; border-radius: 10px; padding: 16px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 10px;
+            border-left: 4px solid #ef6c00; cursor: pointer; transition: all 0.2s;
+        }
+        .email-item:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.12); }
+        .email-item.approved { border-left-color: #2e7d32; }
+        .email-item.rejected { border-left-color: #c62828; }
+        .email-item.sent { border-left-color: #1976d2; }
+        .email-item .company { font-weight: 600; font-size: 15px; }
+        .email-item .meta { color: #888; font-size: 12px; margin-top: 4px; }
+        .email-item .subject { color: #555; font-size: 13px; margin-top: 6px; }
+
+        /* Badge */
+        .badge {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+        }
+        .badge-pending { background: #fff3e0; color: #ef6c00; }
+        .badge-approved { background: #e8f5e9; color: #2e7d32; }
+        .badge-sent { background: #e3f2fd; color: #1565c0; }
+        .badge-rejected { background: #ffebee; color: #c62828; }
+
+        /* Email detail */
+        .email-detail-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 200; display: flex;
+            justify-content: center; align-items: flex-start; padding: 40px 16px;
+            overflow-y: auto;
+        }
+        .email-detail-box {
+            background: #fff; border-radius: 12px; width: 700px; max-width: 95vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 24px;
+        }
+        .email-detail-box .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .email-detail-box .close-btn { cursor: pointer; font-size: 24px; color: #888; padding: 4px 8px; }
+        .email-detail-box .close-btn:hover { color: #333; }
+        .email-detail-box .field { margin-bottom: 8px; font-size: 14px; }
+        .email-detail-box .field strong { color: #555; min-width: 70px; display: inline-block; }
+        .email-preview {
+            background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+            padding: 20px; margin: 16px 0; font-size: 14px; line-height: 1.6;
+        }
+        .analysis-box { background: #f5f7fa; border-radius: 8px; padding: 16px; margin-top: 16px; font-size: 13px; }
+        .analysis-box h4 { margin-bottom: 8px; font-size: 14px; }
+        .analysis-box ul { padding-left: 20px; }
+        .analysis-box li { margin-bottom: 4px; }
+
+        /* Buttons */
+        .btn {
+            display: inline-block; padding: 10px 20px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-success { background: #2e7d32; color: #fff; }
+        .btn-success:hover { background: #1b5e20; }
+        .btn-danger { background: #c62828; color: #fff; }
+        .btn-danger:hover { background: #b71c1c; }
+        .btn-outline { background: transparent; border: 1px solid #ddd; color: #555; }
+        .btn-outline:hover { background: #f5f5f5; }
+        .btn-group { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .empty { text-align: center; padding: 40px; color: #888; }
+
+        /* Toast notification */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            padding: 14px 28px; border-radius: 10px; font-size: 14px; font-weight: 600;
+            z-index: 9999; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.2s forwards;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .toast-success { background: #2e7d32; color: #fff; }
+        .toast-error { background: #c62828; color: #fff; }
+        .toast-info { background: #1565c0; color: #fff; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+        .btn.loading { opacity: 0.6; pointer-events: none; }
+
+        @media (max-width: 600px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .email-detail-box { padding: 16px; }
+            .btn-group { flex-direction: column; }
+            .btn { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-screen">
+    <div class="login-box">
+        <h1>ATAOL <span>AI Techs</span> Outreach</h1>
+        <p>Enter your GitHub Personal Access Token to continue.</p>
+        <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+        <button onclick="login()">Sign In</button>
+        <div id="loginError" class="login-error"></div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden">
+    <div class="navbar">
+        <a class="logo">ATAOL <span>AI Techs</span></a>
+        <nav>
+            <a onclick="showTab('overview')" id="tab-overview" class="active">Dashboard</a>
+            <a onclick="showTab('pending')" id="tab-pending">Pending</a>
+            <a onclick="showTab('approved')" id="tab-approved">Approved</a>
+            <a onclick="showTab('sent')" id="tab-sent">Sent</a>
+            <a onclick="showTab('rejected')" id="tab-rejected">Rejected</a>
+            <a onclick="showTab('approvedlog')" id="tab-approvedlog">Outreach Log</a>
+        </nav>
+        <span class="logout" onclick="logout()">Logout</span>
+    </div>
+
+    <div class="container">
+        <div id="view-overview">
+            <div class="stats-row" id="statsRow"></div>
+            <div class="card"><h3 style="margin-bottom:12px;">Recent Emails</h3><div id="recentList"></div></div>
+        </div>
+        <div id="view-pending" class="hidden"><div id="pendingList"></div></div>
+        <div id="view-approved" class="hidden"><div id="approvedList"></div></div>
+        <div id="view-sent" class="hidden"><div id="sentList"></div></div>
+        <div id="view-rejected" class="hidden"><div id="rejectedList"></div></div>
+        <div id="view-sentlog" class="hidden"><div id="sentLogContent"></div></div>
+        <div id="view-approvedlog" class="hidden"><div id="approvedLogContent"></div></div>
+    </div>
+</div>
+
+<!-- EMAIL DETAIL MODAL -->
+<div id="emailModal" class="email-detail-overlay hidden" onclick="if(event.target===this)closeModal()">
+    <div class="email-detail-box" id="emailDetailContent"></div>
+</div>
+
+<script>
+const REPO_OWNER = 'sertacgul';
+const REPO_NAME = 'ataol-dashboard';
+const DATA_PATH = 'data/emails.json';
+const GIST_ID = '3a783c6e0d525a36da50cc4821e55552';
+
+let TOKEN = '';
+let emailsData = [];
+let leadsData = [];
+// ---- AUTH ----
+function login() {
+    const token = document.getElementById('tokenInput').value.trim();
+    if (!token) return;
+    TOKEN = token;
+    verifyToken(token);
+}
+
+async function verifyToken(token) {
+    try {
+        const resp = await fetch('https://api.github.com/user', {
+            headers: { 'Authorization': `token ${token}` }
+        });
+        const user = await resp.json();
+        if (user.login === REPO_OWNER) {
+            localStorage.setItem('st_token', token);
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            loadData();
+        } else {
+            showLoginError('Access denied. Only @sertacgul can access.');
+        }
+    } catch (e) {
+        showLoginError('Invalid token or network error.');
+    }
+}
+
+function showLoginError(msg) {
+    const el = document.getElementById('loginError');
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+
+function logout() {
+    localStorage.removeItem('st_token');
+    TOKEN = '';
+    location.reload();
+}
+
+// ---- DATA ----
+async function loadData() {
+    try {
+        // Get fresh download URL via API (bypasses CDN cache)
+        const metaResp = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_PATH}`, {
+            headers: { 'Authorization': `token ${TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (!metaResp.ok) { emailsData = []; renderAll(); return; }
+        const meta = await metaResp.json();
+        // Use git blob API for large files (no 1MB limit)
+        const blobResp = await fetch(meta.git_url, {
+            headers: { 'Authorization': `token ${TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        const blob = await blobResp.json();
+        const decoded = decodeURIComponent(escape(atob(blob.content.replace(/\n/g, ''))));
+        const data = JSON.parse(decoded);
+        emailsData = data.emails || [];
+        leadsData = data.leads || [];
+        renderAll();
+    } catch (e) {
+        console.error('Load error:', e);
+    }
+}
+
+async function saveData() {
+    // Save only status changes to gist (tiny payload - just id:status pairs)
+    const statusMap = {};
+    emailsData.forEach(e => { statusMap[e.id] = e.status; });
+    const jsonStr = JSON.stringify({ statuses: statusMap, updated_at: new Date().toISOString() });
+
+    try {
+        const resp = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `token ${TOKEN}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ files: { 'approvals.json': { content: jsonStr } } })
+        });
+        if (!resp.ok) {
+            console.error('Save error:', resp.status);
+            showToast(`Save error: ${resp.status}`, 'error');
+        }
+    } catch (e) {
+        console.error('Network error saving:', e);
+        showToast('Network error. Will retry later.', 'error');
+    }
+}
+
+// ---- RENDER ----
+function renderAll() {
+    renderStats();
+    renderEmailList('pendingList', emailsData.filter(e => e.status === 'pending_review'), 'No pending emails');
+    renderEmailList('approvedList', emailsData.filter(e => e.status === 'approved'), 'No approved emails');
+    renderEmailList('sentList', emailsData.filter(e => e.status === 'sent'), 'No sent emails');
+    renderEmailList('rejectedList', emailsData.filter(e => e.status === 'rejected'), 'No rejected emails');
+    renderEmailList('recentList', emailsData.slice(0, 10), 'No emails yet');
+    renderSentLog();
+    renderOutreachLog();
+    // Update tab counts
+    const pendingCount = emailsData.filter(e => e.status === 'pending_review').length;
+    const sentCount = emailsData.filter(e => e.status === 'sent').length;
+    document.getElementById('tab-pending').textContent = `Pending (${pendingCount})`;
+    document.getElementById('tab-sentlog').textContent = `Sent Log (${sentCount})`;
+    document.getElementById('tab-approvedlog').textContent = `Outreach Log (${emailsData.length})`;
+}
+
+function renderSentLog() {
+    const container = document.getElementById('sentLogContent');
+    // Get all emails that have been sent (initial + follow-ups), sorted by sent_at desc
+    const sentEmails = emailsData
+        .filter(e => e.status === 'sent')
+        .sort((a, b) => (b.sent_at || b.generated_at || '').localeCompare(a.sent_at || a.generated_at || ''));
+
+    if (!sentEmails.length) {
+        container.innerHTML = '<div class="empty">No emails sent yet.</div>';
+        return;
+    }
+
+    let rows = sentEmails.map((e, i) => {
+        const lead = leadsData.find(l => l.id === e.lead_id) || {};
+        const sentDate = e.sent_at ? e.sent_at.substring(0, 16).replace('T', ' ') : '-';
+        const emailType = e.email_type === 'followup_1' ? 'Follow-up 1' : e.email_type === 'followup_2' ? 'Follow-up 2' : 'Initial';
+        const typeBadge = e.email_type === 'initial' || !e.email_type
+            ? '<span class="badge badge-sent">Initial</span>'
+            : `<span class="badge badge-approved">${emailType}</span>`;
+        const country = lead.country || '-';
+        const lang = (e.language || 'en').toUpperCase();
+
+        return `<tr onclick="openEmail(${emailsData.indexOf(e)})" style="cursor:pointer;">
+            <td style="color:#888;font-size:12px;">${i + 1}</td>
+            <td><strong>${lead.company_name || e.to_name || '-'}</strong></td>
+            <td>${e.to_email}</td>
+            <td>${country}</td>
+            <td>${lang}</td>
+            <td>${e.subject.length > 40 ? e.subject.substring(0,40) + '...' : e.subject}</td>
+            <td>${typeBadge}</td>
+            <td style="font-size:12px;color:#666;">${sentDate}</td>
+        </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3>Sent Email Log (${sentEmails.length})</h3>
+            <input type="text" id="sentLogSearch" placeholder="Search company, email..."
+                   oninput="filterSentLog()"
+                   style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;width:250px;">
+        </div>
+        <div style="overflow-x:auto;">
+        <table id="sentLogTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Company</th>
+                    <th>Email</th>
+                    <th>Country</th>
+                    <th>Lang</th>
+                    <th>Subject</th>
+                    <th>Type</th>
+                    <th>Sent Date</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+        </div>
+    </div>`;
+}
+
+function renderOutreachLog() {
+    const container = document.getElementById('approvedLogContent');
+    const allEmails = [...emailsData].sort((a, b) => (b.generated_at || '').localeCompare(a.generated_at || ''));
+
+    if (!allEmails.length) {
+        container.innerHTML = '<div class="empty">No outreach emails yet.</div>';
+        return;
+    }
+
+    // Stats
+    const countryMap = {};
+    const industryMap = {};
+    const statusMap = { pending_review: 0, approved: 0, sent: 0, rejected: 0 };
+    allEmails.forEach(e => {
+        const lead = leadsData.find(l => l.id === e.lead_id) || {};
+        const c = lead.country || '??';
+        const ind = (lead.industry || 'Other').substring(0, 25);
+        countryMap[c] = (countryMap[c] || 0) + 1;
+        industryMap[ind] = (industryMap[ind] || 0) + 1;
+        if (statusMap[e.status] !== undefined) statusMap[e.status]++;
+    });
+
+    const maxCountry = Math.max(...Object.values(countryMap), 1);
+    const countryBars = Object.entries(countryMap).sort((a,b) => b[1]-a[1]).slice(0,10)
+        .map(([c,n]) => `<div style="display:flex;align-items:center;gap:8px;margin:4px 0;">
+            <span style="width:30px;font-size:12px;font-weight:600;color:#555;">${c}</span>
+            <div style="flex:1;background:#e8e8e8;border-radius:4px;height:18px;overflow:hidden;">
+                <div style="width:${(n/maxCountry*100)}%;background:linear-gradient(90deg,#1976d2,#4fc3f7);height:100%;border-radius:4px;"></div>
+            </div>
+            <span style="font-size:12px;color:#888;width:24px;text-align:right;">${n}</span>
+        </div>`).join('');
+
+    const maxIndustry = Math.max(...Object.values(industryMap), 1);
+    const industryBars = Object.entries(industryMap).sort((a,b) => b[1]-a[1]).slice(0,8)
+        .map(([ind,n]) => `<div style="display:flex;align-items:center;gap:8px;margin:4px 0;">
+            <span style="width:140px;font-size:11px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ind}</span>
+            <div style="flex:1;background:#e8e8e8;border-radius:4px;height:18px;overflow:hidden;">
+                <div style="width:${(n/maxIndustry*100)}%;background:linear-gradient(90deg,#2e7d32,#66bb6a);height:100%;border-radius:4px;"></div>
+            </div>
+            <span style="font-size:12px;color:#888;width:24px;text-align:right;">${n}</span>
+        </div>`).join('');
+
+    let rows = allEmails.map((e, i) => {
+        const lead = leadsData.find(l => l.id === e.lead_id) || {};
+        const created = e.generated_at ? e.generated_at.substring(0, 10) : '-';
+        const sentDate = e.sent_at ? e.sent_at.substring(0, 10) : '-';
+        const badgeClass = e.status === 'pending_review' ? 'pending' : e.status;
+        const emailType = !e.email_type || e.email_type === 'initial' ? '' : e.email_type === 'followup_1' ? ' (FU-1)' : ' (FU-2)';
+
+        return `<tr onclick="openEmail(${emailsData.indexOf(e)})" style="cursor:pointer;">
+            <td style="color:#888;font-size:12px;">${i + 1}</td>
+            <td><strong>${lead.company_name || e.to_name || '-'}</strong><span style="color:#aaa;font-size:11px;">${emailType}</span></td>
+            <td style="font-size:12px;">${e.to_email}</td>
+            <td>${lead.country || '-'}</td>
+            <td style="font-size:11px;">${(lead.industry || '-').substring(0, 30)}</td>
+            <td>${(e.language || 'en').toUpperCase()}</td>
+            <td><span class="badge badge-${badgeClass}">${e.status.replace('pending_review','pending')}</span></td>
+            <td style="font-size:12px;color:#666;">${created}</td>
+            <td style="font-size:12px;color:#666;">${sentDate}</td>
+        </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;">
+        <div class="stat-card"><div class="label">Total</div><div class="value blue">${allEmails.length}</div></div>
+        <div class="stat-card"><div class="label">Pending</div><div class="value orange">${statusMap.pending_review}</div></div>
+        <div class="stat-card"><div class="label">Approved</div><div class="value green">${statusMap.approved}</div></div>
+        <div class="stat-card"><div class="label">Sent</div><div class="value blue">${statusMap.sent}</div></div>
+        <div class="stat-card"><div class="label">Rejected</div><div class="value" style="color:#c62828">${statusMap.rejected}</div></div>
+        <div class="stat-card"><div class="label">Countries</div><div class="value blue">${Object.keys(countryMap).length}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div class="card"><h4 style="margin:0 0 12px;font-size:13px;color:#555;">By Country</h4>${countryBars}</div>
+        <div class="card"><h4 style="margin:0 0 12px;font-size:13px;color:#555;">By Industry</h4>${industryBars}</div>
+    </div>
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <h3>All Outreach (${allEmails.length})</h3>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <select id="outreachFilter" onchange="filterOutreachLog()" style="padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                    <option value="all">All</option>
+                    <option value="pending_review">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="sent">Sent</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <input type="text" id="outreachSearch" placeholder="Search..." oninput="filterOutreachLog()"
+                       style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;width:200px;">
+            </div>
+        </div>
+        <div style="overflow-x:auto;">
+        <table id="outreachTable">
+            <thead><tr><th>#</th><th>Company</th><th>Email</th><th>Country</th><th>Industry</th><th>Lang</th><th>Status</th><th>Created</th><th>Sent</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+        </div>
+    </div>`;
+}
+
+function filterOutreachLog() {
+    const query = (document.getElementById('outreachSearch').value || '').toLowerCase();
+    const statusFilter = document.getElementById('outreachFilter').value;
+    const allSorted = [...emailsData].sort((a, b) => (b.generated_at || '').localeCompare(a.generated_at || ''));
+    const rows = document.querySelectorAll('#outreachTable tbody tr');
+    rows.forEach((row, i) => {
+        const email = allSorted[i];
+        if (!email) { row.style.display = 'none'; return; }
+        const matchSearch = !query || row.textContent.toLowerCase().includes(query);
+        const matchStatus = statusFilter === 'all' || email.status === statusFilter;
+        row.style.display = (matchSearch && matchStatus) ? '' : 'none';
+    });
+}
+
+function filterSentLog() {
+    const query = document.getElementById('sentLogSearch').value.toLowerCase();
+    const rows = document.querySelectorAll('#sentLogTable tbody tr');
+    rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+    });
+}
+
+function renderAllEmails() {
+    const container = document.getElementById('allEmailsContent');
+    const allSorted = [...emailsData].sort((a, b) => (b.generated_at || '').localeCompare(a.generated_at || ''));
+
+    if (!allSorted.length) {
+        container.innerHTML = '<div class="empty">No emails yet.</div>';
+        return;
+    }
+
+    let rows = allSorted.map((e, i) => {
+        const lead = leadsData.find(l => l.id === e.lead_id) || {};
+        const genDate = e.generated_at ? e.generated_at.substring(0, 10) : '-';
+        const sentDate = e.sent_at ? e.sent_at.substring(0, 10) : '-';
+        const badgeClass = e.status === 'pending_review' ? 'pending' : e.status;
+        const emailType = !e.email_type || e.email_type === 'initial' ? 'Initial' : e.email_type === 'followup_1' ? 'FU-1' : 'FU-2';
+        const country = lead.country || '-';
+        const industry = (lead.industry || '-').substring(0, 30);
+
+        return `<tr onclick="openEmail(${emailsData.indexOf(e)})" style="cursor:pointer;">
+            <td style="color:#888;font-size:12px;">${i + 1}</td>
+            <td><strong>${lead.company_name || e.to_name || '-'}</strong></td>
+            <td>${e.to_email}</td>
+            <td>${country}</td>
+            <td style="font-size:12px;">${industry}</td>
+            <td>${(e.language || 'en').toUpperCase()}</td>
+            <td><span class="badge badge-${badgeClass}">${e.status.replace('pending_review','pending')}</span></td>
+            <td style="font-size:11px;">${emailType}</td>
+            <td style="font-size:12px;color:#666;">${genDate}</td>
+            <td style="font-size:12px;color:#666;">${sentDate}</td>
+        </tr>`;
+    }).join('');
+
+    // Status summary
+    const pending = allSorted.filter(e => e.status === 'pending_review').length;
+    const approved = allSorted.filter(e => e.status === 'approved').length;
+    const sent = allSorted.filter(e => e.status === 'sent').length;
+    const rejected = allSorted.filter(e => e.status === 'rejected').length;
+
+    container.innerHTML = `
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+            <h3>All Emails (${allSorted.length})</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <span style="font-size:12px;color:#888;">
+                    <span class="badge badge-pending">${pending} pending</span>
+                    <span class="badge badge-approved">${approved} approved</span>
+                    <span class="badge badge-sent">${sent} sent</span>
+                    <span class="badge badge-rejected">${rejected} rejected</span>
+                </span>
+                <select id="allEmailsFilter" onchange="filterAllEmails()" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                    <option value="all">All Statuses</option>
+                    <option value="pending_review">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="sent">Sent</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <input type="text" id="allEmailsSearch" placeholder="Search..."
+                       oninput="filterAllEmails()"
+                       style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;width:200px;">
+            </div>
+        </div>
+        <div style="overflow-x:auto;">
+        <table id="allEmailsTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Company</th>
+                    <th>Email</th>
+                    <th>Country</th>
+                    <th>Industry</th>
+                    <th>Lang</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                    <th>Created</th>
+                    <th>Sent</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+        </div>
+    </div>`;
+}
+
+function filterAllEmails() {
+    const query = (document.getElementById('allEmailsSearch').value || '').toLowerCase();
+    const statusFilter = document.getElementById('allEmailsFilter').value;
+    const rows = document.querySelectorAll('#allEmailsTable tbody tr');
+    const allSorted = [...emailsData].sort((a, b) => (b.generated_at || '').localeCompare(a.generated_at || ''));
+
+    rows.forEach((row, i) => {
+        const email = allSorted[i];
+        if (!email) { row.style.display = 'none'; return; }
+        const matchesSearch = !query || row.textContent.toLowerCase().includes(query);
+        const matchesStatus = statusFilter === 'all' || email.status === statusFilter;
+        row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+    });
+}
+
+function renderStats() {
+    const pending = emailsData.filter(e => e.status === 'pending_review').length;
+    const approved = emailsData.filter(e => e.status === 'approved').length;
+    const sent = emailsData.filter(e => e.status === 'sent').length;
+    const rejected = emailsData.filter(e => e.status === 'rejected').length;
+    document.getElementById('statsRow').innerHTML = `
+        <div class="stat-card"><div class="label">Total Emails</div><div class="value blue">${emailsData.length}</div></div>
+        <div class="stat-card"><div class="label">Pending</div><div class="value orange">${pending}</div></div>
+        <div class="stat-card"><div class="label">Approved</div><div class="value green">${approved}</div></div>
+        <div class="stat-card"><div class="label">Sent</div><div class="value blue">${sent}</div></div>
+        <div class="stat-card"><div class="label">Rejected</div><div class="value" style="color:#c62828">${rejected}</div></div>
+        <div class="stat-card"><div class="label">Leads</div><div class="value blue">${leadsData.length}</div></div>
+    `;
+}
+
+function renderEmailList(containerId, emails, emptyMsg) {
+    const container = document.getElementById(containerId);
+    if (!emails.length) {
+        container.innerHTML = `<div class="empty">${emptyMsg}</div>`;
+        return;
+    }
+    container.innerHTML = emails.map((e, i) => {
+        const idx = emailsData.indexOf(e);
+        const statusClass = e.status === 'pending_review' ? '' : e.status;
+        const badgeClass = e.status === 'pending_review' ? 'pending' : e.status;
+        const lead = leadsData.find(l => l.id === e.lead_id) || {};
+        return `
+        <div class="email-item ${statusClass}" onclick="openEmail(${idx})">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="company">${lead.company_name || e.to_name || 'N/A'}</span>
+                <span class="badge badge-${badgeClass}">${e.status.replace('pending_review','pending')}</span>
+            </div>
+            <div class="subject">${e.subject}</div>
+            <div class="meta">${e.to_email} - ${e.language === 'tr' ? 'TR' : 'EN'}</div>
+        </div>`;
+    }).join('');
+}
+
+// ---- TABS ----
+function showTab(tab) {
+    ['overview','pending','approved','sent','rejected','sentlog','approvedlog','all'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
+        document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+    });
+}
+
+// ---- EMAIL DETAIL ----
+function openEmail(idx) {
+    const e = emailsData[idx];
+    const lead = leadsData.find(l => l.id === e.lead_id) || {};
+    let painPoints = [];
+    try { painPoints = JSON.parse(lead.pain_points || '[]'); } catch(x) {}
+    let serviceMatch = [];
+    try { serviceMatch = JSON.parse(lead.service_match || '[]'); } catch(x) {}
+
+    const badgeClass = e.status === 'pending_review' ? 'pending' : e.status;
+
+    let actionsHtml = '';
+    let editHtml = '';
+    if (e.status === 'pending_review') {
+        actionsHtml = `
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="approveEmail(${idx})">Approve</button>
+            <button class="btn btn-outline" onclick="toggleEdit(${idx})">Edit</button>
+            <button class="btn btn-danger" onclick="rejectEmail(${idx})">Reject</button>
+        </div>`;
+        editHtml = `
+        <div id="editForm-${idx}" class="hidden" style="margin-top:16px;">
+            <div style="margin-bottom:12px;">
+                <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Subject</label>
+                <input type="text" id="editSubject-${idx}" value="${e.subject.replace(/"/g,'&quot;')}" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Email Body (HTML)</label>
+                <textarea id="editBody-${idx}" rows="10" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:monospace;">${(e.body_html || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="saveEdit(${idx})">Save & Approve</button>
+                <button class="btn btn-outline" onclick="saveEditOnly(${idx})">Save Draft</button>
+            </div>
+        </div>`;
+    } else if (e.status === 'approved') {
+        actionsHtml = `<div class="btn-group">
+            <button class="btn btn-danger" onclick="rejectEmail(${idx})">Cancel (Reject)</button>
+        </div>`;
+    }
+
+    let analysisHtml = '';
+    if (lead.company_summary) {
+        analysisHtml = `
+        <div class="analysis-box">
+            <h4>Company Analysis</h4>
+            <p style="margin-bottom:8px">${lead.company_summary}</p>
+            <p style="margin-bottom:8px"><strong>Industry:</strong> ${lead.industry || 'N/A'} - <strong>Stage:</strong> ${lead.company_size || 'N/A'}</p>
+            ${painPoints.length ? `<h4 style="margin-top:12px">Pain Points</h4><ul>${painPoints.map(p => `<li>${p}</li>`).join('')}</ul>` : ''}
+            ${serviceMatch.length ? `<h4 style="margin-top:12px">Service Match</h4><ul>${serviceMatch.map(s => `<li>${s}</li>`).join('')}</ul>` : ''}
+        </div>`;
+    }
+
+    document.getElementById('emailDetailContent').innerHTML = `
+        <div class="header">
+            <h2 style="font-size:18px">${lead.company_name || e.to_name}</h2>
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="field"><strong>To:</strong> ${e.to_email}</div>
+        <div class="field"><strong>From:</strong> ${e.from_email}</div>
+        <div class="field"><strong>Subject:</strong> ${e.subject}</div>
+        <div class="field"><strong>Status:</strong> <span class="badge badge-${badgeClass}">${e.status.replace('pending_review','pending')}</span></div>
+        <div class="email-preview">${e.body_html || '<em>No email body available</em>'}</div>
+        ${actionsHtml}
+        ${editHtml}
+        ${analysisHtml}
+    `;
+    document.getElementById('emailModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('emailModal').classList.add('hidden');
+}
+
+function toggleEdit(idx) {
+    const form = document.getElementById(`editForm-${idx}`);
+    form.classList.toggle('hidden');
+}
+
+async function saveEdit(idx) {
+    const subject = document.getElementById(`editSubject-${idx}`).value;
+    const bodyHtml = document.getElementById(`editBody-${idx}`).value
+        .replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    emailsData[idx].subject = subject;
+    emailsData[idx].body_html = bodyHtml;
+    emailsData[idx].body_text = bodyHtml.replace(/<[^>]*>/g, '');
+    emailsData[idx].status = 'approved';
+    emailsData[idx].approved_at = new Date().toISOString();
+    await saveData();
+    renderAll();
+    closeModal();
+    const lead = leadsData.find(l => l.id === emailsData[idx].lead_id) || {};
+    showToast(`${lead.company_name || 'Email'} edited & approved!`, 'success');
+}
+
+async function saveEditOnly(idx) {
+    const subject = document.getElementById(`editSubject-${idx}`).value;
+    const bodyHtml = document.getElementById(`editBody-${idx}`).value
+        .replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    emailsData[idx].subject = subject;
+    emailsData[idx].body_html = bodyHtml;
+    emailsData[idx].body_text = bodyHtml.replace(/<[^>]*>/g, '');
+    await saveData();
+    closeModal();
+    openEmail(idx);
+    showToast('Draft saved.', 'info');
+}
+
+function showToast(message, type = 'success') {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `${type === 'success' ? '&#10003;' : type === 'error' ? '&#10007;' : '&#8505;'} ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+}
+
+async function approveEmail(idx) {
+    const lead = leadsData.find(l => l.id === emailsData[idx].lead_id) || {};
+    emailsData[idx].status = 'approved';
+    emailsData[idx].approved_at = new Date().toISOString();
+    closeModal();
+    renderAll();
+    try {
+        await saveData();
+        showToast(`${lead.company_name || 'Email'} approved and saved!`, 'success');
+    } catch (e) {
+        console.error('Approve save error:', e);
+        showToast('Approved locally but sync failed. Will retry on next send.', 'info');
+    }
+}
+
+async function rejectEmail(idx) {
+    emailsData[idx].status = 'rejected';
+    emailsData[idx].reviewed_at = new Date().toISOString();
+    closeModal();
+    renderAll();
+    showToast('Email rejected.', 'info');
+    try {
+        await saveData();
+    } catch (e) {
+        console.error('Save error:', e);
+    }
+}
+
+// ---- INIT ----
+(function init() {
+    const saved = localStorage.getItem('st_token');
+    if (saved) {
+        TOKEN = saved;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        loadData();
+    }
+    document.getElementById('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+})();
+</script>
+</body>
+</html>
