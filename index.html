@@ -259,6 +259,22 @@ async function loadData() {
         const data = JSON.parse(content);
         emailsData = data.emails || [];
         leadsData = data.leads || [];
+
+        // Merge approvals on top of emails
+        if (gist.files['approvals.json']) {
+            try {
+                const approvals = JSON.parse(gist.files['approvals.json'].content);
+                const statuses = approvals.statuses || {};
+                emailsData.forEach(e => {
+                    if (statuses[e.id] && statuses[e.id] !== e.status) {
+                        e.status = statuses[e.id];
+                    }
+                });
+            } catch (ae) {
+                console.error('Approvals parse error:', ae);
+            }
+        }
+
         renderAll();
     } catch (e) {
         console.error('Load error:', e);
