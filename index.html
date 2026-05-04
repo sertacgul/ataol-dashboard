@@ -259,22 +259,6 @@ async function loadData() {
         const data = JSON.parse(content);
         emailsData = data.emails || [];
         leadsData = data.leads || [];
-
-        // Merge approvals on top of emails
-        if (gist.files['approvals.json']) {
-            try {
-                const approvals = JSON.parse(gist.files['approvals.json'].content);
-                const statuses = approvals.statuses || {};
-                emailsData.forEach(e => {
-                    if (statuses[e.id] && statuses[e.id] !== e.status) {
-                        e.status = statuses[e.id];
-                    }
-                });
-            } catch (ae) {
-                console.error('Approvals parse error:', ae);
-            }
-        }
-
         renderAll();
     } catch (e) {
         console.error('Load error:', e);
@@ -282,10 +266,13 @@ async function loadData() {
 }
 
 async function saveData() {
-    // Save only status changes to gist (tiny payload - just id:status pairs)
-    const statusMap = {};
-    emailsData.forEach(e => { statusMap[e.id] = e.status; });
-    const jsonStr = JSON.stringify({ statuses: statusMap, updated_at: new Date().toISOString() });
+    // Write updated statuses directly into emails.json (single source of truth)
+    const data = {
+        emails: emailsData,
+        leads: leadsData,
+        updated_at: new Date().toISOString()
+    };
+    const jsonStr = JSON.stringify(data);
 
     try {
         const resp = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
@@ -295,7 +282,7 @@ async function saveData() {
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ files: { 'approvals.json': { content: jsonStr } } })
+            body: JSON.stringify({ files: { 'emails.json': { content: jsonStr } } })
         });
         if (!resp.ok) {
             console.error('Save error:', resp.status);
