@@ -175,6 +175,7 @@
             <a onclick="showTab('approved')" id="tab-approved">Approved</a>
             <a onclick="showTab('sent')" id="tab-sent">Sent</a>
             <a onclick="showTab('rejected')" id="tab-rejected">Rejected</a>
+            <a onclick="showTab('sentlog')" id="tab-sentlog">Sent Log</a>
             <a onclick="showTab('approvedlog')" id="tab-approvedlog">Outreach Log</a>
         </nav>
         <span class="logout" onclick="logout()">Logout</span>
@@ -332,9 +333,12 @@ function renderAll() {
     // Update tab counts
     const pendingCount = emailsData.filter(e => e.status === 'pending_review').length;
     const sentCount = emailsData.filter(e => e.status === 'sent').length;
-    document.getElementById('tab-pending').textContent = `Pending (${pendingCount})`;
-    document.getElementById('tab-sentlog').textContent = `Sent Log (${sentCount})`;
-    document.getElementById('tab-approvedlog').textContent = `Outreach Log (${emailsData.length})`;
+    const tabPending = document.getElementById('tab-pending');
+    const tabSentlog = document.getElementById('tab-sentlog');
+    const tabApprovedlog = document.getElementById('tab-approvedlog');
+    if (tabPending) tabPending.textContent = `Pending (${pendingCount})`;
+    if (tabSentlog) tabSentlog.textContent = `Sent Log (${sentCount})`;
+    if (tabApprovedlog) tabApprovedlog.textContent = `Outreach Log (${emailsData.length})`;
 }
 
 function renderSentLog() {
@@ -658,9 +662,11 @@ function renderEmailList(containerId, emails, emptyMsg) {
 
 // ---- TABS ----
 function showTab(tab) {
-    ['overview','pending','approved','sent','rejected','sentlog','approvedlog','all'].forEach(t => {
-        document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
-        document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+    ['overview','pending','approved','sent','rejected','sentlog','approvedlog'].forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        const tabEl = document.getElementById(`tab-${t}`);
+        if (view) view.classList.toggle('hidden', t !== tab);
+        if (tabEl) tabEl.classList.toggle('active', t === tab);
     });
 }
 
