@@ -255,8 +255,16 @@ async function loadData() {
         });
         if (!resp.ok) { emailsData = []; renderAll(); return; }
         const gist = await resp.json();
-        const content = gist.files['emails.json'].content;
-        const data = JSON.parse(content);
+        const fileInfo = gist.files['emails.json'];
+        let data;
+        if (fileInfo.truncated) {
+            const rawResp = await fetch(fileInfo.raw_url, {
+                headers: { 'Authorization': `token ${TOKEN}` }
+            });
+            data = await rawResp.json();
+        } else {
+            data = JSON.parse(fileInfo.content);
+        }
         emailsData = data.emails || [];
         leadsData = data.leads || [];
         renderAll();
