@@ -249,17 +249,44 @@ function logout() {
 
 // ---- DATA ----
 async function loadData() {
+    // Method 1: Direct raw URL (no auth needed, no truncation)
     try {
-        // Fetch directly from raw URL - bypasses GitHub API truncation for large files
-        const rawResp = await fetch(`https://gist.githubusercontent.com/${REPO_OWNER}/${GIST_ID}/raw/emails.json?t=${Date.now()}`);
-        if (!rawResp.ok) { emailsData = []; renderAll(); return; }
-        const data = await rawResp.json();
+        const rawUrl = `https://gist.githubusercontent.com/${REPO_OWNER}/${GIST_ID}/raw/emails.json?t=${Date.now()}`;
+        const rawResp = await fetch(rawUrl);
+        if (rawResp.ok) {
+            const text = await rawResp.text();
+            const data = JSON.parse(text);
+            emailsData = data.emails || [];
+            leadsData = data.leads || [];
+            renderAll();
+            return;
+        }
+    } catch (e1) {
+        console.warn('Raw URL failed, trying API fallback:', e1);
+    }
+
+    // Method 2: Gist API with raw_url for truncated files
+    try {
+        const resp = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+            headers: { 'Authorization': `token ${TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (!resp.ok) { emailsData = []; renderAll(); return; }
+        const gist = await resp.json();
+        const fileInfo = gist.files['emails.json'];
+        let data;
+        if (fileInfo.truncated && fileInfo.raw_url) {
+            const r2 = await fetch(fileInfo.raw_url);
+            const text = await r2.text();
+            data = JSON.parse(text);
+        } else {
+            data = JSON.parse(fileInfo.content);
+        }
         emailsData = data.emails || [];
         leadsData = data.leads || [];
         renderAll();
-    } catch (e) {
-        console.error('Load error:', e);
-        document.querySelector('.container').innerHTML = '<div class="card"><p style="color:#c62828;">Data load error. Check console.</p></div>';
+    } catch (e2) {
+        console.error('All load methods failed:', e2);
+        document.querySelector('.container').innerHTML = `<div class="card"><p style="color:#c62828;">Veri yuklenemedi: ${e2.message}</p><p style="margin-top:8px;font-size:13px;color:#666;">Logout yapip tekrar dene veya sayfayi Ctrl+Shift+R ile yenile.</p></div>`;
     }
 }
 
