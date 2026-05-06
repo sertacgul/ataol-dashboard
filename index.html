@@ -250,26 +250,16 @@ function logout() {
 // ---- DATA ----
 async function loadData() {
     try {
-        const resp = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-            headers: { 'Authorization': `token ${TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
-        });
-        if (!resp.ok) { emailsData = []; renderAll(); return; }
-        const gist = await resp.json();
-        const fileInfo = gist.files['emails.json'];
-        let data;
-        if (fileInfo.truncated) {
-            const rawResp = await fetch(fileInfo.raw_url, {
-                headers: { 'Authorization': `token ${TOKEN}` }
-            });
-            data = await rawResp.json();
-        } else {
-            data = JSON.parse(fileInfo.content);
-        }
+        // Fetch directly from raw URL - bypasses GitHub API truncation for large files
+        const rawResp = await fetch(`https://gist.githubusercontent.com/${REPO_OWNER}/${GIST_ID}/raw/emails.json?t=${Date.now()}`);
+        if (!rawResp.ok) { emailsData = []; renderAll(); return; }
+        const data = await rawResp.json();
         emailsData = data.emails || [];
         leadsData = data.leads || [];
         renderAll();
     } catch (e) {
         console.error('Load error:', e);
+        document.querySelector('.container').innerHTML = '<div class="card"><p style="color:#c62828;">Data load error. Check console.</p></div>';
     }
 }
 
