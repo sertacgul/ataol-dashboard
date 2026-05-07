@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule a Meeting - ATAOL AI Techs</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 40px 16px; }
+        .card { background: #fff; border-radius: 16px; width: 480px; max-width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0f2460 100%); padding: 24px 30px 20px; }
+        .header img { height: 40px; }
+        .header .line { margin-top: 10px; height: 3px; background: linear-gradient(90deg, #4fc3f7, #22d3ee, #1976d2, transparent); border-radius: 2px; }
+        .body { padding: 30px; }
+        .company-name { font-size: 14px; color: #888; margin-bottom: 4px; }
+        h1 { font-size: 20px; color: #1a1a2e; margin-bottom: 20px; font-weight: 700; }
+        label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; margin-top: 16px; }
+        input[type="date"], input[type="time"], textarea, select {
+            width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; font-family: inherit; background: #f8f9fc; transition: border 0.2s;
+        }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #1976d2; background: #fff; }
+        textarea { resize: vertical; min-height: 80px; }
+        .time-row { display: flex; gap: 12px; }
+        .time-row > div { flex: 1; }
+        .tz-note { font-size: 11px; color: #888; margin-top: 4px; }
+        .submit-btn {
+            display: block; width: 100%; padding: 14px; margin-top: 24px;
+            background: linear-gradient(135deg, #1a1a2e, #0f3460); color: #fff; border: none;
+            border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .submit-btn:hover { opacity: 0.9; }
+        .footer { background: #f8f9fa; padding: 16px 30px; border-top: 1px solid #eee; }
+        .footer p { font-size: 11px; color: #888; }
+        .footer a { color: #1976d2; text-decoration: none; }
+        .success { display: none; text-align: center; padding: 40px 30px; }
+        .success h2 { color: #2e7d32; margin-bottom: 8px; }
+        .success p { color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <img src="ataol-logo.png" alt="ATAOL AI Techs" />
+            <div class="line"></div>
+        </div>
+
+        <div class="body" id="formView">
+            <p class="company-name" id="companyLabel"></p>
+            <h1 id="pageTitle">Schedule a Meeting</h1>
+
+            <label id="labelDate">Preferred Date</label>
+            <input type="date" id="meetDate" />
+
+            <div class="time-row">
+                <div>
+                    <label id="labelTime">Preferred Time</label>
+                    <select id="meetTime">
+                        <option value="09:00">09:00</option>
+                        <option value="09:30">09:30</option>
+                        <option value="10:00" selected>10:00</option>
+                        <option value="10:30">10:30</option>
+                        <option value="11:00">11:00</option>
+                        <option value="11:30">11:30</option>
+                        <option value="12:00">12:00</option>
+                        <option value="13:00">13:00</option>
+                        <option value="13:30">13:30</option>
+                        <option value="14:00">14:00</option>
+                        <option value="14:30">14:30</option>
+                        <option value="15:00">15:00</option>
+                        <option value="15:30">15:30</option>
+                        <option value="16:00">16:00</option>
+                        <option value="16:30">16:30</option>
+                        <option value="17:00">17:00</option>
+                    </select>
+                </div>
+                <div>
+                    <label id="labelDuration">Duration</label>
+                    <select id="meetDuration">
+                        <option value="30">30 min</option>
+                        <option value="45">45 min</option>
+                        <option value="60">60 min</option>
+                    </select>
+                </div>
+            </div>
+            <p class="tz-note" id="tzNote"></p>
+
+            <label id="labelTopic">Meeting Topic</label>
+            <textarea id="meetTopic" placeholder=""></textarea>
+
+            <button class="submit-btn" id="submitBtn" onclick="submitForm()">Send Request</button>
+        </div>
+
+        <div class="success" id="successView">
+            <h2 id="successTitle">Request Sent!</h2>
+            <p id="successMsg">Your meeting request has been sent. We will confirm shortly.</p>
+        </div>
+
+        <div class="footer">
+            <p>ATAOL AI Techs - <a href="https://www.ataolai.tech">ataolai.tech</a> | <a href="https://strategythrust.com">strategythrust.com</a> | <a href="https://actledger.com">actledger.com</a></p>
+        </div>
+    </div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const company = params.get('company') || '';
+const tz = parseInt(params.get('tz') || '0', 10);
+const lang = params.get('lang') || 'en';
+const isTR = lang === 'tr';
+
+// Set min date to tomorrow
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+// Skip weekends
+while (tomorrow.getDay() === 0 || tomorrow.getDay() === 6) tomorrow.setDate(tomorrow.getDate() + 1);
+document.getElementById('meetDate').min = tomorrow.toISOString().split('T')[0];
+document.getElementById('meetDate').value = tomorrow.toISOString().split('T')[0];
+
+// Localize
+if (isTR) {
+    document.title = 'Gorusme Planla - ATAOL AI Techs';
+    document.getElementById('pageTitle').textContent = 'Gorusme Planla';
+    document.getElementById('labelDate').textContent = 'Tercih Edilen Tarih';
+    document.getElementById('labelTime').textContent = 'Tercih Edilen Saat';
+    document.getElementById('labelDuration').textContent = 'Sure';
+    document.getElementById('labelTopic').textContent = 'Gorusme Konusu';
+    document.getElementById('meetTopic').placeholder = 'Gorusmek istediginiz konuyu kisaca belirtin...';
+    document.getElementById('submitBtn').textContent = 'Gorusme Talebi Gonder';
+    document.getElementById('tzNote').textContent = 'Saatler Turkiye saatine goredir (UTC+3)';
+    document.getElementById('successTitle').textContent = 'Talebiniz Gonderildi!';
+    document.getElementById('successMsg').textContent = 'Gorusme talebiniz iletildi. En kisa surede donus yapacagiz.';
+    document.querySelectorAll('#meetDuration option').forEach(o => {
+        o.textContent = o.value + ' dk';
+    });
+} else {
+    document.getElementById('meetTopic').placeholder = 'Briefly describe what you would like to discuss...';
+    const tzLabel = tz >= 0 ? `UTC+${tz}` : `UTC${tz}`;
+    document.getElementById('tzNote').textContent = `Times shown in your local timezone (${tzLabel})`;
+}
+
+if (company) {
+    document.getElementById('companyLabel').textContent = company;
+}
+
+function submitForm() {
+    const date = document.getElementById('meetDate').value;
+    const time = document.getElementById('meetTime').value;
+    const duration = document.getElementById('meetDuration').value;
+    const topic = document.getElementById('meetTopic').value.trim();
+
+    if (!date) { alert(isTR ? 'Lutfen tarih secin.' : 'Please select a date.'); return; }
+    if (!topic) { alert(isTR ? 'Lutfen gorusme konusunu belirtin.' : 'Please describe the meeting topic.'); return; }
+
+    const tzLabel = isTR ? 'Turkiye saati' : (tz >= 0 ? `UTC+${tz}` : `UTC${tz}`);
+    const durationLabel = isTR ? `${duration} dakika` : `${duration} minutes`;
+
+    const subject = `Meeting Request - ATAOL AI Techs x ${company}`;
+    const body = isTR
+        ? `Merhaba,\n\n${company} adina gorusme talep ediyorum.\n\nTarih: ${date}\nSaat: ${time} (${tzLabel})\nSure: ${durationLabel}\n\nGorusme Konusu:\n${topic}\n\nSaygilarimla`
+        : `Hello,\n\nI would like to schedule a meeting on behalf of ${company}.\n\nDate: ${date}\nTime: ${time} (${tzLabel})\nDuration: ${durationLabel}\n\nMeeting Topic:\n${topic}\n\nBest regards`;
+
+    const mailto = `mailto:sertacgul@strategythrust.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('successView').style.display = 'block';
+}
+</script>
+</body>
+</html>
