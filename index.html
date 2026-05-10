@@ -249,11 +249,16 @@
                 </div>
                 <div id="apiKeySection" style="margin-top:12px;">
                     <div class="form-group">
-                        <label>Anthropic API Key</label>
-                        <input type="password" id="anthropicKey" placeholder="sk-ant-..." style="font-family:monospace;"
-                               onchange="localStorage.setItem('anthropic_key', this.value)">
+                        <label>Perplexity API Key (arastirma icin)</label>
+                        <input type="password" id="perplexityKey" placeholder="pplx-..." style="font-family:monospace;"
+                               onchange="localStorage.setItem('perplexity_key', this.value)">
                     </div>
-                    <p style="font-size:11px;color:#999;">AI destekli arastirma icin gerekli. Key sadece tarayicida saklanir.</p>
+                    <div class="form-group">
+                        <label>Gemini API Key (email olusturma icin)</label>
+                        <input type="password" id="geminiKey" placeholder="AIza..." style="font-family:monospace;"
+                               onchange="localStorage.setItem('gemini_key', this.value)">
+                    </div>
+                    <p style="font-size:11px;color:#999;">Perplexity firmay internetten arastirir, Gemini kisisel email olusturur. Key'ler sadece tarayicida saklanir.</p>
                 </div>
             </div>
         </div>
@@ -947,7 +952,8 @@ function copyEmailContent(idx) {
 }
 
 // ---- NEW OUTREACH ----
-let ANTHROPIC_KEY = '';
+let PERPLEXITY_KEY = '';
+let GEMINI_KEY = '';
 
 async function startResearch() {
     const companyName = document.getElementById('newCompanyName').value.trim();
@@ -957,59 +963,118 @@ async function startResearch() {
 
     if (!companyName) { showToast('Firma adi zorunlu!', 'error'); return; }
 
-    ANTHROPIC_KEY = document.getElementById('anthropicKey').value || localStorage.getItem('anthropic_key') || '';
-    if (!ANTHROPIC_KEY) { showToast('Anthropic API Key gerekli! API Ayarlari bolumunu ac.', 'error'); return; }
+    PERPLEXITY_KEY = document.getElementById('perplexityKey').value || localStorage.getItem('perplexity_key') || '';
+    GEMINI_KEY = document.getElementById('geminiKey').value || localStorage.getItem('gemini_key') || '';
+
+    if (!PERPLEXITY_KEY || !GEMINI_KEY) {
+        showToast('Perplexity ve Gemini API Key gerekli! API Ayarlari bolumunu ac.', 'error');
+        return;
+    }
 
     const resultDiv = document.getElementById('researchResult');
     resultDiv.classList.remove('hidden');
-    resultDiv.innerHTML = `<div style="text-align:center;padding:30px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;">Firma arastiriliyor ve email olusturuluyor...</p><p style="color:#aaa;font-size:12px;margin-top:4px;">${companyName}</p></div>`;
+    resultDiv.innerHTML = `<div style="text-align:center;padding:30px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;"><strong>Adim 1/2:</strong> Perplexity ile firma arastiriliyor...</p><p style="color:#aaa;font-size:12px;margin-top:4px;">${companyName}</p></div>`;
     document.getElementById('btnResearch').disabled = true;
     document.getElementById('btnResearch').textContent = 'Arastiriliyor...';
 
     try {
-        const result = await callClaudeAPI(companyName, email, website, notes);
-        showResearchResult(result, companyName, email, website);
+        // Step 1: Research with Perplexity
+        const research = await callPerplexityAPI(companyName, email, website, notes);
+
+        resultDiv.innerHTML = `<div style="text-align:center;padding:30px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;"><strong>Adim 2/2:</strong> Gemini ile email olusturuluyor...</p><p style="color:#aaa;font-size:12px;margin-top:4px;">${companyName}</p></div>`;
+
+        // Step 2: Generate email with Gemini using research
+        const result = await callGeminiAPI(companyName, email, website, notes, research);
+
+        showResearchResult(result, companyName, email, website, research);
     } catch (err) {
-        resultDiv.innerHTML = `<div class="card" style="border-left:4px solid #c62828;"><p style="color:#c62828;font-weight:600;">Hata: ${err.message}</p><p style="color:#888;font-size:12px;margin-top:4px;">API key'i kontrol et veya tekrar dene.</p></div>`;
+        resultDiv.innerHTML = `<div class="card" style="border-left:4px solid #c62828;"><p style="color:#c62828;font-weight:600;">Hata: ${err.message}</p><p style="color:#888;font-size:12px;margin-top:4px;">API key'leri kontrol et veya tekrar dene.</p></div>`;
     } finally {
         document.getElementById('btnResearch').disabled = false;
         document.getElementById('btnResearch').textContent = 'Arastir & Email Olustur';
     }
 }
 
-async function callClaudeAPI(companyName, email, website, notes) {
+async function callPerplexityAPI(companyName, email, website, notes) {
+    const prompt = `"${companyName}" firmasi hakkinda detayli arastirma yap.
+${website ? 'Website: ' + website : ''}
+${notes ? 'Ek bilgi: ' + notes : ''}
+
+Su bilgileri bul:
+1. Firma ne is yapiyor? (detayli aciklama)
+2. Hangi sektorde faaliyet gosteriyor?
+3. Firma buyuklugu (calisan sayisi, gelir vb.)
+4. Hangi ulkede/ulkelerde faaliyet gosteriyor?
+5. Firmanin karsilastigi zorluklar, operasyonel sorunlar
+6. Dijital donusum, AI kullanimi, operasyonel verimlilik konusundaki durumlari
+7. Yonetim kadrosu (CEO, CTO vb. isimleri ve gorevleri)
+8. Guncel haberler veya gelismeler
+
+Mumkun oldugunca gercek ve guncel bilgiler ver. Bilmedigin bilgileri uydurma, bilinmiyor olarak belirt.`;
+
+    const resp = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${PERPLEXITY_KEY}`
+        },
+        body: JSON.stringify({
+            model: 'sonar-pro',
+            messages: [
+                { role: 'system', content: 'Sen bir firma arastirma uzmansin. Verilen firma hakkinda internetten detayli ve gercek bilgi topluyorsun. Turkce yanit ver.' },
+                { role: 'user', content: prompt }
+            ]
+        })
+    });
+
+    if (!resp.ok) {
+        const errBody = await resp.text();
+        throw new Error(`Perplexity API ${resp.status}: ${errBody.substring(0, 200)}`);
+    }
+
+    const data = await resp.json();
+    return data.choices[0].message.content;
+}
+
+async function callGeminiAPI(companyName, email, website, notes, research) {
     const prompt = `Sen ATAOL AI Techs sirketinin outreach uzmansin. ATAOL AI Techs su hizmetleri sunuyor:
 
 1. **StrategyThrust** - Yapay zeka destekli stratejik danismanlik platformu. Sirketlere ozel AI modelleri, pazar analizi, rekabet istihbarati ve stratejik karar destegi saglar. https://strategythrust.com
 
 2. **ActLedger** - Operasyonel yonetim ve gorev takip platformu. Departman bazli KPI takibi, is emirleri, gorev yonetimi, performans analizi ve raporlama sunar. https://actledger.com
 
-Asagidaki firma hakkinda detayli arastirma yap ve kisisellestirilmis bir outreach emaili olustur.
+Asagida Perplexity ile yapilan firma arastirmasi var. Bu arastirmayi kullanarak kisisellestirilmis bir outreach emaili olustur.
 
+--- FIRMA BILGILERI ---
 Firma: ${companyName}
 ${website ? 'Website: ' + website : ''}
 ${email ? 'Iletisim email: ' + email : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
 
+--- PERPLEXITY ARASTIRMA SONUCU ---
+${research}
+--- ARASTIRMA SONU ---
+
 KRITIK KURALLAR:
 - Em-dash veya en-dash KULLANMA, sadece kisa tire (-) kullan
 - Email profesyonel ama samimi olsun, satisci gibi degil danismanvari
-- Firmanin spesifik ihtiyaclarina ve sektorune deginsin
+- Firmanin spesifik ihtiyaclarina ve sektorune deginsin - arastirma sonuclarini kullan
 - Calisan sayisi biliniyorsa rakam yaz, bilinmiyorsa "Kucuk/Orta/Buyuk olcekli sirket kategorisi" yaz
 - Konu satiri dikkat cekici ve kisa olsun
 - Gonderen: Sertac Gul, ATAOL AI Techs
-- Firmanin ulkesine gore TR veya EN email olustur
+- Firmanin ulkesine gore TR veya EN email olustur (Turkiye firmasi ise TR, yabanci firma ise EN)
+- Arastirmada bulunan gercek bilgileri (yonetici isimleri, projeler, haberler) emaile dahil et
 
-Yanitini SADECE su JSON formatinda ver (baska hicbir sey yazma):
+Yanitini SADECE su JSON formatinda ver (baska hicbir sey yazma, markdown kullanma):
 {
   "lead": {
     "company_name": "Firma adi",
-    "company_summary": "Firmanin ne yaptiginin kisa ozeti (2-3 cumle)",
+    "company_summary": "Firmanin ne yaptiginin kisa ozeti (2-3 cumle, arastirmadan gercek bilgiler)",
     "industry": "Sektor kategorisi",
     "company_size": "kucuk/orta/buyuk veya bilinen calisan sayisi",
     "country": "TR, US, DE gibi 2 harfli ulke kodu",
-    "pain_points": ["Potansiyel sorun alani 1", "Potansiyel sorun alani 2", "Potansiyel sorun alani 3"],
-    "service_match": ["Hangi ATAOL hizmeti nasil yardimci olabilir 1", "Hangi ATAOL hizmeti nasil yardimci olabilir 2"]
+    "pain_points": ["Arastirmadan tespit edilen gercek sorun alani 1", "Sorun alani 2", "Sorun alani 3"],
+    "service_match": ["Hangi ATAOL hizmeti nasil yardimci olabilir 1", "Hizmet eslesmesi 2"]
   },
   "email": {
     "subject": "Email konu satiri",
@@ -1018,28 +1083,25 @@ Yanitini SADECE su JSON formatinda ver (baska hicbir sey yazma):
   }
 }`;
 
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': ANTHROPIC_KEY,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 4096,
-            messages: [{ role: 'user', content: prompt }]
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: 'application/json',
+                temperature: 0.7
+            }
         })
     });
 
     if (!resp.ok) {
         const errBody = await resp.text();
-        throw new Error(`API ${resp.status}: ${errBody.substring(0, 200)}`);
+        throw new Error(`Gemini API ${resp.status}: ${errBody.substring(0, 200)}`);
     }
 
     const data = await resp.json();
-    const text = data.content[0].text;
+    const text = data.candidates[0].content.parts[0].text;
 
     // Parse JSON - handle potential markdown wrapping
     let jsonStr = text;
@@ -1050,17 +1112,30 @@ Yanitini SADECE su JSON formatinda ver (baska hicbir sey yazma):
     return JSON.parse(jsonStr);
 }
 
-function showResearchResult(result, companyName, email, website) {
+function showResearchResult(result, companyName, email, website, research) {
     const lead = result.lead;
     const emailData = result.email;
     const painPoints = lead.pain_points || [];
     const serviceMatch = lead.service_match || [];
     const scaleLabel = getScaleLabel(lead);
 
+    // Convert research text to HTML paragraphs
+    const researchHtml = (research || '').replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+
     const resultDiv = document.getElementById('researchResult');
     resultDiv.innerHTML = `
-        <div class="preview-section">
-            <h4>Firma Analizi</h4>
+        <div class="preview-section" style="border-left:3px solid #1976d2;">
+            <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="document.getElementById('researchDetail').classList.toggle('hidden')">
+                <h4 style="margin:0;">Perplexity Arastirma Sonucu</h4>
+                <span style="color:#888;font-size:11px;">goster/gizle &#9660;</span>
+            </div>
+            <div id="researchDetail" class="hidden" style="margin-top:12px;font-size:13px;line-height:1.6;color:#444;max-height:400px;overflow-y:auto;">
+                <p>${researchHtml}</p>
+            </div>
+        </div>
+
+        <div class="preview-section" style="margin-top:12px;">
+            <h4>Firma Analizi (Gemini)</h4>
             <div class="field"><strong>Firma:</strong> ${lead.company_name}</div>
             <div class="field"><strong>Sektor:</strong> ${lead.industry || 'N/A'}</div>
             <div class="field"><strong>Olcek:</strong> <span class="scale-badge">${scaleLabel}</span></div>
@@ -1086,7 +1161,7 @@ function showResearchResult(result, companyName, email, website) {
         </div>
 
         <div class="btn-group" style="margin-top:8px;">
-            <button class="btn btn-success" onclick="addToQueue()">Kuyruğa Ekle (Pending)</button>
+            <button class="btn btn-success" onclick="addToQueue()">Kuyruga Ekle (Pending)</button>
             <button class="btn btn-outline" onclick="document.getElementById('researchResult').classList.add('hidden')">Iptal</button>
         </div>
     `;
@@ -1160,12 +1235,18 @@ async function addToQueue() {
         loadData();
     }
     document.getElementById('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
-    // Load Anthropic API key
-    const savedKey = localStorage.getItem('anthropic_key');
-    if (savedKey) {
-        ANTHROPIC_KEY = savedKey;
-        const keyInput = document.getElementById('anthropicKey');
-        if (keyInput) keyInput.value = savedKey;
+    // Load API keys
+    const savedPplx = localStorage.getItem('perplexity_key');
+    if (savedPplx) {
+        PERPLEXITY_KEY = savedPplx;
+        const el = document.getElementById('perplexityKey');
+        if (el) el.value = savedPplx;
+    }
+    const savedGemini = localStorage.getItem('gemini_key');
+    if (savedGemini) {
+        GEMINI_KEY = savedGemini;
+        const el = document.getElementById('geminiKey');
+        if (el) el.value = savedGemini;
     }
 })();
 </script>
