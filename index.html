@@ -150,6 +150,26 @@
             .btn-group { flex-direction: column; }
             .btn { text-align: center; }
         }
+
+        /* New Outreach Form */
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; font-family: inherit; background: #f8f9fc; transition: border 0.2s;
+        }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #1976d2; background: #fff; }
+        .spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid #e0e0e0; border-top-color: #1976d2; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .preview-section { background: #f5f7fa; border-radius: 10px; padding: 16px; margin-top: 16px; }
+        .preview-section h4 { font-size: 14px; margin-bottom: 8px; color: #333; }
+        .preview-section .field { font-size: 13px; margin-bottom: 6px; }
+        .preview-section .field strong { color: #555; }
+        .scale-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #e3f2fd; color: #1565c0; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        table th { text-align: left; padding: 8px 10px; border-bottom: 2px solid #e0e0e0; font-size: 11px; color: #888; text-transform: uppercase; }
+        table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
+        table tr:hover { background: #f8f9fc; }
     </style>
 </head>
 <body>
@@ -177,6 +197,7 @@
             <a onclick="showTab('rejected')" id="tab-rejected">Rejected</a>
             <a onclick="showTab('sentlog')" id="tab-sentlog">Sent Log</a>
             <a onclick="showTab('approvedlog')" id="tab-approvedlog">Outreach Log</a>
+            <a onclick="showTab('newoutreach')" id="tab-newoutreach" style="color:#4fc3f7;font-weight:600;">+ New</a>
         </nav>
         <span class="logout" onclick="logout()">Logout</span>
     </div>
@@ -192,6 +213,50 @@
         <div id="view-rejected" class="hidden"><div id="rejectedList"></div></div>
         <div id="view-sentlog" class="hidden"><div id="sentLogContent"></div></div>
         <div id="view-approvedlog" class="hidden"><div id="approvedLogContent"></div></div>
+
+        <div id="view-newoutreach" class="hidden">
+            <div class="card">
+                <h3 style="margin-bottom:4px;">New Outreach</h3>
+                <p style="color:#888;font-size:13px;margin-bottom:20px;">Firma bilgilerini gir, AI ile arastirma ve analiz yap, kisisellestirilmis outreach emaili olustur.</p>
+
+                <div class="form-group">
+                    <label>Firma Adi *</label>
+                    <input type="text" id="newCompanyName" placeholder="ornek: Turkcell, Siemens AG...">
+                </div>
+                <div class="form-group">
+                    <label>Iletisim Email (opsiyonel)</label>
+                    <input type="email" id="newCompanyEmail" placeholder="contact@firma.com">
+                </div>
+                <div class="form-group">
+                    <label>Website (opsiyonel)</label>
+                    <input type="url" id="newCompanyWebsite" placeholder="https://firma.com">
+                </div>
+                <div class="form-group">
+                    <label>Ek Bilgi (opsiyonel)</label>
+                    <textarea id="newCompanyNotes" rows="3" placeholder="Firma hakkinda bildiginiz ek bilgiler, sektoru, buyuklugu vs..."></textarea>
+                </div>
+                <button class="btn btn-success" id="btnResearch" onclick="startResearch()" style="width:100%;">
+                    Arastir & Email Olustur
+                </button>
+
+                <div id="researchResult" class="hidden" style="margin-top:20px;"></div>
+            </div>
+
+            <div class="card" style="margin-top:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="document.getElementById('apiKeySection').classList.toggle('hidden')">
+                    <h4 style="font-size:13px;color:#555;">API Ayarlari</h4>
+                    <span style="color:#888;font-size:12px;">&#9660;</span>
+                </div>
+                <div id="apiKeySection" style="margin-top:12px;">
+                    <div class="form-group">
+                        <label>Anthropic API Key</label>
+                        <input type="password" id="anthropicKey" placeholder="sk-ant-..." style="font-family:monospace;"
+                               onchange="localStorage.setItem('anthropic_key', this.value)">
+                    </div>
+                    <p style="font-size:11px;color:#999;">AI destekli arastirma icin gerekli. Key sadece tarayicida saklanir.</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -662,11 +727,39 @@ function renderEmailList(containerId, emails, emptyMsg) {
 
 // ---- TABS ----
 function showTab(tab) {
-    ['overview','pending','approved','sent','rejected','sentlog','approvedlog'].forEach(t => {
+    ['overview','pending','approved','sent','rejected','sentlog','approvedlog','newoutreach'].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const tabEl = document.getElementById(`tab-${t}`);
         if (view) view.classList.toggle('hidden', t !== tab);
         if (tabEl) tabEl.classList.toggle('active', t === tab);
+    });
+}
+
+// ---- SCALE TRANSFORM ----
+function getScaleLabel(lead) {
+    const size = (lead.company_size || '').trim();
+    if (!size || size === 'N/A' || size === 'Unknown' || size === '-') {
+        return 'Orta olcekli sirket kategorisi';
+    }
+    // If it's a number or range (e.g. "150", "50-200", "1,000+"), show as employee count
+    if (/\d/.test(size)) return size + ' calisan';
+    // Map text categories
+    const s = size.toLowerCase();
+    if (s.includes('small') || s.includes('kucuk') || s.includes('micro') || s.includes('startup')) return 'Kucuk olcekli sirket kategorisi';
+    if (s.includes('large') || s.includes('buyuk') || s.includes('enterprise') || s.includes('corporate')) return 'Buyuk olcekli sirket kategorisi';
+    if (s.includes('medium') || s.includes('orta') || s.includes('sme') || s.includes('mid')) return 'Orta olcekli sirket kategorisi';
+    return size;
+}
+
+function transformScaleText(bodyHtml, lead) {
+    if (!bodyHtml) return bodyHtml;
+    // Replace "Tahmini calisan sayisi: VALUE" patterns
+    return bodyHtml.replace(/Tahmini\s+[çc]al[ıi][şs]an\s+say[ıi]s[ıi]\s*:?\s*([^<\n]*)/gi, (match, value) => {
+        const trimmed = (value || '').trim();
+        // If value is a real number/range, keep it
+        if (/^\d[\d\s,.\-+~]*\+?$/.test(trimmed)) return match;
+        // Otherwise use category
+        return getScaleLabel(lead);
     });
 }
 
@@ -707,6 +800,8 @@ function openEmail(idx) {
         </div>`;
     } else if (e.status === 'approved') {
         actionsHtml = `<div class="btn-group">
+            <button class="btn btn-success" onclick="sendEmail(${idx})">Send Email</button>
+            <button class="btn btn-outline" onclick="copyEmailContent(${idx})">Copy Content</button>
             <button class="btn btn-danger" onclick="rejectEmail(${idx})">Cancel (Reject)</button>
         </div>`;
     }
@@ -717,7 +812,7 @@ function openEmail(idx) {
         <div class="analysis-box">
             <h4>Company Analysis</h4>
             <p style="margin-bottom:8px">${lead.company_summary}</p>
-            <p style="margin-bottom:8px"><strong>Industry:</strong> ${lead.industry || 'N/A'} - <strong>Stage:</strong> ${lead.company_size || 'N/A'}</p>
+            <p style="margin-bottom:8px"><strong>Industry:</strong> ${lead.industry || 'N/A'} - <strong>Scale:</strong> <span class="scale-badge">${getScaleLabel(lead)}</span></p>
             ${painPoints.length ? `<h4 style="margin-top:12px">Pain Points</h4><ul>${painPoints.map(p => `<li>${p}</li>`).join('')}</ul>` : ''}
             ${serviceMatch.length ? `<h4 style="margin-top:12px">Service Match</h4><ul>${serviceMatch.map(s => `<li>${s}</li>`).join('')}</ul>` : ''}
         </div>`;
@@ -732,7 +827,7 @@ function openEmail(idx) {
         <div class="field"><strong>From:</strong> ${e.from_email}</div>
         <div class="field"><strong>Subject:</strong> ${e.subject}</div>
         <div class="field"><strong>Status:</strong> <span class="badge badge-${badgeClass}">${e.status.replace('pending_review','pending')}</span></div>
-        <div class="email-preview">${e.body_html || '<em>No email body available</em>'}</div>
+        <div class="email-preview">${transformScaleText(e.body_html, lead) || '<em>No email body available</em>'}</div>
         ${actionsHtml}
         ${editHtml}
         ${analysisHtml}
@@ -816,6 +911,245 @@ async function rejectEmail(idx) {
     }
 }
 
+// ---- SEND EMAIL ----
+async function sendEmail(idx) {
+    const e = emailsData[idx];
+    const lead = leadsData.find(l => l.id === e.lead_id) || {};
+    const plainBody = (e.body_text || e.body_html.replace(/<[^>]*>/g, '')).replace(/\n{3,}/g, '\n\n');
+    const mailto = `mailto:${e.to_email}?subject=${encodeURIComponent(e.subject)}&body=${encodeURIComponent(plainBody)}`;
+    window.open(mailto, '_blank');
+
+    if (confirm('Email gonderildi mi? Sent olarak isaretlensin mi?')) {
+        emailsData[idx].status = 'sent';
+        emailsData[idx].sent_at = new Date().toISOString();
+        await saveData();
+        renderAll();
+        closeModal();
+        showToast(`${lead.company_name || 'Email'} sent olarak isaretlendi!`, 'success');
+    }
+}
+
+function copyEmailContent(idx) {
+    const e = emailsData[idx];
+    const text = `Subject: ${e.subject}\nTo: ${e.to_email}\n\n${e.body_text || e.body_html.replace(/<[^>]*>/g, '')}`;
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Email icerigi kopyalandi!', 'success');
+    }).catch(() => {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Email icerigi kopyalandi!', 'success');
+    });
+}
+
+// ---- NEW OUTREACH ----
+let ANTHROPIC_KEY = '';
+
+async function startResearch() {
+    const companyName = document.getElementById('newCompanyName').value.trim();
+    const email = document.getElementById('newCompanyEmail').value.trim();
+    const website = document.getElementById('newCompanyWebsite').value.trim();
+    const notes = document.getElementById('newCompanyNotes').value.trim();
+
+    if (!companyName) { showToast('Firma adi zorunlu!', 'error'); return; }
+
+    ANTHROPIC_KEY = document.getElementById('anthropicKey').value || localStorage.getItem('anthropic_key') || '';
+    if (!ANTHROPIC_KEY) { showToast('Anthropic API Key gerekli! API Ayarlari bolumunu ac.', 'error'); return; }
+
+    const resultDiv = document.getElementById('researchResult');
+    resultDiv.classList.remove('hidden');
+    resultDiv.innerHTML = `<div style="text-align:center;padding:30px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;">Firma arastiriliyor ve email olusturuluyor...</p><p style="color:#aaa;font-size:12px;margin-top:4px;">${companyName}</p></div>`;
+    document.getElementById('btnResearch').disabled = true;
+    document.getElementById('btnResearch').textContent = 'Arastiriliyor...';
+
+    try {
+        const result = await callClaudeAPI(companyName, email, website, notes);
+        showResearchResult(result, companyName, email, website);
+    } catch (err) {
+        resultDiv.innerHTML = `<div class="card" style="border-left:4px solid #c62828;"><p style="color:#c62828;font-weight:600;">Hata: ${err.message}</p><p style="color:#888;font-size:12px;margin-top:4px;">API key'i kontrol et veya tekrar dene.</p></div>`;
+    } finally {
+        document.getElementById('btnResearch').disabled = false;
+        document.getElementById('btnResearch').textContent = 'Arastir & Email Olustur';
+    }
+}
+
+async function callClaudeAPI(companyName, email, website, notes) {
+    const prompt = `Sen ATAOL AI Techs sirketinin outreach uzmansin. ATAOL AI Techs su hizmetleri sunuyor:
+
+1. **StrategyThrust** - Yapay zeka destekli stratejik danismanlik platformu. Sirketlere ozel AI modelleri, pazar analizi, rekabet istihbarati ve stratejik karar destegi saglar. https://strategythrust.com
+
+2. **ActLedger** - Operasyonel yonetim ve gorev takip platformu. Departman bazli KPI takibi, is emirleri, gorev yonetimi, performans analizi ve raporlama sunar. https://actledger.com
+
+Asagidaki firma hakkinda detayli arastirma yap ve kisisellestirilmis bir outreach emaili olustur.
+
+Firma: ${companyName}
+${website ? 'Website: ' + website : ''}
+${email ? 'Iletisim email: ' + email : ''}
+${notes ? 'Ek bilgi: ' + notes : ''}
+
+KRITIK KURALLAR:
+- Em-dash veya en-dash KULLANMA, sadece kisa tire (-) kullan
+- Email profesyonel ama samimi olsun, satisci gibi degil danismanvari
+- Firmanin spesifik ihtiyaclarina ve sektorune deginsin
+- Calisan sayisi biliniyorsa rakam yaz, bilinmiyorsa "Kucuk/Orta/Buyuk olcekli sirket kategorisi" yaz
+- Konu satiri dikkat cekici ve kisa olsun
+- Gonderen: Sertac Gul, ATAOL AI Techs
+- Firmanin ulkesine gore TR veya EN email olustur
+
+Yanitini SADECE su JSON formatinda ver (baska hicbir sey yazma):
+{
+  "lead": {
+    "company_name": "Firma adi",
+    "company_summary": "Firmanin ne yaptiginin kisa ozeti (2-3 cumle)",
+    "industry": "Sektor kategorisi",
+    "company_size": "kucuk/orta/buyuk veya bilinen calisan sayisi",
+    "country": "TR, US, DE gibi 2 harfli ulke kodu",
+    "pain_points": ["Potansiyel sorun alani 1", "Potansiyel sorun alani 2", "Potansiyel sorun alani 3"],
+    "service_match": ["Hangi ATAOL hizmeti nasil yardimci olabilir 1", "Hangi ATAOL hizmeti nasil yardimci olabilir 2"]
+  },
+  "email": {
+    "subject": "Email konu satiri",
+    "body_html": "<p>HTML formatinda email icerigi. Paragraflar icin p taglarini kullan.</p>",
+    "language": "tr veya en"
+  }
+}`;
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': ANTHROPIC_KEY,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 4096,
+            messages: [{ role: 'user', content: prompt }]
+        })
+    });
+
+    if (!resp.ok) {
+        const errBody = await resp.text();
+        throw new Error(`API ${resp.status}: ${errBody.substring(0, 200)}`);
+    }
+
+    const data = await resp.json();
+    const text = data.content[0].text;
+
+    // Parse JSON - handle potential markdown wrapping
+    let jsonStr = text;
+    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch) jsonStr = codeBlockMatch[1];
+    jsonStr = jsonStr.trim();
+
+    return JSON.parse(jsonStr);
+}
+
+function showResearchResult(result, companyName, email, website) {
+    const lead = result.lead;
+    const emailData = result.email;
+    const painPoints = lead.pain_points || [];
+    const serviceMatch = lead.service_match || [];
+    const scaleLabel = getScaleLabel(lead);
+
+    const resultDiv = document.getElementById('researchResult');
+    resultDiv.innerHTML = `
+        <div class="preview-section">
+            <h4>Firma Analizi</h4>
+            <div class="field"><strong>Firma:</strong> ${lead.company_name}</div>
+            <div class="field"><strong>Sektor:</strong> ${lead.industry || 'N/A'}</div>
+            <div class="field"><strong>Olcek:</strong> <span class="scale-badge">${scaleLabel}</span></div>
+            <div class="field"><strong>Ulke:</strong> ${lead.country || 'N/A'}</div>
+            <div class="field"><strong>Ozet:</strong> ${lead.company_summary || 'N/A'}</div>
+            ${painPoints.length ? `<div style="margin-top:8px;"><strong style="font-size:12px;color:#555;">Sorun Alanlari:</strong><ul style="margin:4px 0 0 16px;font-size:13px;">${painPoints.map(p => `<li>${p}</li>`).join('')}</ul></div>` : ''}
+            ${serviceMatch.length ? `<div style="margin-top:8px;"><strong style="font-size:12px;color:#555;">Hizmet Eslesmesi:</strong><ul style="margin:4px 0 0 16px;font-size:13px;">${serviceMatch.map(s => `<li>${s}</li>`).join('')}</ul></div>` : ''}
+        </div>
+
+        <div class="preview-section" style="margin-top:12px;">
+            <h4>Email Onizleme</h4>
+            <div class="field"><strong>To:</strong> ${email || 'Belirtilmedi'}</div>
+            <div class="field"><strong>Subject:</strong> ${emailData.subject}</div>
+            <div class="field"><strong>Dil:</strong> ${(emailData.language || 'en').toUpperCase()}</div>
+            <div class="email-preview" style="margin-top:12px;">${emailData.body_html}</div>
+        </div>
+
+        <div style="margin-top:12px;">
+            <div class="form-group">
+                <label>Email Adresi (gondermek icin gerekli)</label>
+                <input type="email" id="finalEmail" value="${email}" placeholder="contact@firma.com">
+            </div>
+        </div>
+
+        <div class="btn-group" style="margin-top:8px;">
+            <button class="btn btn-success" onclick="addToQueue()">Kuyruğa Ekle (Pending)</button>
+            <button class="btn btn-outline" onclick="document.getElementById('researchResult').classList.add('hidden')">Iptal</button>
+        </div>
+    `;
+
+    // Store the result temporarily for addToQueue
+    window._pendingOutreach = result;
+}
+
+async function addToQueue() {
+    const result = window._pendingOutreach;
+    if (!result) return;
+
+    const finalEmail = document.getElementById('finalEmail').value.trim();
+    if (!finalEmail) { showToast('Email adresi gerekli!', 'error'); return; }
+
+    const leadId = 'lead_' + Date.now();
+    const lead = result.lead;
+    const emailData = result.email;
+
+    // Add lead
+    const newLead = {
+        id: leadId,
+        company_name: lead.company_name,
+        company_summary: lead.company_summary,
+        industry: lead.industry,
+        company_size: lead.company_size,
+        country: lead.country,
+        pain_points: JSON.stringify(lead.pain_points || []),
+        service_match: JSON.stringify(lead.service_match || [])
+    };
+    leadsData.push(newLead);
+
+    // Add email
+    const newEmail = {
+        lead_id: leadId,
+        to_email: finalEmail,
+        to_name: lead.company_name,
+        from_email: 'sertacgul@strategythrust.com',
+        subject: emailData.subject,
+        body_html: emailData.body_html,
+        body_text: emailData.body_html.replace(/<[^>]*>/g, ''),
+        language: emailData.language || 'en',
+        email_type: 'initial',
+        status: 'pending_review',
+        generated_at: new Date().toISOString()
+    };
+    emailsData.push(newEmail);
+
+    await saveData();
+    renderAll();
+
+    // Clear form
+    document.getElementById('newCompanyName').value = '';
+    document.getElementById('newCompanyEmail').value = '';
+    document.getElementById('newCompanyWebsite').value = '';
+    document.getElementById('newCompanyNotes').value = '';
+    document.getElementById('researchResult').classList.add('hidden');
+    window._pendingOutreach = null;
+
+    showToast(`${lead.company_name} kuyruga eklendi!`, 'success');
+    showTab('pending');
+}
+
 // ---- INIT ----
 (function init() {
     const saved = localStorage.getItem('st_token');
@@ -826,6 +1160,13 @@ async function rejectEmail(idx) {
         loadData();
     }
     document.getElementById('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+    // Load Anthropic API key
+    const savedKey = localStorage.getItem('anthropic_key');
+    if (savedKey) {
+        ANTHROPIC_KEY = savedKey;
+        const keyInput = document.getElementById('anthropicKey');
+        if (keyInput) keyInput.value = savedKey;
+    }
 })();
 </script>
 </body>
