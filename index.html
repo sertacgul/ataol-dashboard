@@ -370,24 +370,20 @@ async function saveData() {
     };
     const jsonStr = JSON.stringify(data);
 
-    try {
-        const resp = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `token ${TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ files: { 'emails.json': { content: jsonStr } } })
-        });
-        if (!resp.ok) {
-            console.error('Save error:', resp.status);
-            showToast(`Save error: ${resp.status}`, 'error');
-        }
-    } catch (e) {
-        console.error('Network error saving:', e);
-        showToast('Network error. Will retry later.', 'error');
+    const resp = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `token ${TOKEN}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ files: { 'emails.json': { content: jsonStr } } })
+    });
+    if (!resp.ok) {
+        const errText = await resp.text().catch(() => '');
+        throw new Error(`Gist save failed (${resp.status}): ${errText.substring(0, 150)}`);
     }
+    return true;
 }
 
 // ---- RENDER ----
@@ -878,29 +874,41 @@ async function saveEdit(idx) {
     const subject = document.getElementById(`editSubject-${idx}`).value;
     const bodyHtml = document.getElementById(`editBody-${idx}`).value
         .replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    const backup = { subject: emailsData[idx].subject, body_html: emailsData[idx].body_html, body_text: emailsData[idx].body_text, status: emailsData[idx].status };
     emailsData[idx].subject = subject;
     emailsData[idx].body_html = bodyHtml;
     emailsData[idx].body_text = bodyHtml.replace(/<[^>]*>/g, '');
     emailsData[idx].status = 'approved';
     emailsData[idx].approved_at = new Date().toISOString();
-    await saveData();
-    renderAll();
-    closeModal();
-    const lead = leadsData.find(l => l.id === emailsData[idx].lead_id) || {};
-    showToast(`${lead.company_name || 'Email'} edited & approved!`, 'success');
+    try {
+        await saveData();
+        renderAll();
+        closeModal();
+        const lead = leadsData.find(l => l.id === emailsData[idx].lead_id) || {};
+        showToast(`${lead.company_name || 'Email'} edited & approved!`, 'success');
+    } catch (e) {
+        Object.assign(emailsData[idx], backup);
+        showToast('KAYIT HATASI: ' + e.message, 'error');
+    }
 }
 
 async function saveEditOnly(idx) {
     const subject = document.getElementById(`editSubject-${idx}`).value;
     const bodyHtml = document.getElementById(`editBody-${idx}`).value
         .replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    const backup = { subject: emailsData[idx].subject, body_html: emailsData[idx].body_html, body_text: emailsData[idx].body_text };
     emailsData[idx].subject = subject;
     emailsData[idx].body_html = bodyHtml;
     emailsData[idx].body_text = bodyHtml.replace(/<[^>]*>/g, '');
-    await saveData();
-    closeModal();
-    openEmail(idx);
-    showToast('Draft saved.', 'info');
+    try {
+        await saveData();
+        closeModal();
+        openEmail(idx);
+        showToast('Draft saved.', 'info');
+    } catch (e) {
+        Object.assign(emailsData[idx], backup);
+        showToast('KAYIT HATASI: ' + e.message, 'error');
+    }
 }
 
 function showToast(message, type = 'success') {
@@ -915,29 +923,36 @@ function showToast(message, type = 'success') {
 
 async function approveEmail(idx) {
     const lead = leadsData.find(l => l.id === emailsData[idx].lead_id) || {};
+    const prevStatus = emailsData[idx].status;
     emailsData[idx].status = 'approved';
     emailsData[idx].approved_at = new Date().toISOString();
-    closeModal();
-    renderAll();
     try {
         await saveData();
-        showToast(`${lead.company_name || 'Email'} approved and saved!`, 'success');
+        closeModal();
+        renderAll();
+        showToast(`${lead.company_name || 'Email'} approved!`, 'success');
     } catch (e) {
+        emailsData[idx].status = prevStatus;
+        delete emailsData[idx].approved_at;
         console.error('Approve save error:', e);
-        showToast('Approved locally but sync failed. Will retry on next send.', 'info');
+        showToast('KAYIT HATASI: ' + e.message, 'error');
     }
 }
 
 async function rejectEmail(idx) {
+    const prevStatus = emailsData[idx].status;
     emailsData[idx].status = 'rejected';
     emailsData[idx].reviewed_at = new Date().toISOString();
-    closeModal();
-    renderAll();
-    showToast('Email rejected.', 'info');
     try {
         await saveData();
+        closeModal();
+        renderAll();
+        showToast('Email rejected.', 'info');
     } catch (e) {
-        console.error('Save error:', e);
+        emailsData[idx].status = prevStatus;
+        delete emailsData[idx].reviewed_at;
+        console.error('Reject save error:', e);
+        showToast('KAYIT HATASI: ' + e.message, 'error');
     }
 }
 
@@ -949,13 +964,20 @@ async function sendEmail(idx) {
     const mailto = `mailto:${e.to_email}?subject=${encodeURIComponent(e.subject)}&body=${encodeURIComponent(plainBody)}`;
     window.open(mailto, '_blank');
 
-    if (confirm('Email gonderildi mi? Sent olarak isaretlensin mi?')) {
+    if (confirm('Email g\u00f6nderildi mi? Sent olarak i\u015faretlensin mi?')) {
+        const prevStatus = emailsData[idx].status;
         emailsData[idx].status = 'sent';
         emailsData[idx].sent_at = new Date().toISOString();
-        await saveData();
-        renderAll();
-        closeModal();
-        showToast(`${lead.company_name || 'Email'} sent olarak isaretlendi!`, 'success');
+        try {
+            await saveData();
+            renderAll();
+            closeModal();
+            showToast(`${lead.company_name || 'Email'} sent olarak i\u015faretlendi!`, 'success');
+        } catch (err) {
+            emailsData[idx].status = prevStatus;
+            delete emailsData[idx].sent_at;
+            showToast('KAYIT HATASI: ' + err.message, 'error');
+        }
     }
 }
 
