@@ -741,31 +741,56 @@ function showTab(tab) {
 }
 
 // ---- SCALE TRANSFORM ----
-function getScaleLabel(lead) {
+function getScaleLabel(lead, lang) {
     const size = (lead.company_size || '').trim();
+    const language = lang || lead.language || detectLeadLang(lead);
+    const isTR = language === 'tr';
+
     if (!size || size === 'N/A' || size === 'Unknown' || size === '-') {
-        return 'Orta olcekli sirket kategorisi';
+        return isTR ? 'Orta \u00f6l\u00e7ekli \u015firket kategorisi' : 'Mid-scale company category';
     }
     // If it's a number or range (e.g. "150", "50-200", "1,000+"), show as employee count
-    if (/\d/.test(size)) return size + ' calisan';
+    if (/\d/.test(size)) return isTR ? (size + ' \u00e7al\u0131\u015fan') : (size + ' employees');
     // Map text categories
     const s = size.toLowerCase();
-    if (s.includes('small') || s.includes('kucuk') || s.includes('micro') || s.includes('startup')) return 'Kucuk olcekli sirket kategorisi';
-    if (s.includes('large') || s.includes('buyuk') || s.includes('enterprise') || s.includes('corporate')) return 'Buyuk olcekli sirket kategorisi';
-    if (s.includes('medium') || s.includes('orta') || s.includes('sme') || s.includes('mid')) return 'Orta olcekli sirket kategorisi';
+    if (s.includes('small') || s.includes('k\u00fc\u00e7\u00fck') || s.includes('kucuk') || s.includes('micro') || s.includes('startup')) {
+        return isTR ? 'K\u00fc\u00e7\u00fck \u00f6l\u00e7ekli \u015firket kategorisi' : 'Small-scale company category';
+    }
+    if (s.includes('large') || s.includes('b\u00fcy\u00fck') || s.includes('buyuk') || s.includes('enterprise') || s.includes('corporate')) {
+        return isTR ? 'B\u00fcy\u00fck \u00f6l\u00e7ekli \u015firket kategorisi' : 'Large-scale company category';
+    }
+    if (s.includes('medium') || s.includes('orta') || s.includes('sme') || s.includes('mid')) {
+        return isTR ? 'Orta \u00f6l\u00e7ekli \u015firket kategorisi' : 'Mid-scale company category';
+    }
     return size;
+}
+
+function detectLeadLang(lead) {
+    const country = (lead.country || '').toUpperCase();
+    return country === 'TR' ? 'tr' : 'en';
 }
 
 function transformScaleText(bodyHtml, lead) {
     if (!bodyHtml) return bodyHtml;
-    // Replace "Tahmini calisan sayisi: VALUE" patterns
-    return bodyHtml.replace(/Tahmini\s+[çc]al[ıi][şs]an\s+say[ıi]s[ıi]\s*:?\s*([^<\n]*)/gi, (match, value) => {
+    // TR pattern: "Tahmini calisan sayisi: VALUE"
+    let html = bodyHtml.replace(/Tahmini\s+[çc]al[ıi\u0131][şs\u015f]an\s+say[ıi\u0131]s[ıi\u0131]\s*:?\s*([^<\n]*)/gi, (match, value) => {
         const trimmed = (value || '').trim();
-        // If value is a real number/range, keep it
         if (/^\d[\d\s,.\-+~]*\+?$/.test(trimmed)) return match;
-        // Otherwise use category
-        return getScaleLabel(lead);
+        return getScaleLabel(lead, 'tr');
     });
+    // EN pattern: "Estimated employee count: VALUE" or "Estimated employees: VALUE"
+    html = html.replace(/Estimated\s+employee\s*(count|s)?\s*:?\s*([^<\n]*)/gi, (match, _, value) => {
+        const trimmed = (value || '').trim();
+        if (/^\d[\d\s,.\-+~]*\+?$/.test(trimmed)) return match;
+        return getScaleLabel(lead, 'en');
+    });
+    // EN pattern: "Company size: VALUE" or "Company scale: VALUE"
+    html = html.replace(/Company\s+(size|scale)\s*:?\s*([^<\n]*)/gi, (match, _, value) => {
+        const trimmed = (value || '').trim();
+        if (/^\d[\d\s,.\-+~]*\+?$/.test(trimmed)) return match;
+        return getScaleLabel(lead, 'en');
+    });
+    return html;
 }
 
 // ---- EMAIL DETAIL ----
@@ -817,7 +842,7 @@ function openEmail(idx) {
         <div class="analysis-box">
             <h4>Company Analysis</h4>
             <p style="margin-bottom:8px">${lead.company_summary}</p>
-            <p style="margin-bottom:8px"><strong>Industry:</strong> ${lead.industry || 'N/A'} - <strong>Scale:</strong> <span class="scale-badge">${getScaleLabel(lead)}</span></p>
+            <p style="margin-bottom:8px"><strong>Industry:</strong> ${lead.industry || 'N/A'} - <strong>Scale:</strong> <span class="scale-badge">${getScaleLabel(lead, e.language)}</span></p>
             ${painPoints.length ? `<h4 style="margin-top:12px">Pain Points</h4><ul>${painPoints.map(p => `<li>${p}</li>`).join('')}</ul>` : ''}
             ${serviceMatch.length ? `<h4 style="margin-top:12px">Service Match</h4><ul>${serviceMatch.map(s => `<li>${s}</li>`).join('')}</ul>` : ''}
         </div>`;
@@ -996,21 +1021,21 @@ async function startResearch() {
 }
 
 async function callPerplexityAPI(companyName, email, website, notes) {
-    const prompt = `"${companyName}" firmasi hakkinda detayli arastirma yap.
+    const prompt = `"${companyName}" firmas\u0131 hakk\u0131nda detayl\u0131 ara\u015ft\u0131rma yap.
 ${website ? 'Website: ' + website : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
 
-Su bilgileri bul:
-1. Firma ne is yapiyor? (detayli aciklama)
-2. Hangi sektorde faaliyet gosteriyor?
-3. Firma buyuklugu (calisan sayisi, gelir vb.)
-4. Hangi ulkede/ulkelerde faaliyet gosteriyor?
-5. Firmanin karsilastigi zorluklar, operasyonel sorunlar
-6. Dijital donusum, AI kullanimi, operasyonel verimlilik konusundaki durumlari
-7. Yonetim kadrosu (CEO, CTO vb. isimleri ve gorevleri)
-8. Guncel haberler veya gelismeler
+\u015eu bilgileri bul:
+1. Firma ne i\u015f yap\u0131yor? (detayl\u0131 a\u00e7\u0131klama)
+2. Hangi sekt\u00f6rde faaliyet g\u00f6steriyor?
+3. Firma b\u00fcy\u00fckl\u00fc\u011f\u00fc (\u00e7al\u0131\u015fan say\u0131s\u0131, gelir vb.)
+4. Hangi \u00fclkede/\u00fclkelerde faaliyet g\u00f6steriyor?
+5. Firman\u0131n kar\u015f\u0131la\u015ft\u0131\u011f\u0131 zorluklar, operasyonel sorunlar
+6. Dijital d\u00f6n\u00fc\u015f\u00fcm, AI kullan\u0131m\u0131, operasyonel verimlilik konusundaki durumlar\u0131
+7. Y\u00f6netim kadrosu (CEO, CTO vb. isimleri ve g\u00f6revleri)
+8. G\u00fcncel haberler veya geli\u015fmeler
 
-Mumkun oldugunca gercek ve guncel bilgiler ver. Bilmedigin bilgileri uydurma, bilinmiyor olarak belirt.`;
+M\u00fcmk\u00fcn oldu\u011funca ger\u00e7ek ve g\u00fcncel bilgiler ver. Bilmedi\u011fin bilgileri uydurma, bilinmiyor olarak belirt.`;
 
     const resp = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
@@ -1021,7 +1046,7 @@ Mumkun oldugunca gercek ve guncel bilgiler ver. Bilmedigin bilgileri uydurma, bi
         body: JSON.stringify({
             model: 'sonar-pro',
             messages: [
-                { role: 'system', content: 'Sen bir firma arastirma uzmansin. Verilen firma hakkinda internetten detayli ve gercek bilgi topluyorsun. Turkce yanit ver.' },
+                { role: 'system', content: 'Sen bir firma ara\u015ft\u0131rma uzman\u0131s\u0131n. Verilen firma hakk\u0131nda internetten detayl\u0131 ve ger\u00e7ek bilgi topluyorsun. T\u00fcrk\u00e7e yan\u0131t ver. T\u00fcrk\u00e7e karakterleri d\u00fczg\u00fcn kullan (\u0131, \u00f6, \u00fc, \u015f, \u00e7, \u011f, \u0130, \u00d6, \u00dc, \u015e, \u00c7, \u011e).' },
                 { role: 'user', content: prompt }
             ]
         })
@@ -1037,48 +1062,53 @@ Mumkun oldugunca gercek ve guncel bilgiler ver. Bilmedigin bilgileri uydurma, bi
 }
 
 async function callGeminiAPI(companyName, email, website, notes, research) {
-    const prompt = `Sen ATAOL AI Techs sirketinin outreach uzmansin. ATAOL AI Techs su hizmetleri sunuyor:
+    const prompt = `Sen ATAOL AI Techs \u015firketinin outreach uzman\u0131s\u0131n. ATAOL AI Techs \u015fu hizmetleri sunuyor:
 
-1. **StrategyThrust** - Yapay zeka destekli stratejik danismanlik platformu. Sirketlere ozel AI modelleri, pazar analizi, rekabet istihbarati ve stratejik karar destegi saglar. https://strategythrust.com
+1. **StrategyThrust** - Yapay zeka destekli stratejik dan\u0131\u015fmanl\u0131k platformu. \u015eirketlere \u00f6zel AI modelleri, pazar analizi, rekabet istihbarat\u0131 ve stratejik karar deste\u011fi sa\u011flar. https://strategythrust.com
 
-2. **ActLedger** - Operasyonel yonetim ve gorev takip platformu. Departman bazli KPI takibi, is emirleri, gorev yonetimi, performans analizi ve raporlama sunar. https://actledger.com
+2. **ActLedger** - Operasyonel y\u00f6netim ve g\u00f6rev takip platformu. Departman bazl\u0131 KPI takibi, i\u015f emirleri, g\u00f6rev y\u00f6netimi, performans analizi ve raporlama sunar. https://actledger.com
 
-Asagida Perplexity ile yapilan firma arastirmasi var. Bu arastirmayi kullanarak kisisellestirilmis bir outreach emaili olustur.
+A\u015fa\u011f\u0131da Perplexity ile yap\u0131lan firma ara\u015ft\u0131rmas\u0131 var. Bu ara\u015ft\u0131rmay\u0131 kullanarak ki\u015fiselle\u015ftirilmi\u015f bir outreach emaili olu\u015ftur.
 
 --- FIRMA BILGILERI ---
 Firma: ${companyName}
 ${website ? 'Website: ' + website : ''}
-${email ? 'Iletisim email: ' + email : ''}
+${email ? '\u0130leti\u015fim email: ' + email : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
 
---- PERPLEXITY ARASTIRMA SONUCU ---
+--- PERPLEXITY ARA\u015eTIRMA SONUCU ---
 ${research}
---- ARASTIRMA SONU ---
+--- ARA\u015eTIRMA SONU ---
 
-KRITIK KURALLAR:
-- Em-dash veya en-dash KULLANMA, sadece kisa tire (-) kullan
-- Email profesyonel ama samimi olsun, satisci gibi degil danismanvari
-- Firmanin spesifik ihtiyaclarina ve sektorune deginsin - arastirma sonuclarini kullan
-- Calisan sayisi biliniyorsa rakam yaz, bilinmiyorsa "Kucuk/Orta/Buyuk olcekli sirket kategorisi" yaz
-- Konu satiri dikkat cekici ve kisa olsun
-- Gonderen: Sertac Gul, ATAOL AI Techs
-- Firmanin ulkesine gore TR veya EN email olustur (Turkiye firmasi ise TR, yabanci firma ise EN)
-- Arastirmada bulunan gercek bilgileri (yonetici isimleri, projeler, haberler) emaile dahil et
+KR\u0130T\u0130K KURALLAR:
+- Em-dash (\u2014) veya en-dash (\u2013) KULLANMA, sadece k\u0131sa tire (-) kullan
+- Email profesyonel ama samimi olsun, sat\u0131\u015fc\u0131 gibi de\u011fil dan\u0131\u015fmanvari
+- Firman\u0131n spesifik ihtiya\u00e7lar\u0131na ve sekt\u00f6r\u00fcne de\u011finsin - ara\u015ft\u0131rma sonu\u00e7lar\u0131n\u0131 kullan
+- G\u00f6nderen: Serta\u00e7 G\u00fcl, ATAOL AI Techs
+- Ara\u015ft\u0131rmada bulunan ger\u00e7ek bilgileri (y\u00f6netici isimleri, projeler, haberler) emaile dahil et
 
-Yanitini SADECE su JSON formatinda ver (baska hicbir sey yazma, markdown kullanma):
+D\u0130L VE \u00d6L\u00c7EK KURALLARI:
+- T\u00fcrkiye firmas\u0131 ise: T\u00dcM metin T\u00fcrk\u00e7e olsun. T\u00fcrk\u00e7e karakterleri D\u00dcZG\u00dcN kullan: \u0131, \u00f6, \u00fc, \u015f, \u00e7, \u011f, \u0130, \u00d6, \u00dc, \u015e, \u00c7, \u011e. ASCII yaz\u0131 yazma, d\u00fczg\u00fcn T\u00fcrk\u00e7e yaz.
+- Yabanc\u0131 firma ise: T\u00dcM metin \u0130ngilizce olsun.
+- \u00c7al\u0131\u015fan say\u0131s\u0131 biliniyorsa rakam yaz.
+- \u00c7al\u0131\u015fan say\u0131s\u0131 bilinmiyorsa:
+  - T\u00fcrk firmas\u0131 i\u00e7in: "K\u00fc\u00e7\u00fck \u00f6l\u00e7ekli \u015firket kategorisi" veya "Orta \u00f6l\u00e7ekli \u015firket kategorisi" veya "B\u00fcy\u00fck \u00f6l\u00e7ekli \u015firket kategorisi"
+  - Yabanc\u0131 firma i\u00e7in: "Small-scale company category" veya "Mid-scale company category" veya "Large-scale company category"
+
+Yan\u0131t\u0131n\u0131 SADECE \u015fu JSON format\u0131nda ver (ba\u015fka hi\u00e7bir \u015fey yazma, markdown kullanma):
 {
   "lead": {
-    "company_name": "Firma adi",
-    "company_summary": "Firmanin ne yaptiginin kisa ozeti (2-3 cumle, arastirmadan gercek bilgiler)",
-    "industry": "Sektor kategorisi",
-    "company_size": "kucuk/orta/buyuk veya bilinen calisan sayisi",
-    "country": "TR, US, DE gibi 2 harfli ulke kodu",
-    "pain_points": ["Arastirmadan tespit edilen gercek sorun alani 1", "Sorun alani 2", "Sorun alani 3"],
-    "service_match": ["Hangi ATAOL hizmeti nasil yardimci olabilir 1", "Hizmet eslesmesi 2"]
+    "company_name": "Firma ad\u0131",
+    "company_summary": "Firman\u0131n ne yapt\u0131\u011f\u0131n\u0131n k\u0131sa \u00f6zeti (2-3 c\u00fcmle, ara\u015ft\u0131rmadan ger\u00e7ek bilgiler)",
+    "industry": "Sekt\u00f6r kategorisi",
+    "company_size": "k\u00fc\u00e7\u00fck/orta/b\u00fcy\u00fck veya bilinen \u00e7al\u0131\u015fan say\u0131s\u0131",
+    "country": "TR, US, DE gibi 2 harfli \u00fclke kodu",
+    "pain_points": ["Ger\u00e7ek sorun alan\u0131 1", "Sorun alan\u0131 2", "Sorun alan\u0131 3"],
+    "service_match": ["ATAOL hizmeti e\u015fle\u015fmesi 1", "Hizmet e\u015fle\u015fmesi 2"]
   },
   "email": {
-    "subject": "Email konu satiri",
-    "body_html": "<p>HTML formatinda email icerigi. Paragraflar icin p taglarini kullan.</p>",
+    "subject": "Email konu sat\u0131r\u0131",
+    "body_html": "<p>HTML format\u0131nda email i\u00e7eri\u011fi. Paragraflar i\u00e7in p taglar\u0131n\u0131 kullan.</p>",
     "language": "tr veya en"
   }
 }`;
@@ -1117,7 +1147,7 @@ function showResearchResult(result, companyName, email, website, research) {
     const emailData = result.email;
     const painPoints = lead.pain_points || [];
     const serviceMatch = lead.service_match || [];
-    const scaleLabel = getScaleLabel(lead);
+    const scaleLabel = getScaleLabel(lead, emailData.language);
 
     // Convert research text to HTML paragraphs
     const researchHtml = (research || '').replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
