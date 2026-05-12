@@ -15,7 +15,7 @@
         .company-name { font-size: 14px; color: #888; margin-bottom: 4px; }
         h1 { font-size: 20px; color: #1a1a2e; margin-bottom: 20px; font-weight: 700; }
         label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; margin-top: 16px; }
-        input[type="date"], input[type="time"], textarea, select {
+        input[type="date"], input[type="time"], input[type="text"], input[type="email"], textarea, select {
             width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px;
             font-size: 14px; font-family: inherit; background: #f8f9fc; transition: border 0.2s;
         }
@@ -31,12 +31,16 @@
             transition: opacity 0.2s;
         }
         .submit-btn:hover { opacity: 0.9; }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .footer { background: #f8f9fa; padding: 16px 30px; border-top: 1px solid #eee; }
         .footer p { font-size: 11px; color: #888; }
         .footer a { color: #1976d2; text-decoration: none; }
         .success { display: none; text-align: center; padding: 40px 30px; }
         .success h2 { color: #2e7d32; margin-bottom: 8px; }
         .success p { color: #666; font-size: 14px; }
+        .error-msg { display: none; text-align: center; padding: 20px 30px; }
+        .error-msg h2 { color: #c62828; margin-bottom: 8px; font-size: 18px; }
+        .error-msg p { color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -49,6 +53,12 @@
         <div class="body" id="formView">
             <p class="company-name" id="companyLabel"></p>
             <h1 id="pageTitle">Schedule a Meeting</h1>
+
+            <label id="labelName">Your Name</label>
+            <input type="text" id="meetName" placeholder="">
+
+            <label id="labelEmail">Your Email</label>
+            <input type="email" id="meetEmail" placeholder="">
 
             <label id="labelDate">Preferred Date</label>
             <input type="date" id="meetDate" />
@@ -94,7 +104,13 @@
 
         <div class="success" id="successView">
             <h2 id="successTitle">Request Sent!</h2>
-            <p id="successMsg">Your meeting request has been sent. We will confirm shortly.</p>
+            <p id="successMsg">Your meeting request has been sent. We will confirm shortly via email.</p>
+        </div>
+
+        <div class="error-msg" id="errorView">
+            <h2 id="errorTitle">Something went wrong</h2>
+            <p id="errorMsg">Please try again or contact us directly at support@strategythrust.com</p>
+            <button class="submit-btn" style="margin-top:16px;" id="retryBtn" onclick="retryForm()">Try Again</button>
         </div>
 
         <div class="footer">
@@ -105,66 +121,117 @@
 <script>
 const params = new URLSearchParams(window.location.search);
 const company = params.get('company') || '';
+const contactEmail = params.get('email') || '';
+const contactName = params.get('name') || '';
 const tz = parseInt(params.get('tz') || '0', 10);
 const lang = params.get('lang') || 'en';
 const isTR = lang === 'tr';
 
+// Pre-fill from query params
+if (contactName) document.getElementById('meetName').value = contactName;
+if (contactEmail) document.getElementById('meetEmail').value = contactEmail;
+
 // Set min date to tomorrow
 const tomorrow = new Date();
 tomorrow.setDate(tomorrow.getDate() + 1);
-// Skip weekends
 while (tomorrow.getDay() === 0 || tomorrow.getDay() === 6) tomorrow.setDate(tomorrow.getDate() + 1);
 document.getElementById('meetDate').min = tomorrow.toISOString().split('T')[0];
 document.getElementById('meetDate').value = tomorrow.toISOString().split('T')[0];
 
 // Localize
 if (isTR) {
-    document.title = 'Gorusme Planla - ATAOL AI Techs';
-    document.getElementById('pageTitle').textContent = 'Gorusme Planla';
+    document.title = 'G\u00f6r\u00fc\u015fme Planla - ATAOL AI Techs';
+    document.getElementById('pageTitle').textContent = 'G\u00f6r\u00fc\u015fme Planla';
+    document.getElementById('labelName').textContent = 'Ad\u0131n\u0131z';
+    document.getElementById('labelEmail').textContent = 'Email Adresiniz';
     document.getElementById('labelDate').textContent = 'Tercih Edilen Tarih';
     document.getElementById('labelTime').textContent = 'Tercih Edilen Saat';
-    document.getElementById('labelDuration').textContent = 'Sure';
-    document.getElementById('labelTopic').textContent = 'Gorusme Konusu';
-    document.getElementById('meetTopic').placeholder = 'Gorusmek istediginiz konuyu kisaca belirtin...';
-    document.getElementById('submitBtn').textContent = 'Gorusme Talebi Gonder';
-    document.getElementById('tzNote').textContent = 'Saatler Turkiye saatine goredir (UTC+3)';
-    document.getElementById('successTitle').textContent = 'Talebiniz Gonderildi!';
-    document.getElementById('successMsg').textContent = 'Gorusme talebiniz iletildi. En kisa surede donus yapacagiz.';
-    document.querySelectorAll('#meetDuration option').forEach(o => {
+    document.getElementById('labelDuration').textContent = 'S\u00fcre';
+    document.getElementById('labelTopic').textContent = 'G\u00f6r\u00fc\u015fme Konusu';
+    document.getElementById('meetName').placeholder = 'Ad\u0131n\u0131z Soyad\u0131n\u0131z';
+    document.getElementById('meetEmail').placeholder = 'ornek@firma.com';
+    document.getElementById('meetTopic').placeholder = 'G\u00f6r\u00fc\u015fmek istedi\u011finiz konuyu k\u0131saca belirtin...';
+    document.getElementById('submitBtn').textContent = 'G\u00f6r\u00fc\u015fme Talebi G\u00f6nder';
+    document.getElementById('tzNote').textContent = 'Saatler T\u00fcrkiye saatine g\u00f6redir (UTC+3)';
+    document.getElementById('successTitle').textContent = 'Talebiniz G\u00f6nderildi!';
+    document.getElementById('successMsg').textContent = 'G\u00f6r\u00fc\u015fme talebiniz iletildi. En k\u0131sa s\u00fcrede email ile d\u00f6n\u00fc\u015f yapaca\u011f\u0131z.';
+    document.getElementById('errorTitle').textContent = 'Bir hata olu\u015ftu';
+    document.getElementById('errorMsg').textContent = 'L\u00fctfen tekrar deneyin veya support@strategythrust.com adresinden bize ula\u015f\u0131n.';
+    document.getElementById('retryBtn').textContent = 'Tekrar Dene';
+    document.querySelectorAll('#meetDuration option').forEach(function(o) {
         o.textContent = o.value + ' dk';
     });
 } else {
+    document.getElementById('meetName').placeholder = 'Your full name';
+    document.getElementById('meetEmail').placeholder = 'you@company.com';
     document.getElementById('meetTopic').placeholder = 'Briefly describe what you would like to discuss...';
-    const tzLabel = tz >= 0 ? `UTC+${tz}` : `UTC${tz}`;
-    document.getElementById('tzNote').textContent = `Times shown in your local timezone (${tzLabel})`;
+    var tzLabel = tz >= 0 ? 'UTC+' + tz : 'UTC' + tz;
+    document.getElementById('tzNote').textContent = 'Times shown in your local timezone (' + tzLabel + ')';
 }
 
 if (company) {
     document.getElementById('companyLabel').textContent = company;
 }
 
-function submitForm() {
-    const date = document.getElementById('meetDate').value;
-    const time = document.getElementById('meetTime').value;
-    const duration = document.getElementById('meetDuration').value;
-    const topic = document.getElementById('meetTopic').value.trim();
+function retryForm() {
+    document.getElementById('errorView').style.display = 'none';
+    document.getElementById('formView').style.display = 'block';
+}
 
-    if (!date) { alert(isTR ? 'Lutfen tarih secin.' : 'Please select a date.'); return; }
-    if (!topic) { alert(isTR ? 'Lutfen gorusme konusunu belirtin.' : 'Please describe the meeting topic.'); return; }
+async function submitForm() {
+    var name = document.getElementById('meetName').value.trim();
+    var email = document.getElementById('meetEmail').value.trim();
+    var date = document.getElementById('meetDate').value;
+    var time = document.getElementById('meetTime').value;
+    var duration = document.getElementById('meetDuration').value;
+    var topic = document.getElementById('meetTopic').value.trim();
 
-    const tzLabel = isTR ? 'Turkiye saati' : (tz >= 0 ? `UTC+${tz}` : `UTC${tz}`);
-    const durationLabel = isTR ? `${duration} dakika` : `${duration} minutes`;
+    if (!name) { alert(isTR ? 'L\u00fctfen ad\u0131n\u0131z\u0131 girin.' : 'Please enter your name.'); return; }
+    if (!email) { alert(isTR ? 'L\u00fctfen email adresinizi girin.' : 'Please enter your email.'); return; }
+    if (!date) { alert(isTR ? 'L\u00fctfen tarih se\u00e7in.' : 'Please select a date.'); return; }
+    if (!topic) { alert(isTR ? 'L\u00fctfen g\u00f6r\u00fc\u015fme konusunu belirtin.' : 'Please describe the meeting topic.'); return; }
 
-    const subject = `Meeting Request - ATAOL AI Techs x ${company}`;
-    const body = isTR
-        ? `Merhaba,\n\n${company} adina gorusme talep ediyorum.\n\nTarih: ${date}\nSaat: ${time} (${tzLabel})\nSure: ${durationLabel}\n\nGorusme Konusu:\n${topic}\n\nSaygilarimla`
-        : `Hello,\n\nI would like to schedule a meeting on behalf of ${company}.\n\nDate: ${date}\nTime: ${time} (${tzLabel})\nDuration: ${durationLabel}\n\nMeeting Topic:\n${topic}\n\nBest regards`;
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = isTR ? 'G\u00f6nderiliyor...' : 'Sending...';
 
-    const mailto = `mailto:sertacgul@strategythrust.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailto;
+    var tzStr = isTR ? 'T\u00fcrkiye saati' : (tz >= 0 ? 'UTC+' + tz : 'UTC' + tz);
+    var durationLabel = isTR ? duration + ' dakika' : duration + ' minutes';
 
-    document.getElementById('formView').style.display = 'none';
-    document.getElementById('successView').style.display = 'block';
+    try {
+        var resp = await fetch('https://formsubmit.co/ajax/support@strategythrust.com', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+                _subject: 'Meeting Request - ' + (company || 'New') + ' x ATAOL AI Techs',
+                _template: 'table',
+                _captcha: 'false',
+                _replyto: email,
+                'Company': company || '-',
+                'Contact Name': name,
+                'Contact Email': email,
+                'Preferred Date': date,
+                'Preferred Time': time + ' (' + tzStr + ')',
+                'Duration': durationLabel,
+                'Meeting Topic': topic,
+                'Language': isTR ? 'Turkish' : 'English',
+                'Submitted At': new Date().toISOString()
+            })
+        });
+
+        if (resp.ok) {
+            document.getElementById('formView').style.display = 'none';
+            document.getElementById('successView').style.display = 'block';
+        } else {
+            throw new Error('Server error');
+        }
+    } catch (e) {
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('errorView').style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = isTR ? 'G\u00f6r\u00fc\u015fme Talebi G\u00f6nder' : 'Send Request';
+    }
 }
 </script>
 </body>
