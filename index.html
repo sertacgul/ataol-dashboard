@@ -1083,57 +1083,182 @@ M\u00fcmk\u00fcn oldu\u011funca ger\u00e7ek ve g\u00fcncel bilgiler ver. Bilmedi
     return data.choices[0].message.content;
 }
 
+const ATAOL_INFO = `ATAOL AI Techs - teknoloji ve yazilim cozumleri sirketi:
+
+Kendi platformlarimiz:
+1. StrategyThrust - Stratejik Karar Destek Platformu:
+- 72 saat icinde geleneksel danismanligin 3-6 aylik isini tamamlar
+- Geleneksel yonetim danismanliginin yaklasik 150'de 1 fiyatina ayni kalitede cikti
+- Sektor analizi, rekabet konumlandirmasi, pazar dinamikleri ve stratejik projeksiyonlar
+
+2. ActLedger - Operasyonel Mukemmellik Sistem Platformu:
+- 15 sektor, 576+ departman, 7800+ hazir KPI - dunyanin en kapsamli sektor-spesifik KPI kutuphanesi
+- 5 katmanli performans olcum cercevesi (Performance, Quality, Time, Risk, AI Insight)
+- Dakikalar icinde tam operasyonel cerceve kurulumu
+- Saha operasyonlari, envanter, is akislari, otomasyon, IoT entegrasyonu
+- Mobil-first: iOS native app + PWA
+- Kampanya: 3 aylik lisans alanlara +1 ay ucretsiz | Yillik lisans alanlara %15 indirim
+
+Kurumsal hizmetlerimiz:
+- Otomasyon cozumleri, mobil uygulama gelistirme (iOS/Android), web uygulama gelistirme
+
+ATAOL AI Institute - Kurumsal egitim programlari
+
+Kurucu: Sertac Gul | ataolai.tech | strategythrust.com | actledger.com`;
+
+const STRUCTURED_RULES = `Asagidaki JSON yapisinda yanit ver. HER alan hedef dilde yazilmali.
+ASLA "AI", "yapay zeka", "artificial intelligence" kullanma.
+72 saat ve 1/150 fiyat avantaji toplamda SADECE BIRER KEZ gecsin.
+Em-dash/en-dash kullanma, sadece kisa tire (-).
+McKinsey/BCG/Bain kurumsal ciddiyetinde ton.
+Fiyat bilgisi verme (rakam belirtme), avantaj olarak sun.
+Kampanya detaylarini SADECE ActLedger bolumunde bahset, closing'de KULLANMA.
+Arastirmada bulunan gercek bilgileri (yonetici isimleri, projeler, haberler) emaile dahil et.
+
+JSON yapisi (markdown yok, kod blogu yok):
+{
+  "lead": {
+    "company_name": "Firma adi",
+    "company_summary": "2-3 cumle ozet, arastirmadan gercek bilgiler",
+    "industry": "Sektor kategorisi",
+    "company_size": "kucuk/orta/buyuk veya bilinen calisan sayisi",
+    "country": "TR, US, DE gibi 2 harfli ulke kodu",
+    "pain_points": ["Gercek sorun alani 1", "Sorun 2", "Sorun 3"],
+    "service_match": ["ATAOL hizmeti eslesmesi 1", "Eslesmesi 2"]
+  },
+  "email": {
+    "subject": "Konu basligi - max 60 karakter",
+    "language": "tr veya en veya de vb.",
+    "greeting": "Sayin Ad Soyad, (veya Sayin Yetkililer,)",
+    "intro": "Firmaya ozel giris paragrafi. Max 60 kelime.",
+    "ataol_intro": "ATAOL AI Techs'in iki platformunu ozetleyen 1-2 cumle. Max 30 kelime.",
+    "st_value_prop": "StrategyThrust deger onerisi. Max 35 kelime.",
+    "st_solutions": ["Bu firmaya ozel StrategyThrust cozumu 1", "Cozum 2"],
+    "al_value_prop": "ActLedger deger onerisi. Max 35 kelime.",
+    "al_solutions": ["Bu firmaya ozel ActLedger cozumu 1", "Cozum 2"],
+    "innovation_highlights": ["Inovasyon 1", "Inovasyon 2", "Inovasyon 3"],
+    "services_note": "Platformlar disindaki hizmetler. Max 20 kelime.",
+    "institute_note": "Kurumsal egitim onerisi. Max 30 kelime. SADECE Turkce icin doldur, diger diller icin bos birak.",
+    "closing": "Kapanıs - toplanti onerisi ile bitir. Kampanya/indirim EKLEME.",
+    "cta_text": "Gorusme Planla (hedef dile cevir)"
+  }
+}`;
+
+const LOGO_URL = 'https://sertacgul.github.io/ataol-dashboard/ataol-logo.png';
+const LINKEDIN_URL = 'https://www.linkedin.com/company/ataol-ai-techs';
+const LINKEDIN_ICON = 'https://cdn-icons-png.flaticon.com/512/174/174857.png';
+
+function buildEmailHtml(d, lang) {
+    const st_items = (d.st_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
+    const al_items = (d.al_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
+    const innov_items = (d.innovation_highlights || []).map(h => `<p style="margin:0 0 8px;font-size:13px;color:#e0e0e0;padding-left:8px;">&#9733; ${h}</p>`).join('');
+    const promo = lang === 'tr' ? '3 aylik lisans alanlara +1 ay ucretsiz kullanim | Yillik lisans alanlara %15 indirim' : '3-month license: +1 month free | Annual license: 15% discount';
+    const st_label = lang === 'tr' ? 'Stratejik Karar Destek Platformu' : 'Strategic Decision Support Platform';
+    const al_label = lang === 'tr' ? 'Operasyonel Mukemmellik Sistem Platformu' : 'Operational Excellence System Platform';
+    const innov_label = lang === 'tr' ? '\u0130novasyon ve D\u00fcnya \u0130lkleri' : 'Innovation and World Firsts';
+    const svc_label = lang === 'tr' ? 'Otomasyon, Mobil & Web Uygulama, Ozel Yazilim Cozumleri' : 'Automation, Mobile & Web Apps, Custom Software Solutions';
+    const unsub = lang === 'tr' ? 'Bu e-postayi almak istemiyorsaniz, lutfen \'abonelikten cik\' yazarak yanit verin.' : "If you'd prefer not to receive these emails, simply reply with 'unsubscribe'.";
+    const eng_note = lang === 'tr' ? '' : '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>';
+    const booking = d._booking_url || 'mailto:sertacgul@strategythrust.com';
+
+    let institute_block = '';
+    if (lang === 'tr' && d.institute_note) {
+        institute_block = `<div style="background:#fef3c7;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #f59e0b;">
+      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; ATAOL AI <span style="color:#f59e0b;">Institute</span></p>
+      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Kurumsal Yapay Zeka Egitim Programlari</p>
+      <p style="margin:8px 0 0;font-size:13px;color:#444;">${d.institute_note}</p>
+    </div>`;
+    }
+
+    return `<div style="max-width:620px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2d2d2d;line-height:1.6;">
+  <div style="background:linear-gradient(135deg,#0a0a1a 0%,#1a1a3e 50%,#0f2460 100%);padding:24px 30px 20px;border-radius:12px 12px 0 0;">
+    <img src="${LOGO_URL}" alt="ATAOL AI Techs" style="height:48px;" />
+    <div style="margin-top:12px;height:3px;background:linear-gradient(90deg,#4fc3f7,#22d3ee,#1976d2,transparent);border-radius:2px;"></div>
+  </div>
+  <div style="background:#ffffff;padding:30px;border-left:1px solid #e8e8e8;border-right:1px solid #e8e8e8;">
+    <p style="margin:0 0 16px;font-size:15px;color:#1a1a2e;">${d.greeting || ''}</p>
+    <p style="margin:0 0 14px;font-size:14px;color:#444;">${d.intro || ''}</p>
+    <p style="margin:0 0 20px;font-size:14px;color:#555;font-style:italic;">${d.ataol_intro || ''}</p>
+    <div style="background:#f8f9fc;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #1976d2;">
+      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Strategy<span style="color:#1976d2;">Thrust</span></p>
+      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${st_label}</p>
+      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.st_value_prop || ''}</p>
+      ${st_items}
+    </div>
+    <div style="background:#f0fdf4;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #22d3ee;">
+      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Act<span style="color:#22d3ee;">Ledger</span></p>
+      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${al_label}</p>
+      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.al_value_prop || ''}</p>
+      ${al_items}
+      <div style="margin:14px 0 0;padding:10px 14px;background:linear-gradient(135deg,#e0f7fa,#e8f5e9);border-radius:6px;border:1px dashed #22d3ee;">
+        <p style="margin:0;font-size:12px;font-weight:600;color:#0e7490;">&#127381; ${promo}</p>
+      </div>
+    </div>
+    ${institute_block}
+    <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:10px;padding:20px 24px;margin:20px 0;">
+      <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#4fc3f7;text-transform:uppercase;letter-spacing:1px;">${innov_label}</p>
+      ${innov_items}
+    </div>
+    <p style="margin:16px 0 8px;font-size:13px;color:#555;">${d.services_note || ''}</p>
+    <p style="margin:0 0 20px;font-size:12px;"><a href="https://www.ataolai.tech" style="color:#1976d2;text-decoration:none;font-weight:600;">www.ataolai.tech</a></p>
+    <p style="margin:4px 0 12px;font-size:14px;color:#444;">${d.closing || ''}</p>
+    ${eng_note}
+    <div style="text-align:center;margin:24px 0;">
+      <a href="${booking}" style="display:inline-block;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">${d.cta_text || 'Schedule a Call'}</a>
+    </div>
+    <p style="margin:0;font-size:13px;color:#333;">Sertac Gul<br><span style="color:#888;font-size:12px;">Founder, ATAOL AI Techs</span></p>
+  </div>
+  <div style="background:#f8f9fa;padding:20px 30px;border-radius:0 0 12px 12px;border:1px solid #e8e8e8;border-top:none;">
+    <table style="width:100%;" cellpadding="0" cellspacing="0"><tr>
+      <td style="vertical-align:middle;">
+        <p style="margin:0 0 2px;font-size:12px;color:#666;font-weight:600;">ATAOL AI Techs</p>
+        <p style="margin:0 0 2px;font-size:11px;color:#888;">${svc_label}</p>
+        <p style="margin:0 0 2px;font-size:12px;color:#666;">+90 532 201 3416</p>
+        <p style="margin:0;font-size:12px;">
+          <a href="https://www.ataolai.tech" style="color:#1a1a2e;text-decoration:none;font-weight:600;">ataolai.tech</a>
+          &nbsp;|&nbsp;<a href="https://strategythrust.com" style="color:#1976d2;text-decoration:none;">strategythrust.com</a>
+          &nbsp;|&nbsp;<a href="https://actledger.com" style="color:#22d3ee;text-decoration:none;">actledger.com</a>
+        </p>
+      </td>
+      <td style="vertical-align:middle;text-align:right;">
+        <a href="${LINKEDIN_URL}" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+          <img src="${LINKEDIN_ICON}" alt="LinkedIn" style="height:16px;width:16px;" />
+          <span style="color:#0a66c2;font-size:11px;">Follow us</span>
+        </a>
+      </td>
+    </tr></table>
+    <p style="margin:12px 0 0;font-size:10px;color:#aaa;font-style:italic;">${unsub}</p>
+  </div>
+</div>`;
+}
+
 async function callGeminiAPI(companyName, email, website, notes, research) {
-    const prompt = `Sen ATAOL AI Techs \u015firketinin outreach uzman\u0131s\u0131n. ATAOL AI Techs \u015fu hizmetleri sunuyor:
+    const isTR = research && /türk|istanbul|ankara|izmir|türkiye/i.test(research);
+    const langHint = isTR ? 'Turkce' : 'English';
+    const langRule = isTR
+        ? `Sen ATAOL AI Techs adina kurumsal is gelistirme e-postasi yaziyorsun.
+${ATAOL_INFO}
+HITAP: Kisi adi varsa "Sayin [Ad Soyad],", yoksa "Sayin Yetkililer,". ASLA placeholder kullanma.
+ZORUNLU: institute_note alanini MUTLAKA doldur.
+TUM alanlar Turkce olsun. Turkce karakterleri duzgun kullan.`
+        : `You write corporate business development emails for ATAOL AI Techs.
+${ATAOL_INFO}
+GREETING: If contact name provided use "Dear [Name],", otherwise "Dear Sir/Madam,".
+ALL field values must be in the company's native language (based on country). If unsure, use English.`;
 
-1. **StrategyThrust** - Yapay zeka destekli stratejik dan\u0131\u015fmanl\u0131k platformu. \u015eirketlere \u00f6zel AI modelleri, pazar analizi, rekabet istihbarat\u0131 ve stratejik karar deste\u011fi sa\u011flar. https://strategythrust.com
-
-2. **ActLedger** - Operasyonel y\u00f6netim ve g\u00f6rev takip platformu. Departman bazl\u0131 KPI takibi, i\u015f emirleri, g\u00f6rev y\u00f6netimi, performans analizi ve raporlama sunar. https://actledger.com
-
-A\u015fa\u011f\u0131da Perplexity ile yap\u0131lan firma ara\u015ft\u0131rmas\u0131 var. Bu ara\u015ft\u0131rmay\u0131 kullanarak ki\u015fiselle\u015ftirilmi\u015f bir outreach emaili olu\u015ftur.
+    const prompt = `${langRule}
 
 --- FIRMA BILGILERI ---
 Firma: ${companyName}
 ${website ? 'Website: ' + website : ''}
-${email ? '\u0130leti\u015fim email: ' + email : ''}
+${email ? 'Iletisim email: ' + email : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
 
---- PERPLEXITY ARA\u015eTIRMA SONUCU ---
+--- PERPLEXITY ARASTIRMA SONUCU ---
 ${research}
---- ARA\u015eTIRMA SONU ---
+--- ARASTIRMA SONU ---
 
-KR\u0130T\u0130K KURALLAR:
-- Em-dash (\u2014) veya en-dash (\u2013) KULLANMA, sadece k\u0131sa tire (-) kullan
-- Email profesyonel ama samimi olsun, sat\u0131\u015fc\u0131 gibi de\u011fil dan\u0131\u015fmanvari
-- Firman\u0131n spesifik ihtiya\u00e7lar\u0131na ve sekt\u00f6r\u00fcne de\u011finsin - ara\u015ft\u0131rma sonu\u00e7lar\u0131n\u0131 kullan
-- G\u00f6nderen: Serta\u00e7 G\u00fcl, ATAOL AI Techs
-- Ara\u015ft\u0131rmada bulunan ger\u00e7ek bilgileri (y\u00f6netici isimleri, projeler, haberler) emaile dahil et
-
-D\u0130L VE \u00d6L\u00c7EK KURALLARI:
-- T\u00fcrkiye firmas\u0131 ise: T\u00dcM metin T\u00fcrk\u00e7e olsun. T\u00fcrk\u00e7e karakterleri D\u00dcZG\u00dcN kullan: \u0131, \u00f6, \u00fc, \u015f, \u00e7, \u011f, \u0130, \u00d6, \u00dc, \u015e, \u00c7, \u011e. ASCII yaz\u0131 yazma, d\u00fczg\u00fcn T\u00fcrk\u00e7e yaz.
-- Yabanc\u0131 firma ise: T\u00dcM metin \u0130ngilizce olsun.
-- \u00c7al\u0131\u015fan say\u0131s\u0131 biliniyorsa rakam yaz.
-- \u00c7al\u0131\u015fan say\u0131s\u0131 bilinmiyorsa:
-  - T\u00fcrk firmas\u0131 i\u00e7in: "K\u00fc\u00e7\u00fck \u00f6l\u00e7ekli \u015firket kategorisi" veya "Orta \u00f6l\u00e7ekli \u015firket kategorisi" veya "B\u00fcy\u00fck \u00f6l\u00e7ekli \u015firket kategorisi"
-  - Yabanc\u0131 firma i\u00e7in: "Small-scale company category" veya "Mid-scale company category" veya "Large-scale company category"
-
-Yan\u0131t\u0131n\u0131 SADECE \u015fu JSON format\u0131nda ver (ba\u015fka hi\u00e7bir \u015fey yazma, markdown kullanma):
-{
-  "lead": {
-    "company_name": "Firma ad\u0131",
-    "company_summary": "Firman\u0131n ne yapt\u0131\u011f\u0131n\u0131n k\u0131sa \u00f6zeti (2-3 c\u00fcmle, ara\u015ft\u0131rmadan ger\u00e7ek bilgiler)",
-    "industry": "Sekt\u00f6r kategorisi",
-    "company_size": "k\u00fc\u00e7\u00fck/orta/b\u00fcy\u00fck veya bilinen \u00e7al\u0131\u015fan say\u0131s\u0131",
-    "country": "TR, US, DE gibi 2 harfli \u00fclke kodu",
-    "pain_points": ["Ger\u00e7ek sorun alan\u0131 1", "Sorun alan\u0131 2", "Sorun alan\u0131 3"],
-    "service_match": ["ATAOL hizmeti e\u015fle\u015fmesi 1", "Hizmet e\u015fle\u015fmesi 2"]
-  },
-  "email": {
-    "subject": "Email konu sat\u0131r\u0131",
-    "body_html": "<p>HTML format\u0131nda email i\u00e7eri\u011fi. Paragraflar i\u00e7in p taglar\u0131n\u0131 kullan.</p>",
-    "language": "tr veya en"
-  }
-}`;
+${STRUCTURED_RULES}`;
 
     const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
         method: 'POST',
@@ -1155,13 +1280,23 @@ Yan\u0131t\u0131n\u0131 SADECE \u015fu JSON format\u0131nda ver (ba\u015fka hi\u
     const data = await resp.json();
     const text = data.candidates[0].content.parts[0].text;
 
-    // Parse JSON - handle potential markdown wrapping
     let jsonStr = text;
     const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (codeBlockMatch) jsonStr = codeBlockMatch[1];
     jsonStr = jsonStr.trim();
 
-    return JSON.parse(jsonStr);
+    const result = JSON.parse(jsonStr);
+
+    // Build full HTML from structured data
+    const ed = result.email;
+    const lang = ed.language || (isTR ? 'tr' : 'en');
+    const country = result.lead.country || (isTR ? 'TR' : 'INT');
+    const tzOffset = country === 'TR' ? 3 : 0;
+    ed._booking_url = `https://sertacgul.github.io/ataol-dashboard/book.html?company=${encodeURIComponent(companyName)}&tz=${tzOffset}&lang=${lang}`;
+    ed.body_html = buildEmailHtml(ed, lang);
+    ed.body_text = ed.body_html.replace(/<[^>]*>/g, '');
+
+    return result;
 }
 
 function showResearchResult(result, companyName, email, website, research) {
