@@ -1395,35 +1395,49 @@ function detectCountryFromResearch(research) {
 }
 
 async function callGeminiAPI(companyName, email, website, notes, research) {
-    const country = detectCountryFromResearch(research);
-    const langName = COUNTRY_LANG[country] || 'English';
-    const langCode = COUNTRY_LANGCODE[country] || 'en';
+    // Pre-detect country from research for hint, but Gemini decides final country in JSON
+    const hintCountry = detectCountryFromResearch(research);
+    const hintLang = COUNTRY_LANG[hintCountry] || 'English';
 
-    let langRule;
-    if (langCode === 'tr') {
-        langRule = `Sen ATAOL AI Techs adina kurumsal is gelistirme e-postasi yaziyorsun.
+    const prompt = `You write corporate business development emails for ATAOL AI Techs.
 ${ATAOL_INFO}
-HITAP: Kisi adi varsa "Sayin [Ad Soyad],", yoksa "Sayin Yetkililer,". ASLA placeholder kullanma.
-ZORUNLU: institute_note alanini MUTLAKA doldur.
-TUM alanlar Turkce olsun. Turkce karakterleri duzgun kullan (i, o, u, s, c, g, I, O, U, S, C, G).
-"language" alanina "tr" yaz.`;
-    } else {
-        langRule = `You write corporate business development emails for ATAOL AI Techs.
-${ATAOL_INFO}
-The target company is located in a ${langName}-speaking country (${country}).
-CRITICAL: ALL field values (subject, greeting, intro, solutions, closing, cta_text - EVERYTHING) MUST be written in ${langName}.
-Use formal business register appropriate for ${langName} corporate culture.
-GREETING: Use the standard formal greeting in ${langName}. NEVER use placeholders like [Name].
-If contact name is provided, address them by name in ${langName} format.
-Set "language" field to "${langCode}".
-Leave "institute_note" empty for non-Turkish companies.`;
-    }
 
-    const prompt = `${langRule}
+LANGUAGE RULES - THIS IS THE MOST IMPORTANT RULE:
+1. First, determine the company's country from the research data below.
+2. Set "country" field to the 2-letter country code (TR, DE, FR, ES, IT, PT, NL, SE, NO, DK, FI, PL, CZ, RO, GR, JP, KR, CN, BR, AR, MX, CO, CL, SA, AE, US, GB, AU, IN, etc.)
+3. Then write ALL email fields in that country's primary business language:
+   - TR -> Turkish (set "language" to "tr")
+   - DE, AT, CH -> German (set "language" to "de")
+   - FR, BE -> French (set "language" to "fr")
+   - ES, MX, AR, CO, CL -> Spanish (set "language" to "es")
+   - IT -> Italian (set "language" to "it")
+   - PT, BR -> Portuguese (set "language" to "pt")
+   - NL -> Dutch (set "language" to "nl")
+   - SE -> Swedish (set "language" to "sv")
+   - NO -> Norwegian (set "language" to "no")
+   - DK -> Danish (set "language" to "da")
+   - FI -> Finnish (set "language" to "fi")
+   - PL -> Polish (set "language" to "pl")
+   - CZ -> Czech (set "language" to "cs")
+   - RO -> Romanian (set "language" to "ro")
+   - GR -> Greek (set "language" to "el")
+   - JP -> Japanese (set "language" to "ja")
+   - KR -> Korean (set "language" to "ko")
+   - SA, EG -> Arabic (set "language" to "ar")
+   - All others (US, GB, AU, IN, SG, AE, etc.) -> English (set "language" to "en")
+4. CRITICAL: subject, greeting, intro, ataol_intro, st_value_prop, st_solutions, al_value_prop, al_solutions, innovation_highlights, services_note, closing, cta_text - ALL must be in the determined language. Not English, not Turkish - the COMPANY'S language.
+5. Use formal business register appropriate for that language's corporate culture.
+6. GREETING: Use the standard formal greeting in that language. If contact name is known, address by name. NEVER use placeholder brackets like [Name].
+7. For Turkish companies: fill "institute_note" field. For all others: leave it empty string "".
+8. NEVER use "AI", "yapay zeka", or "artificial intelligence" in the email text.
+9. Em-dash/en-dash forbidden, use only short hyphen (-).
+10. McKinsey/BCG/Bain corporate tone.
+11. 72 hours and 1/150 cost advantage: mention each ONLY ONCE total.
+12. Campaign details (3 months +1 / annual 15%) ONLY in ActLedger section, NOT in closing.
+13. Include real facts from the research (executive names, projects, news).
 
 --- FIRMA BILGILERI ---
 Firma: ${companyName}
-Ulke: ${country} (${langName})
 ${website ? 'Website: ' + website : ''}
 ${email ? 'Iletisim email: ' + email : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
@@ -1432,7 +1446,34 @@ ${notes ? 'Ek bilgi: ' + notes : ''}
 ${research}
 --- ARASTIRMA SONU ---
 
-${STRUCTURED_RULES}`;
+Respond ONLY in valid JSON (no markdown, no code blocks):
+{
+  "lead": {
+    "company_name": "Company name",
+    "company_summary": "2-3 sentence summary from research",
+    "industry": "Industry sector",
+    "company_size": "small/medium/large or known employee count",
+    "country": "2-letter country code",
+    "pain_points": ["Real challenge 1", "Challenge 2", "Challenge 3"],
+    "service_match": ["ATAOL service match 1", "Match 2"]
+  },
+  "email": {
+    "subject": "Subject line - max 60 chars - IN THE COMPANY'S LANGUAGE",
+    "language": "2-letter language code (tr/de/fr/es/it/pt/nl/sv/no/da/fi/pl/cs/ro/el/ja/ko/ar/en)",
+    "greeting": "Formal greeting IN THE COMPANY'S LANGUAGE",
+    "intro": "Company-specific opening. Max 60 words. IN THE COMPANY'S LANGUAGE",
+    "ataol_intro": "ATAOL intro 1-2 sentences. Max 30 words. IN THE COMPANY'S LANGUAGE",
+    "st_value_prop": "StrategyThrust value prop. Max 35 words. IN THE COMPANY'S LANGUAGE",
+    "st_solutions": ["Solution 1 IN THE COMPANY'S LANGUAGE", "Solution 2"],
+    "al_value_prop": "ActLedger value prop. Max 35 words. IN THE COMPANY'S LANGUAGE",
+    "al_solutions": ["Solution 1 IN THE COMPANY'S LANGUAGE", "Solution 2"],
+    "innovation_highlights": ["Innovation 1", "Innovation 2", "Innovation 3"],
+    "services_note": "Other services note. Max 20 words. IN THE COMPANY'S LANGUAGE",
+    "institute_note": "Training proposal for TR companies only. Empty string for others.",
+    "closing": "Closing with meeting proposal. No campaign/discount. IN THE COMPANY'S LANGUAGE",
+    "cta_text": "Schedule a Call IN THE COMPANY'S LANGUAGE"
+  }
+}`;
 
     const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
         method: 'POST',
@@ -1461,10 +1502,10 @@ ${STRUCTURED_RULES}`;
 
     const result = JSON.parse(jsonStr);
 
-    // Build full HTML from structured data
+    // Build full HTML from structured data - use Gemini's own country/language determination
     const ed = result.email;
-    const lang = ed.language || langCode;
-    const finalCountry = result.lead.country || country;
+    const finalCountry = result.lead.country || hintCountry;
+    const lang = ed.language || COUNTRY_LANGCODE[finalCountry] || 'en';
     const tzOffset = COUNTRY_TZ[finalCountry] || 0;
     ed._booking_url = `https://sertacgul.github.io/ataol-dashboard/book.html?company=${encodeURIComponent(companyName)}&tz=${tzOffset}&lang=${lang}`;
     ed.body_html = buildEmailHtml(ed, lang);
