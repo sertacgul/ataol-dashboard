@@ -1043,21 +1043,22 @@ async function startResearch() {
 }
 
 async function callPerplexityAPI(companyName, email, website, notes) {
-    const prompt = `"${companyName}" firmas\u0131 hakk\u0131nda detayl\u0131 ara\u015ft\u0131rma yap.
+    const prompt = `Research the company "${companyName}" in detail.
 ${website ? 'Website: ' + website : ''}
-${notes ? 'Ek bilgi: ' + notes : ''}
+${notes ? 'Additional info: ' + notes : ''}
 
-\u015eu bilgileri bul:
-1. Firma ne i\u015f yap\u0131yor? (detayl\u0131 a\u00e7\u0131klama)
-2. Hangi sekt\u00f6rde faaliyet g\u00f6steriyor?
-3. Firma b\u00fcy\u00fckl\u00fc\u011f\u00fc (\u00e7al\u0131\u015fan say\u0131s\u0131, gelir vb.)
-4. Hangi \u00fclkede/\u00fclkelerde faaliyet g\u00f6steriyor?
-5. Firman\u0131n kar\u015f\u0131la\u015ft\u0131\u011f\u0131 zorluklar, operasyonel sorunlar
-6. Dijital d\u00f6n\u00fc\u015f\u00fcm, AI kullan\u0131m\u0131, operasyonel verimlilik konusundaki durumlar\u0131
-7. Y\u00f6netim kadrosu (CEO, CTO vb. isimleri ve g\u00f6revleri)
-8. G\u00fcncel haberler veya geli\u015fmeler
+Find the following information:
+1. What does the company do? (detailed description)
+2. What industry/sector are they in?
+3. Company size (employee count, revenue, etc.)
+4. HEADQUARTERS COUNTRY: Which country is the company headquartered in? (give the 2-letter country code: TR, DE, FR, US, GB, JP, etc.)
+5. Challenges the company faces, operational issues
+6. Digital transformation status, operational efficiency
+7. Management team (CEO, CTO, etc. names and roles)
+8. Recent news or developments
 
-M\u00fcmk\u00fcn oldu\u011funca ger\u00e7ek ve g\u00fcncel bilgiler ver. Bilmedi\u011fin bilgileri uydurma, bilinmiyor olarak belirt.`;
+Provide real and current information. If unknown, say so - do not fabricate.
+IMPORTANT: Start your response with "HEADQUARTERS: XX" where XX is the 2-letter country code.`;
 
     const resp = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
@@ -1068,7 +1069,7 @@ M\u00fcmk\u00fcn oldu\u011funca ger\u00e7ek ve g\u00fcncel bilgiler ver. Bilmedi
         body: JSON.stringify({
             model: 'sonar-pro',
             messages: [
-                { role: 'system', content: 'Sen bir firma ara\u015ft\u0131rma uzman\u0131s\u0131n. Verilen firma hakk\u0131nda internetten detayl\u0131 ve ger\u00e7ek bilgi topluyorsun. T\u00fcrk\u00e7e yan\u0131t ver. T\u00fcrk\u00e7e karakterleri d\u00fczg\u00fcn kullan (\u0131, \u00f6, \u00fc, \u015f, \u00e7, \u011f, \u0130, \u00d6, \u00dc, \u015e, \u00c7, \u011e).' },
+                { role: 'system', content: 'You are a company research specialist. You research companies using the internet and provide real, accurate information. Always respond in English. Always start with the headquarters country code.' },
                 { role: 'user', content: prompt }
             ]
         })
@@ -1442,9 +1443,9 @@ ${website ? 'Website: ' + website : ''}
 ${email ? 'Iletisim email: ' + email : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
 
---- PERPLEXITY ARASTIRMA SONUCU ---
+--- PERPLEXITY RESEARCH (in English - DO NOT use the research language for the email, use the COMPANY'S country language) ---
 ${research}
---- ARASTIRMA SONU ---
+--- END RESEARCH ---
 
 Respond ONLY in valid JSON (no markdown, no code blocks):
 {
