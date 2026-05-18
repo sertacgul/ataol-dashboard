@@ -1,0 +1,30 @@
+name: Daily Outreach Generation
+
+on:
+  schedule:
+    # 06:00 UTC = 09:00 Istanbul (UTC+3)
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: 'Number of leads to process'
+        required: false
+        default: '5'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate outreach emails
+        env:
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          BATCH_SIZE: ${{ github.event.inputs.batch_size || '5' }}
+        run: node scripts/generate-outreach.mjs
