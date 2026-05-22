@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Daily outreach email generator for ATAOL AI Techs
-// Reads unprocessed leads from Gist, researches via Gemini 2.0 Flash
-// with Google Search grounding, generates emails via Gemini 2.0 Flash,
+// Reads unprocessed leads from Gist, researches via Gemini 2.5 Flash
+// with Google Search grounding, generates emails via Gemini 2.5 Flash,
 // writes back to Gist as pending_review.
 //
 // Required env vars (set via GitHub Secrets):
@@ -222,7 +222,7 @@ Provide real and current information. If unknown, say so - do not fabricate.
 IMPORTANT: Start your response with "HEADQUARTERS: XX" where XX is the 2-letter country code.
 IMPORTANT: Include any contact email you find as "CONTACT_EMAIL: xxx@yyy.com" on a separate line.`;
 
-  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -230,7 +230,8 @@ IMPORTANT: Include any contact email you find as "CONTACT_EMAIL: xxx@yyy.com" on
         parts: [{ text: 'You are a company research specialist. You research companies using the internet and provide real, accurate information. Always respond in English. Always start with the headquarters country code.' }]
       },
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      tools: [{ google_search: {} }]
+      tools: [{ google_search: {} }],
+      generationConfig: { thinkingConfig: { thinkingBudget: 0 } }
     })
   });
 
@@ -338,12 +339,12 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
   }
 }`;
 
-  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: 'application/json', temperature: 0.7 }
+      generationConfig: { responseMimeType: 'application/json', temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } }
     })
   });
 
