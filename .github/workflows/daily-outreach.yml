@@ -9,7 +9,7 @@ on:
       batch_size:
         description: 'Number of leads to process'
         required: false
-        default: '5'
+        default: '25'
 
 jobs:
   generate:
@@ -25,5 +25,6 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
-          BATCH_SIZE: ${{ github.event.inputs.batch_size || '5' }}
+          APOLLO_API_KEY: ${{ secrets.APOLLO_API_KEY }}
+          BATCH_SIZE: ${{ github.event.inputs.batch_size || '25' }}
         run: node scripts/generate-outreach.mjs

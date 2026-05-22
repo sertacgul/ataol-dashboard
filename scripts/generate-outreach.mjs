@@ -7,13 +7,15 @@
 // Required env vars (set via GitHub Secrets):
 //   GEMINI_API_KEY, GIST_TOKEN
 // Optional:
-//   BATCH_SIZE (default: 5)
+//   APOLLO_API_KEY (for decision-maker enrichment via Apollo.io)
+//   BATCH_SIZE (default: 25)
 
 const GIST_ID = '3a783c6e0d525a36da50cc4821e55552';
-const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '5', 10);
+const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '25', 10);
 
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const GIST_TOKEN = process.env.GIST_TOKEN;
+const APOLLO_KEY = process.env.APOLLO_API_KEY || '';
 
 if (!GEMINI_KEY || !GIST_TOKEN) {
   console.error('Missing required env vars: GEMINI_API_KEY, GIST_TOKEN');
@@ -286,6 +288,8 @@ function detectCountryFromResearch(research) {
 async function generateEmail(lead, research) {
   const name = lead.company_name;
   const email = lead.contact_email || lead.email || '';
+  const contactName = lead.contact_name || '';
+  const contactTitle = lead.contact_title || '';
   const website = lead.website || '';
   const notes = lead.notes || '';
 
@@ -315,6 +319,7 @@ LANGUAGE RULES - THIS IS THE MOST IMPORTANT RULE:
 Firma: ${name}
 ${website ? 'Website: ' + website : ''}
 ${email ? 'Iletisim email: ' + email : ''}
+${contactName ? 'Karar verici: ' + contactName + (contactTitle ? ' (' + contactTitle + ')' : '') : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
 
 --- COMPANY RESEARCH ---
@@ -448,6 +453,61 @@ function extractContactEmail(research) {
   return emailMatch ? emailMatch[0] : '';
 }
 
+// ---- Apollo.io decision-maker enrichment ----
+const DECISION_MAKER_TITLES = [
+  'CEO', 'CTO', 'COO', 'CFO', 'CMO',
+  'Founder', 'Co-Founder',
+  'Managing Director', 'General Manager',
+  'Chief Executive Officer', 'Chief Technology Officer',
+  'Chief Operating Officer', 'VP Operations',
+  'Head of Strategy', 'Head of Digital',
+  'Geschäftsführer', 'Genel Müdür', 'Kurucu'
+];
+
+async function findDecisionMaker(companyName, domain) {
+  if (!APOLLO_KEY) return null;
+
+  try {
+    const body = {
+      api_key: APOLLO_KEY,
+      q_organization_name: companyName,
+      person_titles: DECISION_MAKER_TITLES,
+      per_page: 3
+    };
+    if (domain) {
+      body.q_organization_domains = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    }
+
+    const resp = await fetch('https://api.apollo.io/api/v1/mixed_people/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+      const errBody = await resp.text();
+      console.error(`    Apollo API ${resp.status}: ${errBody.substring(0, 150)}`);
+      return null;
+    }
+
+    const data = await resp.json();
+    const people = data.people || [];
+    // Pick the first person with a verified email
+    const match = people.find(p => p.email && !p.email.includes('noreply'));
+    if (!match) return null;
+
+    return {
+      name: match.name || `${match.first_name || ''} ${match.last_name || ''}`.trim(),
+      email: match.email,
+      title: match.title || '',
+      linkedin_url: match.linkedin_url || ''
+    };
+  } catch (err) {
+    console.error(`    Apollo enrichment error: ${err.message}`);
+    return null;
+  }
+}
+
 // ---- Main ----
 async function main() {
   console.log(`[${new Date().toISOString()}] Starting daily outreach generation (batch: ${BATCH_SIZE})`);
@@ -478,6 +538,22 @@ async function main() {
       const research = await researchCompany(lead);
       console.log('  Research complete.');
 
+      // Enrich with decision-maker contact via Apollo.io
+      let decisionMaker = null;
+      if (APOLLO_KEY) {
+        console.log('  Finding decision-maker via Apollo.io...');
+        decisionMaker = await findDecisionMaker(lead.company_name, lead.website);
+        if (decisionMaker) {
+          console.log(`    Found: ${decisionMaker.name} (${decisionMaker.title}) <${decisionMaker.email}>`);
+          lead.contact_name = decisionMaker.name;
+          lead.contact_email = decisionMaker.email;
+          lead.contact_title = decisionMaker.title;
+          lead.contact_linkedin = decisionMaker.linkedin_url;
+        } else {
+          console.log('    No decision-maker found, using generic email.');
+        }
+      }
+
       console.log('  Generating email via Gemini...');
       const result = await generateEmail(lead, research);
       console.log('  Email generated.');
@@ -507,7 +583,7 @@ async function main() {
       const newEmail = {
         lead_id: lead.id,
         to_email: lead.contact_email || '',
-        to_name: lead.company_name,
+        to_name: lead.contact_name || lead.company_name,
         from_email: 'sertacgul@strategythrust.com',
         subject: ed.subject,
         body_html: ed.body_html,
