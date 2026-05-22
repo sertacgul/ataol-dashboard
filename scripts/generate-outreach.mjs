@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 // Daily outreach email generator for ATAOL AI Techs
-// Reads unprocessed leads from Gist, researches via Perplexity,
-// generates emails via Gemini, writes back to Gist as pending_review.
+// Reads unprocessed leads from Gist, researches via Gemini 2.0 Flash
+// with Google Search grounding, generates emails via Gemini 2.0 Flash,
+// writes back to Gist as pending_review.
 //
 // Required env vars (set via GitHub Secrets):
-//   PERPLEXITY_API_KEY, GEMINI_API_KEY, GIST_TOKEN
+//   GEMINI_API_KEY, GIST_TOKEN
 // Optional:
 //   BATCH_SIZE (default: 5)
 
 const GIST_ID = '3a783c6e0d525a36da50cc4821e55552';
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '5', 10);
 
-const PERPLEXITY_KEY = process.env.PERPLEXITY_API_KEY;
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const GIST_TOKEN = process.env.GIST_TOKEN;
 
-if (!PERPLEXITY_KEY || !GEMINI_KEY || !GIST_TOKEN) {
-  console.error('Missing required env vars: PERPLEXITY_API_KEY, GEMINI_API_KEY, GIST_TOKEN');
+if (!GEMINI_KEY || !GIST_TOKEN) {
+  console.error('Missing required env vars: GEMINI_API_KEY, GIST_TOKEN');
   process.exit(1);
 }
 
@@ -197,7 +197,7 @@ async function writeGist(data) {
   if (!resp.ok) throw new Error(`Gist write failed: ${resp.status}`);
 }
 
-// ---- Perplexity research ----
+// ---- Gemini research (Google Search grounding) ----
 async function researchCompany(lead) {
   const name = lead.company_name;
   const website = lead.website || '';
@@ -222,25 +222,26 @@ Provide real and current information. If unknown, say so - do not fabricate.
 IMPORTANT: Start your response with "HEADQUARTERS: XX" where XX is the 2-letter country code.
 IMPORTANT: Include any contact email you find as "CONTACT_EMAIL: xxx@yyy.com" on a separate line.`;
 
-  const resp = await fetch('https://api.perplexity.ai/chat/completions', {
+  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${PERPLEXITY_KEY}` },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'sonar-pro',
-      messages: [
-        { role: 'system', content: 'You are a company research specialist. You research companies using the internet and provide real, accurate information. Always respond in English. Always start with the headquarters country code.' },
-        { role: 'user', content: prompt }
-      ]
+      systemInstruction: {
+        parts: [{ text: 'You are a company research specialist. You research companies using the internet and provide real, accurate information. Always respond in English. Always start with the headquarters country code.' }]
+      },
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      tools: [{ google_search: {} }]
     })
   });
 
   if (!resp.ok) {
     const errBody = await resp.text();
-    throw new Error(`Perplexity API ${resp.status}: ${errBody.substring(0, 200)}`);
+    throw new Error(`Gemini Research API ${resp.status}: ${errBody.substring(0, 200)}`);
   }
 
   const data = await resp.json();
-  return data.choices[0].message.content;
+  const parts = data.candidates[0].content.parts;
+  return parts.filter(p => p.text).map(p => p.text).join('\n');
 }
 
 // ---- Country detection ----
@@ -315,7 +316,7 @@ ${website ? 'Website: ' + website : ''}
 ${email ? 'Iletisim email: ' + email : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
 
---- PERPLEXITY RESEARCH ---
+--- COMPANY RESEARCH ---
 ${research}
 --- END RESEARCH ---
 
@@ -337,7 +338,7 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
   }
 }`;
 
-  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
+  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -472,7 +473,7 @@ async function main() {
     try {
       console.log(`\n--- ${lead.company_name} ---`);
 
-      console.log('  Researching via Perplexity...');
+      console.log('  Researching via Gemini + Google Search...');
       const research = await researchCompany(lead);
       console.log('  Research complete.');
 

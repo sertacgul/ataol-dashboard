@@ -23,7 +23,6 @@ jobs:
 
       - name: Generate outreach emails
         env:
-          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
           BATCH_SIZE: ${{ github.event.inputs.batch_size || '5' }}
