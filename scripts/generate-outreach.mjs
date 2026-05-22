@@ -232,13 +232,13 @@ Find the following information:
 4. HEADQUARTERS COUNTRY: Which country is the company headquartered in? (give the 2-letter country code: TR, DE, FR, US, GB, JP, etc.)
 5. Challenges the company faces, operational issues
 6. Digital transformation status, operational efficiency
-7. Management team (CEO, CTO, etc. names and roles)
+7. KEY DECISION-MAKER: Find the CEO, founder, managing director, CTO, or COO. Search LinkedIn, Crunchbase, company about page, and press releases. Provide their full name, title, and personal work email (NOT info@, contact@, or generic addresses).
 8. Recent news or developments
-9. Contact email address for business inquiries (info@, contact@, or executive email if available)
 
 Provide real and current information. If unknown, say so - do not fabricate.
 IMPORTANT: Start your response with "HEADQUARTERS: XX" where XX is the 2-letter country code.
-IMPORTANT: Include any contact email you find as "CONTACT_EMAIL: xxx@yyy.com" on a separate line.`;
+IMPORTANT: Include the decision-maker as "DECISION_MAKER: Full Name | Title | email@domain.com" on a separate line.
+IMPORTANT: If you can only find a generic email, still provide it as "CONTACT_EMAIL: xxx@yyy.com" but try harder to find a personal email first.`;
 
   const resp = await fetchWithRetry(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
@@ -459,10 +459,24 @@ function buildEmailHtml(d, lang) {
 </div>`;
 }
 
-// ---- Extract contact email from research ----
-function extractContactEmail(research) {
-  const match = research.match(/CONTACT_EMAIL:\s*(\S+@\S+)/i);
-  if (match) return match[1].replace(/[.,;)>]+$/, '');
+// ---- Extract contact from research (prefer decision-maker over generic) ----
+function extractContactFromResearch(research, lead) {
+  // Try DECISION_MAKER first: "Full Name | Title | email@domain.com"
+  const dmMatch = research.match(/DECISION_MAKER:\s*([^|]+)\|\s*([^|]+)\|\s*(\S+@\S+)/i);
+  if (dmMatch) {
+    const email = dmMatch[3].replace(/[.,;)>]+$/, '');
+    const genericRe = /^(info|contact|hello|office|sales|business|press|legal|privacy|support|hcp|cs|memberservices|dataprotection|notifications)@/i;
+    if (!genericRe.test(email)) {
+      lead.contact_name = dmMatch[1].trim();
+      lead.contact_title = dmMatch[2].trim();
+      lead.contact_email = email;
+      return email;
+    }
+  }
+  // Fallback to CONTACT_EMAIL
+  const ceMatch = research.match(/CONTACT_EMAIL:\s*(\S+@\S+)/i);
+  if (ceMatch) return ceMatch[1].replace(/[.,;)>]+$/, '');
+  // Last resort: any business email in the text
   const emailMatch = research.match(/(?:info|contact|hello|office|sales|business)@[\w.-]+\.\w{2,}/i);
   return emailMatch ? emailMatch[0] : '';
 }
@@ -582,7 +596,7 @@ async function main() {
       lead.service_match = JSON.stringify(leadResult.service_match || []);
 
       if (!lead.contact_email) {
-        lead.contact_email = extractContactEmail(research);
+        lead.contact_email = extractContactFromResearch(research, lead);
       }
 
       // Build email HTML

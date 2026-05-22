@@ -28,3 +28,9 @@ jobs:
           APOLLO_API_KEY: ${{ secrets.APOLLO_API_KEY }}
           BATCH_SIZE: ${{ github.event.inputs.batch_size || '25' }}
         run: node scripts/generate-outreach.mjs
+
+      - name: Enrich generic contacts
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+        run: node scripts/enrich-contacts.mjs
