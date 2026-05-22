@@ -199,6 +199,22 @@ async function writeGist(data) {
   if (!resp.ok) throw new Error(`Gist write failed: ${resp.status}`);
 }
 
+// ---- Retry wrapper for Gemini API (handles 429/503 rate limits) ----
+async function fetchWithRetry(url, options, label, maxRetries = 3) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const resp = await fetch(url, options);
+    if (resp.ok) return resp;
+    if ((resp.status === 429 || resp.status === 503) && attempt < maxRetries) {
+      const wait = Math.pow(3, attempt + 1) * 2000; // 6s, 18s, 54s
+      console.log(`    ${label} ${resp.status}, retry ${attempt + 1}/${maxRetries} in ${wait / 1000}s...`);
+      await new Promise(r => setTimeout(r, wait));
+      continue;
+    }
+    const errBody = await resp.text();
+    throw new Error(`${label} ${resp.status}: ${errBody.substring(0, 200)}`);
+  }
+}
+
 // ---- Gemini research (Google Search grounding) ----
 async function researchCompany(lead) {
   const name = lead.company_name;
@@ -224,23 +240,22 @@ Provide real and current information. If unknown, say so - do not fabricate.
 IMPORTANT: Start your response with "HEADQUARTERS: XX" where XX is the 2-letter country code.
 IMPORTANT: Include any contact email you find as "CONTACT_EMAIL: xxx@yyy.com" on a separate line.`;
 
-  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      systemInstruction: {
-        parts: [{ text: 'You are a company research specialist. You research companies using the internet and provide real, accurate information. Always respond in English. Always start with the headquarters country code.' }]
-      },
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      tools: [{ google_search: {} }],
-      generationConfig: { thinkingConfig: { thinkingBudget: 0 } }
-    })
-  });
-
-  if (!resp.ok) {
-    const errBody = await resp.text();
-    throw new Error(`Gemini Research API ${resp.status}: ${errBody.substring(0, 200)}`);
-  }
+  const resp = await fetchWithRetry(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: 'You are a company research specialist. You research companies using the internet and provide real, accurate information. Always respond in English. Always start with the headquarters country code.' }]
+        },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        tools: [{ google_search: {} }],
+        generationConfig: { thinkingConfig: { thinkingBudget: 0 } }
+      })
+    },
+    'Gemini Research API'
+  );
 
   const data = await resp.json();
   const parts = data.candidates[0].content.parts;
@@ -344,19 +359,18 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
   }
 }`;
 
-  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: 'application/json', temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } }
-    })
-  });
-
-  if (!resp.ok) {
-    const errBody = await resp.text();
-    throw new Error(`Gemini API ${resp.status}: ${errBody.substring(0, 200)}`);
-  }
+  const resp = await fetchWithRetry(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json', temperature: 0.7, thinkingConfig: { thinkingBudget: 0 } }
+      })
+    },
+    'Gemini Email API'
+  );
 
   const data = await resp.json();
   const text = data.candidates[0].content.parts[0].text;
@@ -597,8 +611,8 @@ async function main() {
       generated++;
       console.log(`  OK: "${ed.subject}" (${lang}) -> ${lead.contact_email || 'no email found'}`);
 
-      // Rate limit between API calls
-      await new Promise(r => setTimeout(r, 2000));
+      // Rate limit: Gemini free tier = 15 RPM, each lead = 2 calls
+      await new Promise(r => setTimeout(r, 5000));
     } catch (err) {
       console.error(`  FAILED for ${lead.company_name}: ${err.message}`);
     }
