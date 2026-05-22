@@ -7,7 +7,6 @@
 // Required env vars (set via GitHub Secrets):
 //   GEMINI_API_KEY, GIST_TOKEN
 // Optional:
-//   APOLLO_API_KEY (for decision-maker enrichment via Apollo.io)
 //   BATCH_SIZE (default: 25)
 
 const GIST_ID = '3a783c6e0d525a36da50cc4821e55552';
@@ -15,7 +14,6 @@ const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '25', 10);
 
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const GIST_TOKEN = process.env.GIST_TOKEN;
-const APOLLO_KEY = process.env.APOLLO_API_KEY || '';
 
 if (!GEMINI_KEY || !GIST_TOKEN) {
   console.error('Missing required env vars: GEMINI_API_KEY, GIST_TOKEN');
@@ -481,59 +479,67 @@ function extractContactFromResearch(research, lead) {
   return emailMatch ? emailMatch[0] : '';
 }
 
-// ---- Apollo.io decision-maker enrichment ----
-const DECISION_MAKER_TITLES = [
-  'CEO', 'CTO', 'COO', 'CFO', 'CMO',
-  'Founder', 'Co-Founder',
-  'Managing Director', 'General Manager',
-  'Chief Executive Officer', 'Chief Technology Officer',
-  'Chief Operating Officer', 'VP Operations',
-  'Head of Strategy', 'Head of Digital',
-  'Geschäftsführer', 'Genel Müdür', 'Kurucu'
-];
+// ---- Find decision-maker via Gemini + Google Search ----
+const GENERIC_RE = /^(info|contact|hello|office|sales|business|press|legal|privacy|support|hcp|cs|memberservices|dataprotection|notifications|ult|emko|kontakt)@/i;
 
-async function findDecisionMaker(companyName, domain) {
-  if (!APOLLO_KEY) return null;
+async function findDecisionMaker(companyName, website) {
+  const domain = website ? website.replace(/^https?:\/\//, '').replace(/\/.*$/, '') : '';
 
-  try {
-    const body = {
-      api_key: APOLLO_KEY,
-      q_organization_name: companyName,
-      person_titles: DECISION_MAKER_TITLES,
-      per_page: 3
-    };
-    if (domain) {
-      body.q_organization_domains = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-    }
+  const prompt = `Find the CEO, founder, managing director, or CTO of "${companyName}"${domain ? ' (' + domain + ')' : ''}.
 
-    const resp = await fetch('https://api.apollo.io/api/v1/mixed_people/search', {
+I need their:
+1. Full name
+2. Job title
+3. Professional email address (NOT info@, contact@, or generic addresses — their personal work email)
+4. LinkedIn profile URL
+
+Search LinkedIn, company website, Crunchbase, press releases, and news articles.
+
+IMPORTANT: Respond in this exact format, one field per line:
+NAME: <full name>
+TITLE: <job title>
+EMAIL: <personal work email>
+LINKEDIN: <linkedin url>
+
+If you cannot find a personal email, try the common pattern: firstname@${domain || 'company.com'} or firstname.lastname@${domain || 'company.com'}.
+If you truly cannot determine any email, write EMAIL: NONE.
+Do NOT return info@, contact@, hello@, support@, or any generic address.`;
+
+  const resp = await fetchWithRetry(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+    {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: 'You find real decision-makers at companies using web search. Return verified information only. Never fabricate emails — if unsure, say NONE.' }]
+        },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        tools: [{ google_search: {} }],
+        generationConfig: { thinkingConfig: { thinkingBudget: 0 } }
+      })
+    },
+    'Gemini Contact API'
+  );
 
-    if (!resp.ok) {
-      const errBody = await resp.text();
-      console.error(`    Apollo API ${resp.status}: ${errBody.substring(0, 150)}`);
-      return null;
-    }
+  const data = await resp.json();
+  const parts = data.candidates[0].content.parts;
+  const text = parts.filter(p => p.text).map(p => p.text).join('\n');
 
-    const data = await resp.json();
-    const people = data.people || [];
-    // Pick the first person with a verified email
-    const match = people.find(p => p.email && !p.email.includes('noreply'));
-    if (!match) return null;
+  const nameMatch = text.match(/NAME:\s*(.+)/i);
+  const titleMatch = text.match(/TITLE:\s*(.+)/i);
+  const emailMatch = text.match(/EMAIL:\s*(\S+@\S+)/i);
+  const linkedinMatch = text.match(/LINKEDIN:\s*(https?:\/\/\S+)/i);
 
-    return {
-      name: match.name || `${match.first_name || ''} ${match.last_name || ''}`.trim(),
-      email: match.email,
-      title: match.title || '',
-      linkedin_url: match.linkedin_url || ''
-    };
-  } catch (err) {
-    console.error(`    Apollo enrichment error: ${err.message}`);
-    return null;
-  }
+  const email = emailMatch ? emailMatch[1].replace(/[.,;)>]+$/, '') : null;
+  if (!email || email === 'NONE' || GENERIC_RE.test(email)) return null;
+
+  return {
+    name: nameMatch ? nameMatch[1].trim() : null,
+    title: titleMatch ? titleMatch[1].trim() : null,
+    email: email,
+    linkedin: linkedinMatch ? linkedinMatch[1].trim() : null
+  };
 }
 
 // ---- Main ----
@@ -558,31 +564,35 @@ async function main() {
   console.log(`Processing batch of ${batch.length}: ${batch.map(l => l.company_name).join(', ')}`);
 
   let generated = 0;
+  let skipped = 0;
   for (const lead of batch) {
     try {
       console.log(`\n--- ${lead.company_name} ---`);
 
-      console.log('  Researching via Gemini + Google Search...');
+      // Step 1: Find decision-maker FIRST (1 Gemini call)
+      console.log('  Step 1: Finding decision-maker...');
+      const dm = await findDecisionMaker(lead.company_name, lead.website);
+
+      if (!dm) {
+        console.log('  SKIPPED: No decision-maker email found. Saving tokens.');
+        skipped++;
+        await new Promise(r => setTimeout(r, 5000));
+        continue;
+      }
+
+      console.log(`  Found: ${dm.name} (${dm.title}) <${dm.email}>`);
+      lead.contact_name = dm.name;
+      lead.contact_email = dm.email;
+      lead.contact_title = dm.title;
+      if (dm.linkedin) lead.contact_linkedin = dm.linkedin;
+
+      // Step 2: Research company (1 Gemini call)
+      console.log('  Step 2: Researching company...');
       const research = await researchCompany(lead);
       console.log('  Research complete.');
 
-      // Enrich with decision-maker contact via Apollo.io
-      let decisionMaker = null;
-      if (APOLLO_KEY) {
-        console.log('  Finding decision-maker via Apollo.io...');
-        decisionMaker = await findDecisionMaker(lead.company_name, lead.website);
-        if (decisionMaker) {
-          console.log(`    Found: ${decisionMaker.name} (${decisionMaker.title}) <${decisionMaker.email}>`);
-          lead.contact_name = decisionMaker.name;
-          lead.contact_email = decisionMaker.email;
-          lead.contact_title = decisionMaker.title;
-          lead.contact_linkedin = decisionMaker.linkedin_url;
-        } else {
-          console.log('    No decision-maker found, using generic email.');
-        }
-      }
-
-      console.log('  Generating email via Gemini...');
+      // Step 3: Generate email (1 Gemini call)
+      console.log('  Step 3: Generating email...');
       const result = await generateEmail(lead, research);
       console.log('  Email generated.');
 
@@ -595,10 +605,6 @@ async function main() {
       lead.pain_points = JSON.stringify(leadResult.pain_points || []);
       lead.service_match = JSON.stringify(leadResult.service_match || []);
 
-      if (!lead.contact_email) {
-        lead.contact_email = extractContactFromResearch(research, lead);
-      }
-
       // Build email HTML
       const ed = result.email;
       const finalCountry = leadResult.country || detectCountryFromResearch(research);
@@ -610,8 +616,8 @@ async function main() {
 
       const newEmail = {
         lead_id: lead.id,
-        to_email: lead.contact_email || '',
-        to_name: lead.contact_name || lead.company_name,
+        to_email: lead.contact_email,
+        to_name: lead.contact_name,
         from_email: 'sertacgul@strategythrust.com',
         subject: ed.subject,
         body_html: ed.body_html,
@@ -623,9 +629,9 @@ async function main() {
       };
       emails.push(newEmail);
       generated++;
-      console.log(`  OK: "${ed.subject}" (${lang}) -> ${lead.contact_email || 'no email found'}`);
+      console.log(`  OK: "${ed.subject}" (${lang}) -> ${lead.contact_email}`);
 
-      // Rate limit: Gemini free tier = 15 RPM, each lead = 2 calls
+      // Rate limit: Gemini free tier = 15 RPM
       await new Promise(r => setTimeout(r, 5000));
     } catch (err) {
       console.error(`  FAILED for ${lead.company_name}: ${err.message}`);
@@ -640,7 +646,7 @@ async function main() {
     console.log(`\nWrote ${generated} new emails to Gist.`);
   }
 
-  console.log(`\nDone. Generated: ${generated}/${batch.length}. Remaining queue: ${unprocessed.length - batch.length}`);
+  console.log(`\nDone. Generated: ${generated}, Skipped (no contact): ${skipped}, Failed: ${batch.length - generated - skipped}. Remaining queue: ${unprocessed.length - batch.length}`);
 }
 
 main().catch(err => {
