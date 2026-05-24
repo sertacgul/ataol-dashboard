@@ -5,6 +5,9 @@ on:
     # 05:50 UTC = 08:50 Istanbul — 10 min before outreach cron
     - cron: '50 5 * * *'
 
+permissions:
+  contents: write
+
 jobs:
   keepalive:
     runs-on: ubuntu-latest
