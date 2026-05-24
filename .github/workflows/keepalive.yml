@@ -1,0 +1,19 @@
+name: Keepalive
+
+on:
+  schedule:
+    # 05:50 UTC = 08:50 Istanbul — 10 min before outreach cron
+    - cron: '50 5 * * *'
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Keepalive commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: keepalive [skip ci]"
+          git push

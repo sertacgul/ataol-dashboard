@@ -44,7 +44,13 @@
             font-size: 13px; font-weight: 500; cursor: pointer;
         }
         .navbar nav a:hover, .navbar nav a.active { color: #fff; background: rgba(255,255,255,0.1); }
-        .navbar .logout { margin-left: auto; color: #b0bec5; font-size: 12px; cursor: pointer; padding: 6px 12px; border-radius: 6px; }
+        .navbar .trigger-btn {
+            margin-left: auto; color: #4fc3f7; font-size: 12px; font-weight: 600;
+            cursor: pointer; padding: 6px 14px; border-radius: 6px; border: 1px solid #4fc3f7;
+        }
+        .navbar .trigger-btn:hover { color: #fff; background: #4fc3f7; }
+        .navbar .trigger-btn.running { color: #ffa726; border-color: #ffa726; pointer-events: none; }
+        .navbar .logout { margin-left: 8px; color: #b0bec5; font-size: 12px; cursor: pointer; padding: 6px 12px; border-radius: 6px; }
         .navbar .logout:hover { color: #fff; background: rgba(255,255,255,0.1); }
 
         /* Main */
@@ -199,6 +205,7 @@
             <a onclick="showTab('approvedlog')" id="tab-approvedlog">Outreach Log</a>
             <a onclick="showTab('newoutreach')" id="tab-newoutreach" style="color:#4fc3f7;font-weight:600;">+ New</a>
         </nav>
+        <span class="trigger-btn" onclick="triggerOutreach()" title="Manuel outreach tetikle">&#9654; Trigger</span>
         <span class="logout" onclick="logout()">Logout</span>
     </div>
 
@@ -316,6 +323,47 @@ function logout() {
     localStorage.removeItem('st_token');
     TOKEN = '';
     location.reload();
+}
+
+// ---- TRIGGER OUTREACH ----
+async function triggerOutreach() {
+    const btn = document.querySelector('.trigger-btn');
+    if (!TOKEN) { alert('Login required'); return; }
+    if (!confirm('Outreach pipeline tetiklensin mi? (25 firma)')) return;
+
+    btn.textContent = '⏳ Running...';
+    btn.classList.add('running');
+
+    try {
+        const resp = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/daily-outreach.yml/dispatches`, {
+            method: 'POST',
+            headers: {
+                Authorization: `token ${TOKEN}`,
+                Accept: 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ref: 'master', inputs: { batch_size: '25' } })
+        });
+
+        if (resp.status === 204) {
+            btn.textContent = '✓ Triggered';
+            btn.style.borderColor = '#4caf50';
+            btn.style.color = '#4caf50';
+            setTimeout(() => {
+                btn.textContent = '▶ Trigger';
+                btn.classList.remove('running');
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            }, 30000);
+        } else {
+            const err = await resp.text();
+            throw new Error(`${resp.status}: ${err.substring(0, 100)}`);
+        }
+    } catch (e) {
+        btn.textContent = '▶ Trigger';
+        btn.classList.remove('running');
+        alert('Trigger failed: ' + e.message);
+    }
 }
 
 // ---- DATA ----
