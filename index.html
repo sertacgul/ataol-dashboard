@@ -92,6 +92,7 @@
         .badge-approved { background: #e8f5e9; color: #2e7d32; }
         .badge-sent { background: #e3f2fd; color: #1565c0; }
         .badge-rejected { background: #ffebee; color: #c62828; }
+        .badge-opened { background: #f3e5f5; color: #7b1fa2; }
 
         /* Email detail */
         .email-detail-overlay {
@@ -582,7 +583,7 @@ function renderOutreachLog() {
         <div class="stat-card"><div class="label">Pending</div><div class="value orange">${statusMap.pending_review}</div></div>
         <div class="stat-card"><div class="label">Approved</div><div class="value green">${statusMap.approved}</div></div>
         <div class="stat-card"><div class="label">Sent</div><div class="value blue">${statusMap.sent}</div></div>
-        <div class="stat-card"><div class="label">Rejected</div><div class="value" style="color:#c62828">${statusMap.rejected}</div></div>
+        <div class="stat-card"><div class="label">Opened</div><div class="value" style="color:#7b1fa2">${allEmails.filter(e => e.opened_at).length}</div></div>
         <div class="stat-card"><div class="label">Countries</div><div class="value blue">${Object.keys(countryMap).length}</div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
@@ -737,13 +738,14 @@ function renderStats() {
     const pending = emailsData.filter(e => e.status === 'pending_review').length;
     const approved = emailsData.filter(e => e.status === 'approved').length;
     const sent = emailsData.filter(e => e.status === 'sent').length;
+    const opened = emailsData.filter(e => e.opened_at).length;
     const rejected = emailsData.filter(e => e.status === 'rejected').length;
     document.getElementById('statsRow').innerHTML = `
         <div class="stat-card"><div class="label">Total Emails</div><div class="value blue">${emailsData.length}</div></div>
         <div class="stat-card"><div class="label">Pending</div><div class="value orange">${pending}</div></div>
         <div class="stat-card"><div class="label">Approved</div><div class="value green">${approved}</div></div>
         <div class="stat-card"><div class="label">Sent</div><div class="value blue">${sent}</div></div>
-        <div class="stat-card"><div class="label">Rejected</div><div class="value" style="color:#c62828">${rejected}</div></div>
+        <div class="stat-card"><div class="label">Opened</div><div class="value" style="color:#7b1fa2">${opened}</div></div>
         <div class="stat-card"><div class="label">Leads</div><div class="value blue">${leadsData.length}</div></div>
     `;
 }
@@ -759,15 +761,22 @@ function renderEmailList(containerId, emails, emptyMsg) {
         const statusClass = e.status === 'pending_review' ? '' : e.status;
         const badgeClass = e.status === 'pending_review' ? 'pending' : e.status;
         const lead = leadsData.find(l => l.id === e.lead_id) || {};
-        return `
-        <div class="email-item ${statusClass}" onclick="openEmail(${idx})">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-                <span class="company">${lead.company_name || e.to_name || 'N/A'}</span>
-                <span class="badge badge-${badgeClass}">${e.status.replace('pending_review','pending')}</span>
-            </div>
-            <div class="subject">${e.subject}</div>
-            <div class="meta">${e.to_email} - ${e.language === 'tr' ? 'TR' : 'EN'}</div>
-        </div>`;
+        const openTag = e.opened_at
+            ? '<span class="badge badge-opened">'
+              + 'Opened' + (e.open_count > 1 ? ' ' + e.open_count + 'x' : '')
+              + '</span> '
+            : '';
+        const openMeta = e.opened_at
+            ? ' - Opened ' + new Date(e.opened_at).toLocaleDateString()
+            : '';
+        return '<div class="email-item ' + statusClass + '" onclick="openEmail(' + idx + ')">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center">'
+            + '<span class="company">' + (lead.company_name || e.to_name || 'N/A') + '</span>'
+            + '<span>' + openTag + '<span class="badge badge-' + badgeClass + '">' + e.status.replace('pending_review','pending') + '</span></span>'
+            + '</div>'
+            + '<div class="subject">' + e.subject + '</div>'
+            + '<div class="meta">' + e.to_email + ' - ' + (e.language === 'tr' ? 'TR' : 'EN') + openMeta + '</div>'
+            + '</div>';
     }).join('');
 }
 
