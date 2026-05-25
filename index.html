@@ -564,6 +564,9 @@ function renderOutreachLog() {
         const badgeClass = e.status === 'pending_review' ? 'pending' : e.status;
         const emailType = !e.email_type || e.email_type === 'initial' ? '' : e.email_type === 'followup_1' ? ' (FU-1)' : ' (FU-2)';
 
+        const openedInfo = e.opened_at
+            ? '<span class="badge badge-opened">' + new Date(e.opened_at).toLocaleDateString() + (e.open_count > 1 ? ' (' + e.open_count + 'x)' : '') + '</span>'
+            : '<span style="color:#ccc;font-size:11px;">-</span>';
         return `<tr onclick="openEmail(${emailsData.indexOf(e)})" style="cursor:pointer;">
             <td style="color:#888;font-size:12px;">${i + 1}</td>
             <td><strong>${lead.company_name || e.to_name || '-'}</strong><span style="color:#aaa;font-size:11px;">${emailType}</span></td>
@@ -572,6 +575,7 @@ function renderOutreachLog() {
             <td style="font-size:11px;">${(lead.industry || '-').substring(0, 30)}</td>
             <td>${(e.language || 'en').toUpperCase()}</td>
             <td><span class="badge badge-${badgeClass}">${e.status.replace('pending_review','pending')}</span></td>
+            <td>${openedInfo}</td>
             <td style="font-size:12px;color:#666;">${created}</td>
             <td style="font-size:12px;color:#666;">${sentDate}</td>
         </tr>`;
@@ -596,6 +600,7 @@ function renderOutreachLog() {
             <div style="display:flex;gap:8px;align-items:center;">
                 <select id="outreachFilter" onchange="filterOutreachLog()" style="padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
                     <option value="all">All</option>
+                    <option value="opened">Opened</option>
                     <option value="pending_review">Pending</option>
                     <option value="approved">Approved</option>
                     <option value="sent">Sent</option>
@@ -607,7 +612,7 @@ function renderOutreachLog() {
         </div>
         <div style="overflow-x:auto;">
         <table id="outreachTable">
-            <thead><tr><th>#</th><th>Company</th><th>Email</th><th>Country</th><th>Industry</th><th>Lang</th><th>Status</th><th>Created</th><th>Sent</th></tr></thead>
+            <thead><tr><th>#</th><th>Company</th><th>Email</th><th>Country</th><th>Industry</th><th>Lang</th><th>Status</th><th>Opened</th><th>Created</th><th>Sent</th></tr></thead>
             <tbody>${rows}</tbody>
         </table>
         </div>
@@ -623,7 +628,10 @@ function filterOutreachLog() {
         const email = allSorted[i];
         if (!email) { row.style.display = 'none'; return; }
         const matchSearch = !query || row.textContent.toLowerCase().includes(query);
-        const matchStatus = statusFilter === 'all' || email.status === statusFilter;
+        let matchStatus;
+        if (statusFilter === 'all') matchStatus = true;
+        else if (statusFilter === 'opened') matchStatus = !!email.opened_at;
+        else matchStatus = email.status === statusFilter;
         row.style.display = (matchSearch && matchStatus) ? '' : 'none';
     });
 }
