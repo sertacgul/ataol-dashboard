@@ -44,12 +44,17 @@
             font-size: 13px; font-weight: 500; cursor: pointer;
         }
         .navbar nav a:hover, .navbar nav a.active { color: #fff; background: rgba(255,255,255,0.1); }
+        .navbar .trigger-group { margin-left: auto; display: flex; gap: 4px; }
         .navbar .trigger-btn {
-            margin-left: auto; color: #4fc3f7; font-size: 12px; font-weight: 600;
-            cursor: pointer; padding: 6px 14px; border-radius: 6px; border: 1px solid #4fc3f7;
+            color: #4fc3f7; font-size: 11px; font-weight: 600;
+            cursor: pointer; padding: 4px 10px; border-radius: 6px; border: 1px solid currentColor;
         }
-        .navbar .trigger-btn:hover { color: #fff; background: #4fc3f7; }
-        .navbar .trigger-btn.running { color: #ffa726; border-color: #ffa726; pointer-events: none; }
+        .navbar .trigger-btn:hover { color: #fff; background: currentColor; }
+        .navbar .trigger-btn.running { opacity: 0.5; pointer-events: none; }
+        .navbar .trigger-btn[data-svc="actledger"] { color: #22d3ee; }
+        .navbar .trigger-btn[data-svc="strategythrust"] { color: #60a5fa; }
+        .navbar .trigger-btn[data-svc="institute"] { color: #fbbf24; }
+        .navbar .trigger-btn[data-svc="digital"] { color: #a78bfa; }
         .navbar .logout { margin-left: 8px; color: #b0bec5; font-size: 12px; cursor: pointer; padding: 6px 12px; border-radius: 6px; }
         .navbar .logout:hover { color: #fff; background: rgba(255,255,255,0.1); }
 
@@ -206,7 +211,12 @@
             <a onclick="showTab('approvedlog')" id="tab-approvedlog">Outreach Log</a>
             <a onclick="showTab('newoutreach')" id="tab-newoutreach" style="color:#4fc3f7;font-weight:600;">+ New</a>
         </nav>
-        <span class="trigger-btn" onclick="triggerOutreach()" title="Manuel outreach tetikle">&#9654; Trigger</span>
+        <span class="trigger-group">
+            <span class="trigger-btn" data-svc="actledger" onclick="triggerService('actledger',this)">ActLedger</span>
+            <span class="trigger-btn" data-svc="strategythrust" onclick="triggerService('strategythrust',this)" style="opacity:0.4;pointer-events:none;" title="Coming soon">Strategy</span>
+            <span class="trigger-btn" data-svc="institute" onclick="triggerService('institute',this)" style="opacity:0.4;pointer-events:none;" title="Coming soon">Institute</span>
+            <span class="trigger-btn" data-svc="digital" onclick="triggerService('digital',this)" style="opacity:0.4;pointer-events:none;" title="Coming soon">Dijital</span>
+        </span>
         <span class="logout" onclick="logout()">Logout</span>
     </div>
 
@@ -329,36 +339,37 @@ function logout() {
 // ---- TRIGGER OUTREACH ----
 const WORKER_URL = 'https://api.ataolai.tech/run';
 const TRIGGER_SECRET = 'ataol-trigger-2026';
+const SVC_LABELS = { actledger: 'ActLedger', strategythrust: 'Strategy', institute: 'Institute', digital: 'Dijital' };
 
-async function triggerOutreach() {
-    const btn = document.querySelector('.trigger-btn');
-    if (!confirm('Outreach pipeline tetiklensin mi? (25 firma)')) return;
+async function triggerService(service, btn) {
+    if (!confirm(SVC_LABELS[service] + ' outreach tetiklensin mi?')) return;
 
-    btn.textContent = '⏳ Running...';
+    const origText = btn.textContent;
+    btn.textContent = '...';
     btn.classList.add('running');
 
     try {
-        const resp = await fetch(WORKER_URL, {
+        const resp = await fetch(WORKER_URL + '?service=' + service, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${TRIGGER_SECRET}` }
+            headers: { 'Authorization': 'Bearer ' + TRIGGER_SECRET }
         });
 
         if (resp.ok) {
-            btn.textContent = '✓ Triggered';
+            btn.textContent = 'OK';
             btn.style.borderColor = '#4caf50';
             btn.style.color = '#4caf50';
-            setTimeout(() => {
-                btn.textContent = '▶ Trigger';
+            setTimeout(function() {
+                btn.textContent = origText;
                 btn.classList.remove('running');
                 btn.style.borderColor = '';
                 btn.style.color = '';
-            }, 30000);
+            }, 20000);
         } else {
-            const err = await resp.text();
-            throw new Error(`${resp.status}: ${err.substring(0, 100)}`);
+            var err = await resp.text();
+            throw new Error(resp.status + ': ' + err.substring(0, 100));
         }
     } catch (e) {
-        btn.textContent = '▶ Trigger';
+        btn.textContent = origText;
         btn.classList.remove('running');
         alert('Trigger failed: ' + e.message);
     }
@@ -601,6 +612,7 @@ function renderOutreachLog() {
                 <select id="outreachFilter" onchange="filterOutreachLog()" style="padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
                     <option value="all">All</option>
                     <option value="opened">Opened</option>
+                    <option value="needs_manual_review">Needs Review</option>
                     <option value="pending_review">Pending</option>
                     <option value="approved">Approved</option>
                     <option value="sent">Sent</option>
