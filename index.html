@@ -101,6 +101,8 @@
         .badge-high { background: #ff5252; color: white; }
         .badge-medium { background: #ffb74d; color: #333; }
         .badge-low { background: #81c784; color: #333; }
+        .qbtn { padding:4px 10px; border:1px solid #ddd; border-radius:4px; background:#f8f9fc; cursor:pointer; font-size:11px; color:#333; transition: all 0.15s; }
+        .qbtn:hover { background:#e3f2fd; border-color:#90caf9; }
 
         /* Email detail */
         .email-detail-overlay {
@@ -819,6 +821,29 @@ function renderGmaps() {
         + '<button onclick="discoverGmaps()" id="gmapsDiscoverBtn" style="padding:8px 16px;background:#34a853;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Ara</button>'
         + '</div>'
         + '<div id="gmapsDiscoverStatus" style="margin-top:8px;font-size:12px;color:#888;"></div>'
+        + '<div style="margin-top:14px;border-top:1px solid #eee;padding-top:12px;">'
+        + '<div style="font-size:11px;color:#888;margin-bottom:8px;font-weight:600;">HAZIR SORGULAR \u2014 T\u00fcrkiye OSB</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">'
+        + '<button class="qbtn" onclick="quickDiscover(\'manufacturing companies Bursa Organize Sanayi\')">Bursa OSB</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'factory Kayseri Organize Sanayi\')">Kayseri OSB</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'manufacturing Gaziantep Organize Sanayi\')">Gaziantep OSB</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'factory Konya Organize Sanayi\')">Konya OSB</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'manufacturing \u0130stanbul Ikitelli OSB\')">Ikitelli OSB</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'factory Denizli Organize Sanayi\')">Denizli OSB</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'manufacturing Manisa Organize Sanayi\')">Manisa OSB</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'factory Sakarya Organize Sanayi\')">Sakarya OSB</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'textile factory Tekirda\u011f \u00c7erkezk\u00f6y\')">Tekirda\u011f</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'manufacturing Adana Organize Sanayi\')">Adana OSB</button>'
+        + '</div>'
+        + '<div style="font-size:11px;color:#888;margin-bottom:8px;font-weight:600;">ULUSLARARASI</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:4px;">'
+        + '<button class="qbtn" onclick="quickDiscover(\'manufacturing companies Munich Germany\')">M\u00fcnih</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'logistics companies Dubai\')">Dubai</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'factory companies Baku Azerbaijan\')">Bak\u00fc</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'manufacturing companies Almaty Kazakhstan\')">Almaty</button>'
+        + '<button class="qbtn" onclick="quickDiscover(\'manufacturing companies Tashkent Uzbekistan\')">\u00d6zbekistan</button>'
+        + '</div>'
+        + '</div>'
         + '</div>'
         + '<div class="card">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
@@ -855,6 +880,11 @@ async function generateForLead(leadId, service, btn) {
         container.innerHTML = '<span style="font-size:11px;color:#f44336;">Error: ' + e.message.substring(0, 30) + '</span>';
         setTimeout(() => { container.innerHTML = origHtml; }, 4000);
     }
+}
+
+function quickDiscover(query) {
+    document.getElementById('gmapsQuery').value = query;
+    discoverGmaps();
 }
 
 async function discoverGmaps() {
