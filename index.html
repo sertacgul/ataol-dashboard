@@ -802,10 +802,28 @@ function renderGmaps() {
             + '</tr>';
     }).join('');
 
-    container.innerHTML = '<div class="card">'
+    container.innerHTML = '<div class="card" style="margin-bottom:16px;padding:20px;">'
+        + '<h3 style="margin:0 0 12px 0;">\u{1F4CD} Google Maps\u2019tan Firma Bul</h3>'
+        + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+        + '<input type="text" id="gmapsQuery" placeholder="ör: textile companies Bursa, logistics Istanbul..." style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;flex:1;min-width:250px;">'
+        + '<select id="gmapsService" style="padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;">'
+        + '<option value="actledger">ActLedger</option>'
+        + '<option value="strategythrust">StrategyThrust</option>'
+        + '<option value="institute">Institute</option>'
+        + '<option value="digital">Digital</option>'
+        + '</select>'
+        + '<select id="gmapsMax" style="padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;">'
+        + '<option value="5">5 firma</option>'
+        + '<option value="10">10 firma</option>'
+        + '</select>'
+        + '<button onclick="discoverGmaps()" id="gmapsDiscoverBtn" style="padding:8px 16px;background:#34a853;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Ara</button>'
+        + '</div>'
+        + '<div id="gmapsDiscoverStatus" style="margin-top:8px;font-size:12px;color:#888;"></div>'
+        + '</div>'
+        + '<div class="card">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
-        + '<h3>Google Maps Leads (' + gmapsLeads.length + ')</h3>'
-        + '<input type="text" id="gmapsSearch" placeholder="Search company, address..." oninput="filterGmaps()" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;width:250px;">'
+        + '<h3>Google Maps Firmalar\u0131 (' + gmapsLeads.length + ')</h3>'
+        + '<input type="text" id="gmapsSearch" placeholder="Firma, adres ara..." oninput="filterGmaps()" style="padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;width:250px;">'
         + '</div>'
         + '<div style="overflow-x:auto;">'
         + '<table id="gmapsTable">'
@@ -837,6 +855,43 @@ async function generateForLead(leadId, service, btn) {
         container.innerHTML = '<span style="font-size:11px;color:#f44336;">Error: ' + e.message.substring(0, 30) + '</span>';
         setTimeout(() => { container.innerHTML = origHtml; }, 4000);
     }
+}
+
+async function discoverGmaps() {
+    const query = document.getElementById('gmapsQuery').value.trim();
+    if (!query) { alert('Arama sorgusu girin'); return; }
+    const service = document.getElementById('gmapsService').value;
+    const max = document.getElementById('gmapsMax').value;
+    const btn = document.getElementById('gmapsDiscoverBtn');
+    const status = document.getElementById('gmapsDiscoverStatus');
+
+    btn.disabled = true;
+    btn.textContent = 'Aran\u0131yor...';
+    status.innerHTML = '<span style="color:#ff9800;">Google Maps\u2019ta aranıyor ve kontakt bulunuyor... (30-60 sn s\u00fcrebilir)</span>';
+
+    try {
+        const resp = await fetch(`https://api.ataolai.tech/discover-gmaps?query=${encodeURIComponent(query)}&service=${service}&max=${max}`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + TRIGGER_SECRET }
+        });
+        const data = await resp.json();
+        if (data.error) {
+            status.innerHTML = '<span style="color:#f44336;">\u2717 Hata: ' + data.error + '</span>';
+        } else {
+            const leads = data.leads || [];
+            let msg = `<span style="color:#4caf50;">\u2713 ${data.discovered} firma bulundu, ${data.skipped} atland\u0131 (email yok)</span>`;
+            if (leads.length > 0) {
+                msg += '<br>' + leads.map(l => `<strong>${l.name}</strong> \u2B50${l.rating} (${l.reviews} yorum)`).join(' \u2022 ');
+            }
+            status.innerHTML = msg;
+            await loadData();
+            renderGmaps();
+        }
+    } catch (e) {
+        status.innerHTML = '<span style="color:#f44336;">Hata: ' + e.message + '</span>';
+    }
+    btn.disabled = false;
+    btn.textContent = 'Ara';
 }
 
 function filterGmaps() {
