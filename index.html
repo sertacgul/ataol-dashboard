@@ -909,9 +909,9 @@ async function discoverGmaps() {
             status.innerHTML = '<span style="color:#f44336;">\u2717 Hata: ' + data.error + '</span>';
         } else {
             const leads = data.leads || [];
-            let msg = `<span style="color:#4caf50;">\u2713 ${data.discovered} firma bulundu, ${data.skipped} atland\u0131 (email yok)</span>`;
+            let msg = `<span style="color:#4caf50;">\u2713 ${data.message || data.discovered + ' firma bulundu'}</span>`;
             if (leads.length > 0) {
-                msg += '<br>' + leads.map(l => `<strong>${l.name}</strong> \u2B50${l.rating} (${l.reviews} yorum)`).join(' \u2022 ');
+                msg += '<br>' + leads.map(l => `<strong>${l.name}</strong> (${l.contact_email || '?'}) \u2B50${l.rating}`).join(' \u2022 ');
             }
             status.innerHTML = msg;
             await loadData();
