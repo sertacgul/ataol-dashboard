@@ -750,6 +750,14 @@ function renderGmaps() {
         return;
     }
 
+    // Sort: high severity first, then medium, then low
+    const sevOrder = { high: 0, medium: 1, low: 2 };
+    gmapsLeads.sort((a, b) => {
+        const aS = sevOrder[(a.gmaps_review_analysis?.severity || 'low').toLowerCase()] ?? 2;
+        const bS = sevOrder[(b.gmaps_review_analysis?.severity || 'low').toLowerCase()] ?? 2;
+        return aS - bS;
+    });
+
     let rows = gmapsLeads.map((lead, i) => {
         const rating = lead.gmaps_rating || 0;
         const reviewCount = lead.gmaps_review_count || 0;
