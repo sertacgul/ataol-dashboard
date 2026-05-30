@@ -775,8 +775,21 @@ function renderGmaps() {
             ? '<a href="' + lead.gmaps_url + '" target="_blank" style="color:#1976d2;text-decoration:none;font-size:12px;">Open Map</a>'
             : '-';
 
+        // Check if lead already has an email
+        const hasEmail = emailsData.some(e => e.lead_id === lead.id);
+        const emailInfo = hasEmail ? emailsData.find(e => e.lead_id === lead.id) : null;
+        const genBtnStyle = 'padding:2px 6px;border:1px solid #ddd;border-radius:3px;cursor:pointer;font-size:10px;margin:1px;';
+        const serviceButtons = hasEmail
+            ? '<span style="font-size:11px;color:#4caf50;">\u2713 ' + (emailInfo.status || '') + '</span>'
+            : '<div style="display:flex;flex-wrap:wrap;gap:2px;" id="gmaps-gen-' + lead.id + '">'
+              + '<button onclick="generateForLead(' + lead.id + ',\'actledger\',this)" style="' + genBtnStyle + 'background:#e0f7fa;color:#006064;" title="ActLedger">AL</button>'
+              + '<button onclick="generateForLead(' + lead.id + ',\'strategythrust\',this)" style="' + genBtnStyle + 'background:#fce4ec;color:#880e4f;" title="StrategyThrust">ST</button>'
+              + '<button onclick="generateForLead(' + lead.id + ',\'institute\',this)" style="' + genBtnStyle + 'background:#f3e5f5;color:#4a148c;" title="Institute">IN</button>'
+              + '<button onclick="generateForLead(' + lead.id + ',\'digital\',this)" style="' + genBtnStyle + 'background:#e8f5e9;color:#1b5e20;" title="Digital">DG</button>'
+              + '</div>';
+
         return '<tr>'
-            + '<td><strong>' + (lead.company_name || '-') + '</strong></td>'
+            + '<td><strong>' + (lead.company_name || '-') + '</strong><br><span style="font-size:11px;color:#888;">' + (lead.contact_email || lead.gmaps_phone || '') + '</span></td>'
             + '<td style="white-space:nowrap;">\u2B50 ' + rating + '/5 (' + reviewCount + ')</td>'
             + '<td>'
             +   (reviews.length ? '<button onclick="document.getElementById(\'' + rowId + '\').classList.toggle(\'hidden\')" style="padding:3px 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:11px;">View (' + reviews.length + ')</button>' : '-')
@@ -784,8 +797,7 @@ function renderGmaps() {
             + '</td>'
             + '<td>' + painHtml + '</td>'
             + '<td><span class="badge ' + sevClass + '">' + severity + '</span></td>'
-            + '<td style="font-size:12px;">' + (lead.gmaps_phone || '-') + '</td>'
-            + '<td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + (lead.gmaps_address || '') + '">' + (lead.gmaps_address || '-') + '</td>'
+            + '<td style="white-space:nowrap;">' + serviceButtons + '</td>'
             + '<td>' + mapsLink + '</td>'
             + '</tr>';
     }).join('');
@@ -797,11 +809,34 @@ function renderGmaps() {
         + '</div>'
         + '<div style="overflow-x:auto;">'
         + '<table id="gmapsTable">'
-        + '<thead><tr><th>Company</th><th>Rating</th><th>Reviews</th><th>Pain Points</th><th>Severity</th><th>Phone</th><th>Address</th><th>Actions</th></tr></thead>'
+        + '<thead><tr><th>Company</th><th>Rating</th><th>Reviews</th><th>Pain Points</th><th>Severity</th><th>Generate Email</th><th>Map</th></tr></thead>'
         + '<tbody>' + rows + '</tbody>'
         + '</table>'
         + '</div>'
         + '</div>';
+}
+
+async function generateForLead(leadId, service, btn) {
+    const container = btn.parentElement;
+    const origHtml = container.innerHTML;
+    container.innerHTML = '<span style="font-size:11px;color:#ff9800;">Generating...</span>';
+    try {
+        const resp = await fetch(`https://api.ataolai.tech/run-lead?lead_id=${leadId}&service=${service}`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + TRIGGER_SECRET }
+        });
+        const data = await resp.json();
+        if (data.success) {
+            container.innerHTML = '<span style="font-size:11px;color:#4caf50;">\u2713 ' + data.email.status + ' (' + service + ')</span>';
+            setTimeout(() => { loadData(); }, 1000);
+        } else {
+            container.innerHTML = '<span style="font-size:11px;color:#f44336;">\u2717 ' + (data.error || 'Failed').substring(0, 40) + '</span>';
+            setTimeout(() => { container.innerHTML = origHtml; }, 4000);
+        }
+    } catch (e) {
+        container.innerHTML = '<span style="font-size:11px;color:#f44336;">Error: ' + e.message.substring(0, 30) + '</span>';
+        setTimeout(() => { container.innerHTML = origHtml; }, 4000);
+    }
 }
 
 function filterGmaps() {
