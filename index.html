@@ -277,16 +277,11 @@
                 </div>
                 <div id="apiKeySection" style="margin-top:12px;">
                     <div class="form-group">
-                        <label>Perplexity API Key (arastirma icin)</label>
-                        <input type="password" id="perplexityKey" placeholder="pplx-..." style="font-family:monospace;"
-                               onchange="localStorage.setItem('perplexity_key', this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label>Gemini API Key (email olusturma icin)</label>
+                        <label>Gemini API Key (ara\u015ft\u0131rma + email olu\u015fturma)</label>
                         <input type="password" id="geminiKey" placeholder="AIza..." style="font-family:monospace;"
                                onchange="localStorage.setItem('gemini_key', this.value)">
                     </div>
-                    <p style="font-size:11px;color:#999;">Perplexity firmay internetten arastirir, Gemini kisisel email olusturur. Key'ler sadece tarayicida saklanir.</p>
+                    <p style="font-size:11px;color:#999;">Gemini 2.5 Flash ile firma ara\u015ft\u0131rmas\u0131 + ki\u015fisel email olu\u015fturma. Key sadece taray\u0131c\u0131da saklan\u0131r.</p>
                 </div>
             </div>
         </div>
@@ -1357,7 +1352,7 @@ function copyEmailContent(idx) {
 }
 
 // ---- NEW OUTREACH ----
-let PERPLEXITY_KEY = '';
+// Perplexity removed — Gemini handles both research and email generation
 let GEMINI_KEY = '';
 
 async function startResearch() {
@@ -1368,25 +1363,24 @@ async function startResearch() {
 
     if (!companyName) { showToast('Firma adi zorunlu!', 'error'); return; }
 
-    PERPLEXITY_KEY = document.getElementById('perplexityKey').value || localStorage.getItem('perplexity_key') || '';
     GEMINI_KEY = document.getElementById('geminiKey').value || localStorage.getItem('gemini_key') || '';
 
-    if (!PERPLEXITY_KEY || !GEMINI_KEY) {
-        showToast('Perplexity ve Gemini API Key gerekli! API Ayarlari bolumunu ac.', 'error');
+    if (!GEMINI_KEY) {
+        showToast('Gemini API Key gerekli! API Ayarlari bolumunu ac.', 'error');
         return;
     }
 
     const resultDiv = document.getElementById('researchResult');
     resultDiv.classList.remove('hidden');
-    resultDiv.innerHTML = `<div style="text-align:center;padding:30px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;"><strong>Adim 1/2:</strong> Perplexity ile firma arastiriliyor...</p><p style="color:#aaa;font-size:12px;margin-top:4px;">${companyName}</p></div>`;
+    resultDiv.innerHTML = `<div style="text-align:center;padding:30px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;"><strong>Ad\u0131m 1/2:</strong> Gemini ile firma ara\u015ft\u0131r\u0131l\u0131yor...</p><p style="color:#aaa;font-size:12px;margin-top:4px;">${companyName}</p></div>`;
     document.getElementById('btnResearch').disabled = true;
     document.getElementById('btnResearch').textContent = 'Arastiriliyor...';
 
     try {
-        // Step 1: Research with Perplexity
-        const research = await callPerplexityAPI(companyName, email, website, notes);
+        // Step 1: Research with Gemini (Google Search grounding)
+        const research = await callGeminiResearchAPI(companyName, email, website, notes);
 
-        resultDiv.innerHTML = `<div style="text-align:center;padding:30px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;"><strong>Adim 2/2:</strong> Gemini ile email olusturuluyor...</p><p style="color:#aaa;font-size:12px;margin-top:4px;">${companyName}</p></div>`;
+        resultDiv.innerHTML = `<div style="text-align:center;padding:30px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;"><strong>Ad\u0131m 2/2:</strong> Gemini ile email olu\u015fturuluyor...</p><p style="color:#aaa;font-size:12px;margin-top:4px;">${companyName}</p></div>`;
 
         // Step 2: Generate email with Gemini using research
         const result = await callGeminiAPI(companyName, email, website, notes, research);
@@ -1400,7 +1394,7 @@ async function startResearch() {
     }
 }
 
-async function callPerplexityAPI(companyName, email, website, notes) {
+async function callGeminiResearchAPI(companyName, email, website, notes) {
     const prompt = `Research the company "${companyName}" in detail.
 ${website ? 'Website: ' + website : ''}
 ${notes ? 'Additional info: ' + notes : ''}
@@ -1418,28 +1412,25 @@ Find the following information:
 Provide real and current information. If unknown, say so - do not fabricate.
 IMPORTANT: Start your response with "HEADQUARTERS: XX" where XX is the 2-letter country code.`;
 
-    const resp = await fetch('https://api.perplexity.ai/chat/completions', {
+    const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${PERPLEXITY_KEY}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            model: 'sonar-pro',
-            messages: [
-                { role: 'system', content: 'You are a company research specialist. You research companies using the internet and provide real, accurate information. Always respond in English. Always start with the headquarters country code.' },
-                { role: 'user', content: prompt }
-            ]
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            systemInstruction: { parts: [{ text: 'You are a company research specialist. You research companies using the internet and provide real, accurate information. Always respond in English. Always start with the headquarters country code.' }] },
+            tools: [{ google_search: {} }],
+            generationConfig: { thinkingConfig: { thinkingBudget: 0 } }
         })
     });
 
     if (!resp.ok) {
         const errBody = await resp.text();
-        throw new Error(`Perplexity API ${resp.status}: ${errBody.substring(0, 200)}`);
+        throw new Error(`Gemini API ${resp.status}: ${errBody.substring(0, 200)}`);
     }
 
     const data = await resp.json();
-    return data.choices[0].message.content;
+    const parts = data.candidates[0].content.parts;
+    return parts.filter(p => p.text).map(p => p.text).join('\n');
 }
 
 const ATAOL_INFO = `ATAOL AI Techs - teknoloji ve yazilim cozumleri sirketi:
@@ -1801,7 +1792,7 @@ ${website ? 'Website: ' + website : ''}
 ${email ? 'Iletisim email: ' + email : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
 
---- PERPLEXITY RESEARCH (in English - DO NOT use the research language for the email, use the COMPANY'S country language) ---
+--- COMPANY RESEARCH (in English - DO NOT use the research language for the email, use the COMPANY'S country language) ---
 ${research}
 --- END RESEARCH ---
 
@@ -1887,7 +1878,7 @@ function showResearchResult(result, companyName, email, website, research) {
     resultDiv.innerHTML = `
         <div class="preview-section" style="border-left:3px solid #1976d2;">
             <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="document.getElementById('researchDetail').classList.toggle('hidden')">
-                <h4 style="margin:0;">Perplexity Arastirma Sonucu</h4>
+                <h4 style="margin:0;">Gemini Ara\u015ft\u0131rma Sonucu</h4>
                 <span style="color:#888;font-size:11px;">goster/gizle &#9660;</span>
             </div>
             <div id="researchDetail" class="hidden" style="margin-top:12px;font-size:13px;line-height:1.6;color:#444;max-height:400px;overflow-y:auto;">
@@ -1996,13 +1987,7 @@ async function addToQueue() {
         loadData();
     }
     document.getElementById('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
-    // Load API keys
-    const savedPplx = localStorage.getItem('perplexity_key');
-    if (savedPplx) {
-        PERPLEXITY_KEY = savedPplx;
-        const el = document.getElementById('perplexityKey');
-        if (el) el.value = savedPplx;
-    }
+    // Load Gemini API key
     const savedGemini = localStorage.getItem('gemini_key');
     if (savedGemini) {
         GEMINI_KEY = savedGemini;
