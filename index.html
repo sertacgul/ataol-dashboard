@@ -739,6 +739,97 @@ function escapeHtml(s) {
     return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
 }
 
+async function nlFindTopics() {
+    var btn = document.getElementById('btnNlTopics');
+    btn.textContent = '';
+    var spinner = document.createElement('span');
+    spinner.className = 'nl-spinner';
+    btn.appendChild(spinner);
+    btn.appendChild(document.createTextNode(' Arastiriliyor...'));
+    btn.disabled = true;
+
+    var lang = document.getElementById('nlLang').value;
+    var promptLang = lang === 'tr' ? 'Turkce' : 'English';
+
+    var prompt = 'Sen ATAOL AI Techs icin trend arastirmacisisin. Asagidaki 4 hizmet alaniyla kesisen, bu hafta gundemde olan 5 konu bul.\n\n'
+        + 'Hizmet alanlari ve agirliklari:\n'
+        + '- ActLedger (%40): Operasyonel mukemmellik, ERP, aktivite takibi, blockchain denetim izi, kurumsal hafiza, performans yonetimi\n'
+        + '- StrategyThrust (%30): Stratejik analiz, rekabet istihbarati, pazar analizi, C-level raporlama, yapay zeka destekli arastirma\n'
+        + '- ATAOL AI Lab (%15): AI entegrasyon, dijital donusum, B2B yazilim, is surecleri otomasyonu\n'
+        + '- ATAOL AI Institute (%15): Kurumsal AI egitimi, yapay zeka okuryazarligi, yonetici egitimi\n\n'
+        + 'Kurallar:\n'
+        + '- En az 2 konu ActLedger ile, en az 1 konu StrategyThrust ile kesismeli\n'
+        + '- Gercek guncel gelismelere dayansin (son 7 gun)\n'
+        + '- Her konunun basligi ve aciklamasi ' + promptLang + ' dilinde olsun\n'
+        + '- Her konu icin: baslik, 1 cumle aciklama, kesisen hizmet alani (actledger/strategythrust/ailab/aiinstitute)\n\n'
+        + 'SADECE JSON formatinda don, baska hicbir sey yazma:\n'
+        + '[{"title":"...","description":"...","service":"actledger|strategythrust|ailab|aiinstitute"}]';
+
+    try {
+        var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: 'You are a trend researcher. Return ONLY valid JSON array. No markdown, no code blocks, no explanation.' }] },
+                tools: [{ google_search: {} }],
+                generationConfig: { temperature: 0.9, thinkingConfig: { thinkingBudget: 0 } }
+            })
+        });
+
+        if (!resp.ok) throw new Error('Gemini API ' + resp.status);
+
+        var data = await resp.json();
+        var text = data.candidates[0].content.parts.filter(function(p) { return p.text; }).map(function(p) { return p.text; }).join('');
+
+        var jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (!jsonMatch) throw new Error('JSON parse failed');
+        nlCurrentTopics = JSON.parse(jsonMatch[0]);
+
+        var container = document.getElementById('nlTopicsList');
+        container.textContent = '';
+        for (var i = 0; i < nlCurrentTopics.length; i++) {
+            var t = nlCurrentTopics[i];
+            var card = document.createElement('div');
+            card.className = 'nl-topic-card';
+            card.setAttribute('onclick', 'nlSelectTopic(' + i + ', this)');
+
+            var titleDiv = document.createElement('div');
+            titleDiv.className = 'nl-topic-title';
+            titleDiv.textContent = t.title;
+            card.appendChild(titleDiv);
+
+            var descDiv = document.createElement('div');
+            descDiv.className = 'nl-topic-desc';
+            descDiv.textContent = t.description;
+            card.appendChild(descDiv);
+
+            var svcDiv = document.createElement('div');
+            svcDiv.className = 'nl-topic-svc nl-svc-' + (t.service || 'actledger');
+            svcDiv.textContent = NL_SERVICE_LABELS[t.service] || t.service;
+            card.appendChild(svcDiv);
+
+            container.appendChild(card);
+        }
+        document.getElementById('nlCustomTopic').value = '';
+        nlSelectedTopic = null;
+        nlGoStage(2);
+    } catch (e) {
+        alert('Konu arastirma basarisiz: ' + e.message);
+    } finally {
+        btn.textContent = 'Konu Bul';
+        btn.disabled = false;
+    }
+}
+
+function nlSelectTopic(idx, el) {
+    document.querySelectorAll('.nl-topic-card').forEach(function(c) { c.classList.remove('selected'); });
+    el.classList.add('selected');
+    nlSelectedTopic = nlCurrentTopics[idx];
+    nlSelectedService = nlSelectedTopic.service;
+    document.getElementById('nlCustomTopic').value = '';
+}
+
 function repairLeadIds() {
     let maxNum = 0;
     leadsData.forEach(l => { if (typeof l.id === 'number' && l.id > maxNum) maxNum = l.id; });
