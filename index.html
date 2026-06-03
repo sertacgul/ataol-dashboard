@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ATAOL AI Techs - Outreach Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; }
@@ -187,6 +188,125 @@
         table th { text-align: left; padding: 8px 10px; border-bottom: 2px solid #e0e0e0; font-size: 11px; color: #888; text-transform: uppercase; }
         table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
         table tr:hover { background: #f8f9fc; }
+
+        /* Newsletter Modal */
+        .nl-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55); z-index: 300;
+            align-items: center; justify-content: center;
+        }
+        .nl-overlay.active { display: flex; }
+        .nl-box {
+            background: #fff; width: 860px; max-width: 98vw;
+            max-height: 92vh; overflow-y: auto;
+            border-radius: 12px; padding: 28px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+        }
+        .nl-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .nl-header h2 { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .nl-close {
+            background: none; border: none; font-size: 22px;
+            cursor: pointer; color: #666; line-height: 1;
+        }
+        .nl-close:hover { color: #222; }
+        .nl-stage { display: none; }
+        .nl-stage.active { display: block; }
+        .nl-weight-info { font-size: 11px; color: #888; margin-top: 4px; }
+        .nl-topics {
+            display: flex; flex-direction: column; gap: 10px;
+            margin-top: 14px;
+        }
+        .nl-topic-card {
+            border: 1.5px solid #e0e0e0; border-radius: 8px;
+            padding: 12px 16px; cursor: pointer; transition: background 0.15s, border-color 0.15s;
+        }
+        .nl-topic-card:hover { background: #f0f9ff; border-color: #90caf9; }
+        .nl-topic-card.selected { background: #e3f2fd; border-color: #1565c0; }
+        .nl-topic-title { font-weight: 600; font-size: 14px; color: #1a1a2e; margin-bottom: 3px; }
+        .nl-topic-desc { font-size: 12px; color: #555; margin-bottom: 5px; }
+        .nl-topic-svc { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+        .nl-svc-actledger { color: #22d3ee; }
+        .nl-svc-strategythrust { color: #6366F1; }
+        .nl-svc-ailab { color: #F59E0B; }
+        .nl-svc-aiinstitute { color: #A855F7; }
+        .nl-custom-topic {
+            width: 100%; margin-top: 12px; padding: 10px 12px;
+            border: 1.5px solid #e0e0e0; border-radius: 8px;
+            font-size: 13px; color: #222; resize: vertical; min-height: 60px;
+            font-family: inherit;
+        }
+        .nl-custom-topic:focus { outline: none; border-color: #1565c0; }
+        .nl-preview-area {
+            display: flex; gap: 20px; margin-top: 16px; align-items: flex-start;
+        }
+        .nl-preview-text {
+            flex: 1; min-height: 200px; max-height: 340px;
+            overflow-y: auto; border: 1.5px solid #e0e0e0;
+            border-radius: 8px; padding: 14px; font-size: 13px;
+            line-height: 1.7; color: #222; white-space: pre-wrap;
+        }
+        .nl-preview-text:focus { outline: none; border-color: #1565c0; }
+        .nl-ai-warning {
+            display: none; background: #fffde7; border: 1px solid #ffe082;
+            border-radius: 6px; padding: 8px 14px; font-size: 12px;
+            color: #7c5e00; margin-top: 10px;
+        }
+        .nl-ai-warning.visible { display: block; }
+        .nl-history { margin-top: 22px; border-top: 1px solid #f0f0f0; padding-top: 14px; }
+        .nl-history h4 { font-size: 13px; color: #888; margin-bottom: 8px; }
+        .nl-history-item {
+            font-size: 12px; color: #555; padding: 6px 0;
+            border-bottom: 1px solid #f5f5f5; cursor: pointer;
+        }
+        .nl-history-item:hover { color: #1565c0; }
+        .nl-spinner {
+            display: inline-block; width: 18px; height: 18px;
+            border: 2.5px solid #e0e0e0; border-top-color: #1565c0;
+            border-radius: 50%; animation: nlspin 0.7s linear infinite;
+            vertical-align: middle; margin-left: 8px;
+        }
+        @keyframes nlspin { to { transform: rotate(360deg); } }
+
+        /* Off-screen poster template for html2canvas */
+        .nl-poster {
+            position: fixed; left: -9999px; top: 0;
+            width: 1200px; height: 627px; overflow: hidden;
+            background: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .nl-poster-logo {
+            position: absolute; top: 36px; left: 48px;
+            font-size: 22px; font-weight: 800; color: #fff; letter-spacing: 1px;
+        }
+        .nl-poster-title {
+            position: absolute; top: 120px; left: 48px; right: 48px;
+            font-size: 44px; font-weight: 800; color: #fff;
+            line-height: 1.15;
+        }
+        .nl-poster-bottom {
+            position: absolute; bottom: 36px; left: 48px; right: 48px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nl-poster-svc {
+            font-size: 16px; font-weight: 700; letter-spacing: 0.5px;
+        }
+        .nl-poster-url { font-size: 14px; color: rgba(255,255,255,0.55); }
+        .nl-poster-accent {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+        }
+        .nl-poster-icon {
+            position: absolute; right: 48px; top: 80px;
+            font-size: 260px; opacity: 0.07; color: #fff;
+            pointer-events: none; user-select: none;
+        }
+        .nl-poster-preview {
+            aspect-ratio: 1200 / 627; width: 100%;
+            max-width: 380px; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); flex-shrink: 0;
+        }
+        .nl-poster-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
     </style>
 </head>
 <body>
