@@ -649,6 +649,96 @@ function copyPost() {
     }
 }
 
+// ---- NEWSLETTER ----
+let nlCurrentTopics = [];
+let nlSelectedTopic = null;
+let nlSelectedService = '';
+let nlGeneratedContent = '';
+let nlPosterBlob = null;
+let newslettersData = [];
+var nlCurrentSaveId = null;
+
+const NL_SERVICE_COLORS = {
+    actledger: '#22d3ee',
+    strategythrust: '#6366F1',
+    ailab: '#F59E0B',
+    aiinstitute: '#A855F7'
+};
+const NL_SERVICE_URLS = {
+    actledger: 'www.actledger.com',
+    strategythrust: 'www.strategythrust.com',
+    ailab: 'www.ataolai.tech',
+    aiinstitute: 'www.ataolai.tech'
+};
+const NL_SERVICE_LABELS = {
+    actledger: 'ActLedger',
+    strategythrust: 'StrategyThrust',
+    ailab: 'ATAOL AI Lab',
+    aiinstitute: 'ATAOL AI Institute'
+};
+const NL_SERVICE_ICONS = {
+    actledger: '\u2699',
+    strategythrust: '\u2691',
+    ailab: '\u2A01',
+    aiinstitute: '\u2302'
+};
+
+const NL_BANNED_TR = [
+    /yapay zeka (caginda|cagi)/gi, /dijital cagda/gi, /hizla degisen dunyada/gi,
+    /sonuc olarak/gi, /ozetle/gi, /son soz olarak/gi,
+    /heyecan verici/gi, /devrim niteliginde/gi, /oyunun kurallarini degistiren/gi,
+    /bu yazida ele alacagiz/gi, /gelin birlikte inceleyelim/gi,
+    /suphesiz/gi, /kuskusuz/gi, /tartismasiz/gi,
+    /peki ama neden/gi, /iste tam da bu noktada/gi,
+    /yapay zek[aâ] d[uü]nyas[iı]nda/gi
+];
+const NL_BANNED_EN = [
+    /in today'?s rapidly evolving/gi, /in the era of ai/gi,
+    /in conclusion/gi, /to sum up/gi, /in summary/gi,
+    /game[- ]changing/gi, /revolutionary/gi, /groundbreaking/gi,
+    /let'?s dive in/gi, /let'?s explore/gi, /in this article we will/gi,
+    /undoubtedly/gi, /it'?s worth noting/gi, /needless to say/gi,
+    /but here'?s the thing/gi, /here'?s why that matters/gi
+];
+
+function openNewsletter() {
+    document.getElementById('nlOverlay').classList.remove('hidden');
+    nlGoStage(1);
+    nlRenderHistory();
+}
+
+function closeNewsletter() {
+    document.getElementById('nlOverlay').classList.add('hidden');
+}
+
+function nlGoStage(n) {
+    document.querySelectorAll('.nl-stage').forEach(function(s) { s.classList.remove('active'); });
+    document.getElementById('nlStage' + n).classList.add('active');
+    if (n === 4) {
+        nlGeneratedContent = document.getElementById('nlContentEdit').innerText;
+        nlSaveToGist();
+        nlRenderHistory();
+    }
+    if (n === 1) {
+        nlCurrentSaveId = null;
+    }
+}
+
+function nlCheckAiPatterns(text) {
+    var lang = document.getElementById('nlLang').value;
+    var patterns = lang === 'tr' ? NL_BANNED_TR : NL_BANNED_EN;
+    var found = [];
+    for (var i = 0; i < patterns.length; i++) {
+        var m = text.match(patterns[i]);
+        if (m) found.push(m[0]);
+    }
+    return found;
+}
+
+function escapeHtml(s) {
+    return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+}
+
 function repairLeadIds() {
     let maxNum = 0;
     leadsData.forEach(l => { if (typeof l.id === 'number' && l.id > maxNum) maxNum = l.id; });
@@ -675,6 +765,7 @@ async function loadData() {
             const data = JSON.parse(text);
             emailsData = data.emails || [];
             leadsData = data.leads || [];
+            newslettersData = data.newsletters || [];
             repairLeadIds();
             renderAll();
             return;
@@ -701,6 +792,7 @@ async function loadData() {
         }
         emailsData = data.emails || [];
         leadsData = data.leads || [];
+        newslettersData = data.newsletters || [];
         repairLeadIds();
         renderAll();
     } catch (e2) {
@@ -714,6 +806,7 @@ async function saveData() {
     const data = {
         emails: emailsData,
         leads: leadsData,
+        newsletters: newslettersData,
         updated_at: new Date().toISOString()
     };
     const jsonStr = JSON.stringify(data);
