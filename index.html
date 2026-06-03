@@ -951,6 +951,74 @@ async function nlRegenerate() {
     nlGenerate();
 }
 
+async function nlRenderPoster(title) {
+    var svc = nlSelectedService;
+    var color = NL_SERVICE_COLORS[svc] || '#22d3ee';
+    var url = NL_SERVICE_URLS[svc] || 'www.ataolai.tech';
+    var label = NL_SERVICE_LABELS[svc] || 'ATAOL AI Techs';
+    var icon = NL_SERVICE_ICONS[svc] || '\u2699';
+
+    var posterEl = document.getElementById('nlPosterTemplate');
+    posterEl.style.background = 'linear-gradient(135deg, #0A0A1A 0%, #1A1A2E 60%, #0A0A1A 100%)';
+
+    document.getElementById('nlPosterTitle').textContent = title;
+    document.getElementById('nlPosterSvc').textContent = label;
+    document.getElementById('nlPosterUrl').textContent = url;
+    document.getElementById('nlPosterAccent').style.background = color;
+    document.getElementById('nlPosterIcon').textContent = icon;
+    document.getElementById('nlPosterIcon').style.color = color;
+
+    // Auto-size title font
+    var titleEl = document.getElementById('nlPosterTitle');
+    if (title.length > 80) {
+        titleEl.style.fontSize = '32px';
+    } else if (title.length > 50) {
+        titleEl.style.fontSize = '36px';
+    } else {
+        titleEl.style.fontSize = '42px';
+    }
+
+    // Make poster visible temporarily for html2canvas
+    posterEl.style.left = '0';
+    posterEl.style.top = '0';
+    posterEl.style.position = 'fixed';
+    posterEl.style.zIndex = '-1';
+
+    try {
+        var canvas = await html2canvas(posterEl, {
+            width: 1200,
+            height: 627,
+            scale: 1,
+            useCORS: true,
+            backgroundColor: null,
+            logging: false
+        });
+
+        nlPosterBlob = await new Promise(function(resolve) {
+            canvas.toBlob(resolve, 'image/png');
+        });
+
+        var imgUrl = URL.createObjectURL(nlPosterBlob);
+        document.getElementById('nlPosterImg').src = imgUrl;
+        document.getElementById('nlPosterImgFinal').src = imgUrl;
+    } finally {
+        // Hide poster template again
+        posterEl.style.left = '-9999px';
+        posterEl.style.top = '-9999px';
+        posterEl.style.position = 'absolute';
+        posterEl.style.zIndex = '';
+    }
+}
+
+function nlDownloadPoster() {
+    if (!nlPosterBlob) { alert('Gorsel henuz olusturulmadi.'); return; }
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(nlPosterBlob);
+    var date = new Date().toISOString().slice(0,10);
+    a.download = 'ataol-newsletter-' + date + '-' + nlSelectedService + '.png';
+    a.click();
+}
+
 function repairLeadIds() {
     let maxNum = 0;
     leadsData.forEach(l => { if (typeof l.id === 'number' && l.id > maxNum) maxNum = l.id; });
