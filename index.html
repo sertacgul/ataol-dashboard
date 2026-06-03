@@ -1019,6 +1019,158 @@ function nlDownloadPoster() {
     a.click();
 }
 
+function nlCopyContent() {
+    var text = document.getElementById('nlContentEdit').innerText;
+    navigator.clipboard.writeText(text).then(function() {
+        showToast('Icerik panoya kopyalandi!');
+    }).catch(function() {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Icerik panoya kopyalandi!');
+    });
+}
+
+function nlSaveToGist() {
+    var content = document.getElementById('nlContentEdit').innerText;
+    var title = nlSelectedTopic ? nlSelectedTopic.title : document.getElementById('nlCustomTopic').value.trim();
+    var lang = document.getElementById('nlLang').value;
+
+    var existingIdx = -1;
+    for (var i = 0; i < newslettersData.length; i++) {
+        if (newslettersData[i].id === nlCurrentSaveId) { existingIdx = i; break; }
+    }
+
+    var entry = {
+        id: nlCurrentSaveId || ('nl_' + Date.now()),
+        title: title || 'Untitled',
+        service: nlSelectedService,
+        language: lang,
+        content: content,
+        created_at: new Date().toISOString(),
+        published: false,
+        published_at: null
+    };
+
+    if (existingIdx >= 0) {
+        entry.published = newslettersData[existingIdx].published;
+        entry.published_at = newslettersData[existingIdx].published_at;
+        newslettersData[existingIdx] = entry;
+    } else {
+        nlCurrentSaveId = entry.id;
+        newslettersData.unshift(entry);
+        if (newslettersData.length > 50) newslettersData = newslettersData.slice(0, 50);
+    }
+
+    saveData();
+}
+
+function nlMarkPublished() {
+    var checked = document.getElementById('nlPublished').checked;
+    for (var i = 0; i < newslettersData.length; i++) {
+        if (newslettersData[i].id === nlCurrentSaveId) {
+            newslettersData[i].published = checked;
+            newslettersData[i].published_at = checked ? new Date().toISOString() : null;
+            break;
+        }
+    }
+    saveData();
+    nlRenderHistory();
+    showToast(checked ? 'Yayinlandi olarak isaretlendi.' : 'Yayin isareti kaldirildi.');
+}
+
+function nlRenderHistory() {
+    var container = document.getElementById('nlHistory');
+    container.textContent = '';
+
+    var heading = document.createElement('h4');
+    heading.textContent = 'Son Newsletterlar';
+    container.appendChild(heading);
+
+    if (!newslettersData || newslettersData.length === 0) {
+        var empty = document.createElement('p');
+        empty.style.cssText = 'font-size:12px;color:#aaa;';
+        empty.textContent = 'Henuz newsletter yok.';
+        container.appendChild(empty);
+        return;
+    }
+
+    var items = newslettersData.slice(0, 10);
+    for (var i = 0; i < items.length; i++) {
+        var nl = items[i];
+        var date = nl.created_at ? nl.created_at.slice(0, 10) : '';
+        var svcColor = NL_SERVICE_COLORS[nl.service] || '#888';
+
+        var row = document.createElement('div');
+        row.className = 'nl-history-item';
+        (function(id) {
+            row.addEventListener('click', function() { nlLoadHistoryItem(id); });
+        })(nl.id);
+
+        var titleSpan = document.createElement('span');
+        var titleStrong = document.createElement('strong');
+        titleStrong.textContent = nl.title.substring(0, 50);
+        titleSpan.appendChild(titleStrong);
+        row.appendChild(titleSpan);
+
+        var rightSpan = document.createElement('span');
+        rightSpan.style.cssText = 'display:flex;gap:6px;align-items:center;';
+
+        var svcSpan = document.createElement('span');
+        svcSpan.style.cssText = 'color:' + svcColor + ';font-size:10px;font-weight:700;';
+        svcSpan.textContent = NL_SERVICE_LABELS[nl.service] || '';
+        rightSpan.appendChild(svcSpan);
+
+        var langSpan = document.createElement('span');
+        langSpan.style.cssText = 'font-size:10px;color:#888;';
+        langSpan.textContent = nl.language === 'tr' ? 'TR' : 'EN';
+        rightSpan.appendChild(langSpan);
+
+        var dateSpan = document.createElement('span');
+        dateSpan.style.cssText = 'font-size:10px;color:#888;';
+        dateSpan.textContent = date;
+        rightSpan.appendChild(dateSpan);
+
+        var badge = document.createElement('span');
+        badge.className = nl.published ? 'badge badge-sent' : 'badge badge-pending';
+        badge.textContent = nl.published ? 'Yayinda' : 'Taslak';
+        rightSpan.appendChild(badge);
+
+        row.appendChild(rightSpan);
+        container.appendChild(row);
+    }
+}
+
+function nlLoadHistoryItem(id) {
+    for (var i = 0; i < newslettersData.length; i++) {
+        if (newslettersData[i].id === id) {
+            var nl = newslettersData[i];
+            nlCurrentSaveId = nl.id;
+            nlSelectedService = nl.service;
+            nlGeneratedContent = nl.content;
+            document.getElementById('nlContentEdit').innerText = nl.content;
+            document.getElementById('nlPublished').checked = nl.published;
+
+            nlRenderPoster(nl.title);
+
+            var aiHits = nlCheckAiPatterns(nl.content);
+            var warningEl = document.getElementById('nlAiWarning');
+            if (aiHits.length > 0) {
+                warningEl.style.display = 'block';
+                warningEl.textContent = 'AI kaliplari tespit edildi (' + aiHits.length + '): "' + aiHits.slice(0,3).join('", "') + '"';
+            } else {
+                warningEl.style.display = 'none';
+            }
+
+            nlGoStage(3);
+            return;
+        }
+    }
+}
+
 function repairLeadIds() {
     let maxNum = 0;
     leadsData.forEach(l => { if (typeof l.id === 'number' && l.id > maxNum) maxNum = l.id; });
