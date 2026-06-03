@@ -345,9 +345,86 @@
             <span style="color:#555;font-size:10px;margin:0 4px;">|</span>
             <span class="trigger-btn" data-svc="li-al" onclick="generatePost('actledger',this)" style="color:#0a66c2;font-size:10px;padding:3px 8px;">AL Post</span>
             <span class="trigger-btn" data-svc="li-st" onclick="generatePost('strategythrust',this)" style="color:#0a66c2;font-size:10px;padding:3px 8px;">ST Post</span>
+            <span style="color:#555;font-size:10px;margin:0 4px;">|</span>
+            <span class="trigger-btn" data-svc="newsletter" onclick="openNewsletter()" style="color:#ef6c00;font-size:10px;padding:3px 8px;font-weight:700;">Newsletter</span>
         </span>
         <span class="logout" onclick="logout()">Logout</span>
     </div>
+
+<!-- Newsletter Modal -->
+<div id="nlOverlay" class="nl-overlay hidden">
+    <div class="nl-box">
+        <div class="nl-header">
+            <h3>LinkedIn Newsletter</h3>
+            <span class="nl-close" onclick="closeNewsletter()">&times;</span>
+        </div>
+
+        <!-- Stage 1: Settings -->
+        <div id="nlStage1" class="nl-stage active">
+            <div style="display:flex;gap:12px;align-items:center;">
+                <label style="font-size:13px;font-weight:600;">Dil:</label>
+                <select id="nlLang" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
+                    <option value="tr">Turkce</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+            <div class="nl-weight-info">Agirlik: ActLedger %40 - StrategyThrust %30 - AI Lab %15 - AI Institute %15</div>
+            <button class="btn btn-success" onclick="nlFindTopics()" id="btnNlTopics">Konu Bul</button>
+        </div>
+
+        <!-- Stage 2: Topic Selection -->
+        <div id="nlStage2" class="nl-stage">
+            <div id="nlTopicsList" class="nl-topics"></div>
+            <input type="text" id="nlCustomTopic" class="nl-custom-topic" placeholder="...veya kendi konunu yaz">
+            <div style="margin-top:12px;">
+                <button class="btn btn-success" onclick="nlGenerate()" id="btnNlGenerate">Olustur</button>
+                <button class="btn btn-outline" onclick="nlGoStage(1)" style="margin-left:8px;">Geri</button>
+            </div>
+        </div>
+
+        <!-- Stage 3: Preview + Edit -->
+        <div id="nlStage3" class="nl-stage">
+            <div id="nlAiWarning" class="nl-ai-warning">Bu icerikte AI kaliplari tespit edildi - duzenlemeniz onerilir.</div>
+            <div class="nl-preview-area">
+                <div class="nl-poster-preview"><img id="nlPosterImg" src="" alt="Poster preview"></div>
+                <div id="nlContentEdit" class="nl-preview-text" contenteditable="true"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="nlGoStage(4)">Devam</button>
+                <button class="btn btn-outline" onclick="nlRegenerate()">Yeniden Olustur</button>
+                <button class="btn btn-outline" onclick="nlGoStage(2)">Geri</button>
+            </div>
+        </div>
+
+        <!-- Stage 4: Output -->
+        <div id="nlStage4" class="nl-stage">
+            <div class="nl-preview-area" style="margin-bottom:16px;">
+                <div class="nl-poster-preview"><img id="nlPosterImgFinal" src="" alt="Poster"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="nlDownloadPoster()">Gorseli Indir (PNG)</button>
+                <button class="btn btn-success" onclick="nlCopyContent()" style="background:#0a66c2;">Metni Kopyala</button>
+                <button class="btn btn-outline" onclick="window.open('https://www.linkedin.com/company/ataol-ai-techs/admin/','_blank')">LinkedIn'e Git</button>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-left:auto;">
+                    <input type="checkbox" id="nlPublished" onchange="nlMarkPublished()"> Yayinlandi
+                </label>
+            </div>
+            <div class="nl-history" id="nlHistory"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Poster Template (off-screen, captured by html2canvas) -->
+<div id="nlPosterTemplate" class="nl-poster">
+    <img src="ataol-logo.png" class="nl-poster-logo" crossorigin="anonymous">
+    <div id="nlPosterTitle" class="nl-poster-title"></div>
+    <div class="nl-poster-bottom">
+        <span id="nlPosterSvc" class="nl-poster-svc"></span>
+        <span id="nlPosterUrl" class="nl-poster-url"></span>
+    </div>
+    <div id="nlPosterAccent" class="nl-poster-accent"></div>
+    <div id="nlPosterIcon" class="nl-poster-icon"></div>
+</div>
 
     <div class="container">
         <div id="view-overview">
