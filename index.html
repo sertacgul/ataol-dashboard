@@ -868,6 +868,7 @@ async function nlGenerate() {
         alert('Lutfen bir konu secin veya kendi konunuzu girin.');
         return;
     }
+    nlSelectedService = service;
 
     var btn = document.getElementById('btnNlGenerate');
     btn.textContent = '';
