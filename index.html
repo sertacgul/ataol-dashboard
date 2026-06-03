@@ -851,7 +851,7 @@ function nlSelectTopic(idx, el) {
     document.querySelectorAll('.nl-topic-card').forEach(function(c) { c.classList.remove('selected'); });
     el.classList.add('selected');
     nlSelectedTopic = nlCurrentTopics[idx];
-    nlSelectedService = nlSelectedTopic.service;
+    nlSelectedService = nlNormalizeService(nlSelectedTopic.service);
     document.getElementById('nlCustomTopic').value = '';
 }
 
@@ -863,7 +863,7 @@ async function nlGenerate() {
         service = 'actledger';
     } else if (nlSelectedTopic) {
         title = nlSelectedTopic.title;
-        service = nlSelectedTopic.service;
+        service = nlNormalizeService(nlSelectedTopic.service);
     } else {
         alert('Lutfen bir konu secin veya kendi konunuzu girin.');
         return;
@@ -997,8 +997,18 @@ var NL_SERVICE_RIGHT_BG = {
     aiinstitute: 'linear-gradient(180deg, rgba(168,85,247,0.18) 0%, rgba(168,85,247,0.06) 100%)'
 };
 
+function nlNormalizeService(svc) {
+    if (!svc) return 'actledger';
+    var lower = svc.toLowerCase().replace(/[\s_-]/g, '');
+    if (lower === 'actledger') return 'actledger';
+    if (lower === 'strategythrust') return 'strategythrust';
+    if (lower.indexOf('lab') !== -1) return 'ailab';
+    if (lower.indexOf('institute') !== -1 || lower.indexOf('egitim') !== -1) return 'aiinstitute';
+    return 'actledger';
+}
+
 async function nlRenderPoster(title) {
-    var svc = nlSelectedService;
+    var svc = nlNormalizeService(nlSelectedService);
     var color = NL_SERVICE_COLORS[svc] || '#22d3ee';
     var url = NL_SERVICE_URLS[svc] || 'www.ataolai.tech';
     var label = NL_SERVICE_LABELS[svc] || 'ATAOL AI Techs';
@@ -1017,11 +1027,14 @@ async function nlRenderPoster(title) {
     document.getElementById('nlPosterUrl').textContent = url;
     document.getElementById('nlPosterAccent').style.background = color;
 
-    // Extract first 2 sentences from content as excerpt
+    // Extract first 2 sentences from content as excerpt, skip title-like opening
     var content = document.getElementById('nlContentEdit') ? document.getElementById('nlContentEdit').innerText : '';
-    var sentences = content.split(/(?<=[.!?])\s+/).filter(function(s) { return s.length > 10; });
+    var titleLower = title.toLowerCase().substring(0, 30);
+    var sentences = content.split(/(?<=[.!?])\s+/).filter(function(s) {
+        return s.length > 10 && s.toLowerCase().indexOf(titleLower) === -1;
+    });
     var excerpt = sentences.slice(0, 2).join(' ');
-    if (excerpt.length > 180) excerpt = excerpt.substring(0, 177) + '...';
+    if (excerpt.length > 200) excerpt = excerpt.substring(0, 197) + '...';
     document.getElementById('nlPosterExcerpt').textContent = excerpt;
 
     // Right panel - service branding
@@ -1218,7 +1231,7 @@ function nlLoadHistoryItem(id) {
         if (newslettersData[i].id === id) {
             var nl = newslettersData[i];
             nlCurrentSaveId = nl.id;
-            nlSelectedService = nl.service;
+            nlSelectedService = nlNormalizeService(nl.service);
             nlGeneratedContent = nl.content;
             document.getElementById('nlContentEdit').innerText = nl.content;
             document.getElementById('nlPublished').checked = nl.published;
