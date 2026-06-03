@@ -191,11 +191,11 @@
 
         /* Newsletter Modal */
         .nl-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.55); z-index: 300;
-            align-items: center; justify-content: center;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); z-index: 300; display: flex;
+            justify-content: center; align-items: flex-start; padding: 30px 16px;
+            overflow-y: auto;
         }
-        .nl-overlay.active { display: flex; }
         .nl-box {
             background: #fff; width: 860px; max-width: 98vw;
             max-height: 92vh; overflow-y: auto;
