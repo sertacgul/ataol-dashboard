@@ -830,6 +830,127 @@ function nlSelectTopic(idx, el) {
     document.getElementById('nlCustomTopic').value = '';
 }
 
+async function nlGenerate() {
+    var title, service;
+    var customVal = document.getElementById('nlCustomTopic').value.trim();
+    if (customVal) {
+        title = customVal;
+        service = 'actledger';
+    } else if (nlSelectedTopic) {
+        title = nlSelectedTopic.title;
+        service = nlSelectedTopic.service;
+    } else {
+        alert('Lutfen bir konu secin veya kendi konunuzu girin.');
+        return;
+    }
+
+    var btn = document.getElementById('btnNlGenerate');
+    btn.textContent = '';
+    var spinner = document.createElement('span');
+    spinner.className = 'nl-spinner';
+    btn.appendChild(spinner);
+    btn.appendChild(document.createTextNode(' Olusturuluyor...'));
+    btn.disabled = true;
+
+    var lang = document.getElementById('nlLang').value;
+    var promptLang = lang === 'tr' ? 'Turkce' : 'English';
+
+    var seoKeywords = {
+        actledger: 'operasyonel mukemmellik, ERP OS, blockchain denetim izi, kurumsal hafiza, performans analizi',
+        strategythrust: 'stratejik rapor, rekabet istihbarati, pazar analizi, AI destekli arastirma, consulting-grade',
+        ailab: 'AI entegrasyon, dijital donusum, B2B yazilim, is surecleri otomasyonu, uctan uca cozum',
+        aiinstitute: 'kurumsal AI egitimi, yapay zeka okuryazarligi, yonetici egitimi, AI literacy'
+    };
+
+    var bannedTR = '"Yapay zeka caginda", "dijital cagda", "hizla degisen dunyada", "Sonuc olarak", "Ozetle", "Son soz olarak", "Heyecan verici", "devrim niteliginde", "oyunun kurallarini degistiren", "Bu yazida ele alacagiz", "gelin birlikte inceleyelim", "Suphesiz", "kuskusuz", "tartismasiz", "Peki ama neden?", "Iste tam da bu noktada"';
+    var bannedEN = '"In today\'s rapidly evolving", "In the era of AI", "In conclusion", "To sum up", "In summary", "Game-changing", "Revolutionary", "Groundbreaking", "Let\'s dive in", "Let\'s explore", "In this article we will", "Undoubtedly", "It\'s worth noting", "Needless to say", "But here\'s the thing", "Here\'s why that matters"';
+    var banned = lang === 'tr' ? bannedTR : bannedEN;
+
+    var serviceUrl = NL_SERVICE_URLS[service] || 'www.ataolai.tech';
+    var serviceLabel = NL_SERVICE_LABELS[service] || service;
+
+    var prompt = 'Sen ATAOL AI Techs\'in kidemli sektor analistisin. ' + serviceLabel + ' adina ' + promptLang + ' dilinde uzun soluklu, otorite gonderen bir makale yaz.\n\n'
+        + 'Konu: ' + title + '\n'
+        + 'Dil: ' + promptLang + '\n'
+        + 'Hizmet: ' + serviceLabel + '\n\n'
+        + 'YAZIM KURALLARI:\n'
+        + '- Dogrudan veriyle bas, giris cumlesinde hemen konuya gir\n'
+        + '- Gercek ornekler ve sektorel vakalar kullan\n'
+        + '- Net pozisyon al, muglak kalma\n'
+        + '- Kisa cumleler yaz (12-18 kelime)\n'
+        + '- Paragraf basi maksimum 4 cumle\n'
+        + '- Alt basliklar soru degil, iddiadir\n'
+        + '- Minimum 3 gercek referans ver (isim, kurum, tarih)\n'
+        + '- Yazar perspektifini koru\n\n'
+        + 'YAPI (5 bolum):\n'
+        + '1. Guclu acilis: En carpici veriyle bas\n'
+        + '2. Baglem: Neden simdi bu konu onemli\n'
+        + '3. Derin analiz (3-4 alt baslik ile): Rakamlar, vakalar, karsilastirmalar\n'
+        + '4. ' + serviceLabel + ' perspektifi: Bu konuya nasil yaklasiyoruz\n'
+        + '5. Kapanis: Harekete gecirici, ' + serviceUrl + ' linki ile biten paragraf\n\n'
+        + 'SEO anahtar kelimeler (dogal yerlestir): ' + (seoKeywords[service] || seoKeywords.actledger) + '\n\n'
+        + 'YASAK IFADELER (bunlari kullanma):\n' + banned + '\n\n'
+        + 'KESINLIKLE YAPMA:\n'
+        + '- Emoji kullanma\n'
+        + '- Madde isareti ile dolgu yapma\n'
+        + '- Genel tavsiye verme\n'
+        + '- Markdown formatlama kullanma (# ** * gibi isaretler koyma)\n\n'
+        + 'Makaleyi duz metin olarak yaz, markdown olmadan.';
+
+    try {
+        var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                tools: [{ google_search: {} }],
+                generationConfig: { temperature: 1.0, maxOutputTokens: 8192, thinkingConfig: { thinkingBudget: 0 } }
+            })
+        });
+        if (!resp.ok) throw new Error('Gemini API hatasi: ' + resp.status);
+        var data = await resp.json();
+        var raw = data.candidates[0].content.parts[0].text;
+
+        // Strip markdown formatting
+        var cleaned = raw
+            .replace(/^#{1,6}\s+/gm, '')
+            .replace(/\*\*([^*]+)\*\*/g, '$1')
+            .replace(/\*([^*]+)\*/g, '$1');
+
+        document.getElementById('nlContentEdit').innerText = cleaned;
+
+        var matches = nlCheckAiPatterns(cleaned);
+        var warning = document.getElementById('nlAiWarning');
+        if (matches.length > 0) {
+            var preview = matches.slice(0, 3).join(' | ');
+            warning.textContent = matches.length + ' AI kalip tespit edildi: ' + preview;
+            warning.style.display = '';
+        } else {
+            warning.style.display = 'none';
+        }
+
+        try {
+            if (typeof nlRenderPoster === 'function') {
+                await nlRenderPoster(title);
+            }
+        } catch (posterErr) {
+            console.warn('nlRenderPoster henuz tanimli degil:', posterErr);
+        }
+
+        nlGoStage(3);
+    } catch (e) {
+        alert('Icerik olusturma hatasi: ' + e.message);
+    } finally {
+        btn.textContent = 'Olustur';
+        btn.disabled = false;
+    }
+}
+
+async function nlRegenerate() {
+    nlGoStage(2);
+    nlGenerate();
+}
+
 function repairLeadIds() {
     let maxNum = 0;
     leadsData.forEach(l => { if (typeof l.id === 'number' && l.id > maxNum) maxNum = l.id; });
