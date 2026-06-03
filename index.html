@@ -452,6 +452,21 @@ function copyPost() {
     }
 }
 
+function repairLeadIds() {
+    let maxNum = 0;
+    leadsData.forEach(l => { if (typeof l.id === 'number' && l.id > maxNum) maxNum = l.id; });
+    let needsSave = false;
+    leadsData.forEach(l => {
+        if (typeof l.id !== 'number' || !l.id) {
+            const oldId = l.id;
+            l.id = ++maxNum;
+            emailsData.filter(e => e.lead_id === oldId).forEach(e => { e.lead_id = l.id; });
+            needsSave = true;
+        }
+    });
+    if (needsSave) saveData();
+}
+
 // ---- DATA ----
 async function loadData() {
     // Method 1: Direct raw URL (no auth needed, no truncation)
@@ -463,6 +478,7 @@ async function loadData() {
             const data = JSON.parse(text);
             emailsData = data.emails || [];
             leadsData = data.leads || [];
+            repairLeadIds();
             renderAll();
             return;
         }
@@ -488,6 +504,7 @@ async function loadData() {
         }
         emailsData = data.emails || [];
         leadsData = data.leads || [];
+        repairLeadIds();
         renderAll();
     } catch (e2) {
         console.error('All load methods failed:', e2);
@@ -1929,7 +1946,7 @@ async function addToQueue() {
     const finalEmail = document.getElementById('finalEmail').value.trim();
     if (!finalEmail) { showToast('Email adresi gerekli!', 'error'); return; }
 
-    const leadId = 'lead_' + Date.now();
+    const leadId = Math.max(0, ...leadsData.map(l => typeof l.id === 'number' ? l.id : 0)) + 1;
     const lead = result.lead;
     const emailData = result.email;
 
