@@ -281,8 +281,9 @@
             padding: 48px 56px; display: flex; flex-direction: column; justify-content: space-between;
         }
         .nl-poster-brand {
-            font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 1.5px; text-transform: uppercase;
+            font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 1.5px; text-transform: uppercase;
         }
+        .nl-poster-brand span { opacity: 0.5; }
         .nl-poster-title {
             font-size: 42px; font-weight: 800; color: #fff; line-height: 1.18; margin: 0;
         }
@@ -403,6 +404,7 @@
                 <div id="nlContentEdit" class="nl-preview-text" contenteditable="true"></div>
             </div>
             <div class="btn-group">
+                <button class="btn btn-success" onclick="nlDownloadPoster()">Gorseli Indir (PNG)</button>
                 <button class="btn btn-success" onclick="nlGoStage(4)">Devam</button>
                 <button class="btn btn-outline" onclick="nlRegenerate()">Yeniden Olustur</button>
                 <button class="btn btn-outline" onclick="nlGoStage(2)">Geri</button>
@@ -430,7 +432,7 @@
 <!-- Poster Template (off-screen, captured by html2canvas) -->
 <div id="nlPosterTemplate" class="nl-poster">
     <div class="nl-poster-left" id="nlPosterLeft">
-        <div class="nl-poster-brand">ATAOL AI Techs</div>
+        <div class="nl-poster-brand" id="nlPosterBrand">ATAOL AI <span>Techs</span></div>
         <div>
             <div id="nlPosterTitle" class="nl-poster-title"></div>
             <p id="nlPosterExcerpt" class="nl-poster-excerpt"></p>
@@ -982,17 +984,17 @@ var NL_SERVICE_TAGLINES = {
 };
 
 var NL_SERVICE_BG = {
-    actledger: 'linear-gradient(135deg, #0A0F1A 0%, #0D1B2A 50%, #0A0F1A 100%)',
-    strategythrust: 'linear-gradient(135deg, #0A0A1A 0%, #1A1030 50%, #0A0A1A 100%)',
-    ailab: 'linear-gradient(135deg, #0F0A00 0%, #1A1400 50%, #0F0A00 100%)',
-    aiinstitute: 'linear-gradient(135deg, #0A0A1A 0%, #1A0A2E 50%, #0A0A1A 100%)'
+    actledger: 'linear-gradient(135deg, #0C2233 0%, #134E5E 40%, #1A3A4A 70%, #0C2233 100%)',
+    strategythrust: 'linear-gradient(135deg, #1A1040 0%, #2D1B69 40%, #1E1450 70%, #1A1040 100%)',
+    ailab: 'linear-gradient(135deg, #1A1000 0%, #3D2800 40%, #2A1C00 70%, #1A1000 100%)',
+    aiinstitute: 'linear-gradient(135deg, #1A0A30 0%, #3B1F6E 40%, #2A1550 70%, #1A0A30 100%)'
 };
 
 var NL_SERVICE_RIGHT_BG = {
-    actledger: 'linear-gradient(180deg, rgba(34,211,238,0.12) 0%, rgba(34,211,238,0.04) 100%)',
-    strategythrust: 'linear-gradient(180deg, rgba(99,102,241,0.12) 0%, rgba(99,102,241,0.04) 100%)',
-    ailab: 'linear-gradient(180deg, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.04) 100%)',
-    aiinstitute: 'linear-gradient(180deg, rgba(168,85,247,0.12) 0%, rgba(168,85,247,0.04) 100%)'
+    actledger: 'linear-gradient(180deg, rgba(34,211,238,0.18) 0%, rgba(34,211,238,0.06) 100%)',
+    strategythrust: 'linear-gradient(180deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.06) 100%)',
+    ailab: 'linear-gradient(180deg, rgba(245,158,11,0.18) 0%, rgba(245,158,11,0.06) 100%)',
+    aiinstitute: 'linear-gradient(180deg, rgba(168,85,247,0.18) 0%, rgba(168,85,247,0.06) 100%)'
 };
 
 async function nlRenderPoster(title) {
@@ -1007,6 +1009,8 @@ async function nlRenderPoster(title) {
     posterEl.style.background = NL_SERVICE_BG[svc] || 'linear-gradient(135deg, #0A0A1A 0%, #1A1A2E 50%, #0A0A1A 100%)';
 
     // Left panel content
+    var brandSpan = document.querySelector('#nlPosterBrand span');
+    if (brandSpan) brandSpan.style.color = color;
     document.getElementById('nlPosterTitle').textContent = title;
     document.getElementById('nlPosterSvc').textContent = label;
     document.getElementById('nlPosterSvc').style.color = color;
@@ -1071,10 +1075,17 @@ async function nlRenderPoster(title) {
 function nlDownloadPoster() {
     if (!nlPosterBlob) { alert('Gorsel henuz olusturulmadi.'); return; }
     var a = document.createElement('a');
-    a.href = URL.createObjectURL(nlPosterBlob);
+    var blobUrl = URL.createObjectURL(nlPosterBlob);
+    a.href = blobUrl;
     var date = new Date().toISOString().slice(0,10);
     a.download = 'ataol-newsletter-' + date + '-' + nlSelectedService + '.png';
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
+    setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+    }, 100);
 }
 
 function nlCopyContent() {
