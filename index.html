@@ -1477,7 +1477,7 @@ async function nlGenerate() {
         + '4. Derin Analiz B (400-600 kelime): Ikinci alt konu, karsilastirmalar\n'
         + '5. Derin Analiz C (400-600 kelime): Ucuncu alt konu, pratik ciktilar\n'
         + '6. ' + serviceLabel + ' Perspektifi (300-500 kelime): Bu konuya nasil yaklasiyoruz, somut ornekler\n'
-        + '7. Kapanis (200-300 kelime): Harekete gecirici, ' + serviceUrl + ' linki ile biten paragraf\n'
+        + '7. Kapanis (200-300 kelime): Harekete gecirici, "bizimle iletisime gecin" ile biten paragraf. KESINLIKLE ' + serviceUrl + ' adresi YAZMA — kendi sitemize link verme.\n'
         + '8. Sik Sorulan Sorular: 3-5 soru-cevap cifti\n\n'
         + 'SEO anahtar kelimeler (dogal yerlestir): ' + seoKw + '\n\n'
         + 'YASAK IFADELER (bunlari kullanma):\n' + banned + '\n\n'
@@ -1658,7 +1658,7 @@ async function nlGenerateEnglish() {
         + '- Min 3 real references (name, institution, date)\n'
         + '- Min 3 first-person perspective phrases: "in my observation", "from my experience", "I have encountered"\n'
         + '- Min 2 internal link placeholders: [INTERNAL_LINK:related-article-slug]\n'
-        + '- Closing paragraph must end with a link to ' + serviceUrl + '\n\n'
+        + '- Closing paragraph must end with "contact us" or "get in touch". Do NOT include ' + serviceUrl + ' URL — never self-reference the site URL.\n\n'
         + 'BANNED PHRASES (do not use):\n'
         + '"In today\'s rapidly evolving", "In the era of AI", "In conclusion", "To sum up", "In summary", '
         + '"Game-changing", "Revolutionary", "Groundbreaking", "Let\'s dive in", "Let\'s explore", '
@@ -2224,7 +2224,10 @@ async function nlPublishAll() {
     var today = new Date().toISOString().slice(0, 10);
     var svc = nlSelectedService;
     var pillar = nlCurrentMeta ? nlCurrentMeta.pillar : '';
-    var readTime = nlCurrentMeta ? (nlCurrentMeta.read_time || 5) : 5;
+    // Calculate readTime from word count (200 wpm TR, 250 wpm EN), clamped to 8-13
+    var trWordCount = (trContent || '').split(/\s+/).length;
+    var readTime = Math.round(trWordCount / 200);
+    readTime = Math.max(8, Math.min(13, readTime));
     var kwTr = nlCurrentMeta ? (nlCurrentMeta.keywords || []) : [];
     if (typeof kwTr === 'string') kwTr = kwTr.split(',').map(function(k) { return k.trim(); });
     if (!Array.isArray(kwTr)) kwTr = [];
@@ -2321,8 +2324,10 @@ async function nlPublishAll() {
             } else {
                 throw new Error('Cannot read article-content.ts — no content or download_url');
             }
-            var safeEnContent = (enContent || '').replace(/`/g, '\\`').replace(/\$/g, '\\$');
-            var safeTrContent = (trContent || '').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+            var stMdTr = nlPlainToMarkdown(trContent || '');
+            var stMdEn = nlPlainToMarkdown(enContent || '');
+            var safeEnContent = stMdEn.replace(/`/g, '\\`').replace(/\$/g, '\\$');
+            var safeTrContent = stMdTr.replace(/`/g, '\\`').replace(/\$/g, '\\$');
             var stEntry = '\narticleContent["' + slug + '"] = {\n  en: `' + safeEnContent + '`,\n  tr: `' + safeTrContent + '`\n};\n';
             var updatedStContentTs = stContentTs + stEntry;
             await nlPublishToRepo(stRepo, 'src/lib/data/article-content.ts', updatedStContentTs, 'feat(insights): add content for ' + slug);
