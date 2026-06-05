@@ -417,14 +417,30 @@
 
         <!-- Stage 1: Settings -->
         <div id="nlStage1" class="nl-stage active">
-            <div style="display:flex;gap:12px;align-items:center;">
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
                 <label style="font-size:13px;font-weight:600;">Dil:</label>
                 <select id="nlLang" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
                     <option value="tr">Turkce</option>
                     <option value="en">English</option>
                 </select>
             </div>
-            <div class="nl-weight-info">Agirlik: ActLedger %40 - StrategyThrust %30 - AI Lab %15 - AI Institute %15</div>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;">Hedef Hizmetler:</label>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid rgba(34,211,238,0.3);background:rgba(34,211,238,0.08);cursor:pointer;">
+                        <input type="checkbox" id="nlSvcActledger" checked> ActLedger
+                    </label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.08);cursor:pointer;">
+                        <input type="checkbox" id="nlSvcStrategythrust"> StrategyThrust
+                    </label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.08);cursor:pointer;">
+                        <input type="checkbox" id="nlSvcAilab"> ATAOL AI Lab
+                    </label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid rgba(168,85,247,0.3);background:rgba(168,85,247,0.08);cursor:pointer;">
+                        <input type="checkbox" id="nlSvcAiinstitute"> ATAOL AI Institute
+                    </label>
+                </div>
+            </div>
             <button class="btn btn-success" onclick="nlFindTopics()" id="btnNlTopics">Konu Bul</button>
         </div>
 
@@ -1267,23 +1283,41 @@ async function nlFindTopics() {
     var lang = document.getElementById('nlLang').value;
     var promptLang = lang === 'tr' ? 'Turkce' : 'English';
 
-    var prompt = 'Sen ATAOL AI Techs icin trend arastirmacisisin. Asagidaki 4 hizmet alaniyla kesisen, bu hafta gundemde olan 5 konu bul.\n\n'
-        + 'Hizmet alanlari ve agirliklari:\n'
-        + '- ActLedger (%40): Operasyonel mukemmellik, ERP, aktivite takibi, blockchain denetim izi, kurumsal hafiza, performans yonetimi\n'
-        + '- StrategyThrust (%30): Stratejik analiz, rekabet istihbarati, pazar analizi, C-level raporlama, yapay zeka destekli arastirma\n'
-        + '- ATAOL AI Lab (%15): AI entegrasyon, dijital donusum, B2B yazilim, is surecleri otomasyonu\n'
-        + '- ATAOL AI Institute (%15): Kurumsal AI egitimi, yapay zeka okuryazarligi, yonetici egitimi\n\n'
+    // Build service list from checkboxes
+    var selectedSvcs = [];
+    var svcDescriptions = {
+        actledger: 'ActLedger: Operasyonel mukemmellik, ERP, aktivite takibi, blockchain denetim izi, kurumsal hafiza, performans yonetimi',
+        strategythrust: 'StrategyThrust: Stratejik analiz, rekabet istihbarati, pazar analizi, C-level raporlama, yapay zeka destekli arastirma',
+        ailab: 'ATAOL AI Lab: AI entegrasyon, dijital donusum, B2B yazilim, is surecleri otomasyonu',
+        aiinstitute: 'ATAOL AI Institute: Kurumsal AI egitimi, yapay zeka okuryazarligi, yonetici egitimi'
+    };
+    var svcPillars = {
+        actledger: 'ActLedger pillarlari: operasyonel-mukemmellik, erp-kurumsal-kaynak, kurumsal-hafiza, performans-strateji, lojistik-operasyon, blockchain-denetim',
+        strategythrust: 'StrategyThrust pillarlari: stratejik-analiz, danismanlik-araclari',
+        ailab: 'AI Lab pillari: ai-dijital-donusum',
+        aiinstitute: 'AI Institute pillari: ai-dijital-donusum'
+    };
+    if (document.getElementById('nlSvcActledger').checked) selectedSvcs.push('actledger');
+    if (document.getElementById('nlSvcStrategythrust').checked) selectedSvcs.push('strategythrust');
+    if (document.getElementById('nlSvcAilab').checked) selectedSvcs.push('ailab');
+    if (document.getElementById('nlSvcAiinstitute').checked) selectedSvcs.push('aiinstitute');
+    if (selectedSvcs.length === 0) { alert('En az bir hizmet secin.'); btn.textContent = 'Konu Bul'; btn.disabled = false; return; }
+
+    var svcList = selectedSvcs.map(function(s) { return '- ' + svcDescriptions[s]; }).join('\n');
+    var pillarList = selectedSvcs.map(function(s) { return '- ' + svcPillars[s]; }).join('\n');
+    var svcIds = selectedSvcs.join('|');
+
+    var prompt = 'Sen ATAOL AI Techs icin trend arastirmacisisin. Asagidaki hizmet alanlariyla kesisen, bu hafta gundemde olan 5 konu bul.\n\n'
+        + 'Hizmet alanlari:\n' + svcList + '\n\n'
         + 'Kurallar:\n'
-        + '- En az 2 konu ActLedger ile, en az 1 konu StrategyThrust ile kesismeli\n'
+        + '- Konulari secili hizmetlere dengeli dagit\n'
         + '- Gercek guncel gelismelere dayansin (son 7 gun)\n'
         + '- Her konunun basligi ve aciklamasi ' + promptLang + ' dilinde olsun\n'
-        + '- Her konu icin: baslik, 1 cumle aciklama, kesisen hizmet alani (actledger/strategythrust/ailab/aiinstitute)\n'
+        + '- Her konu icin: baslik, 1 cumle aciklama, kesisen hizmet alani (' + svcIds + ')\n'
         + '- Her konu icin hangi pillar\'a ait oldugunu belirt\n'
-        + '- ActLedger pillarlari: operasyonel-mukemmellik, erp-kurumsal-kaynak, kurumsal-hafiza, performans-strateji, lojistik-operasyon, blockchain-denetim\n'
-        + '- StrategyThrust pillarlari: stratejik-analiz, danismanlik-araclari\n'
-        + '- AI Lab/Institute pillar\u0131: ai-dijital-donusum\n\n'
+        + pillarList + '\n\n'
         + 'SADECE JSON formatinda don, baska hicbir sey yazma:\n'
-        + '[{"title":"...","description":"...","service":"actledger|strategythrust|ailab|aiinstitute","pillar":"pillar-id"}]';
+        + '[{"title":"...","description":"...","service":"' + svcIds + '","pillar":"pillar-id"}]';
 
     try {
         var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
@@ -2258,14 +2292,24 @@ async function nlPublishAll() {
         try {
             var stRepo = NL_PUBLISH_REPOS.strategythrust;
 
-            // Update article-content.ts
+            // Update article-content.ts (may be large — use raw_url if truncated)
             var stContentResp = await fetch('https://api.github.com/repos/' + stRepo.owner + '/' + stRepo.repo + '/contents/src/lib/data/article-content.ts', {
                 headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
             });
             var stContentFile = await stContentResp.json();
-            var stContentTs = atob(stContentFile.content.replace(/\n/g, ''));
-            var stEntry = '\narticleContent["' + slug + '"] = {\n  en: `' + enContent.replace(/`/g, '\\`') + '`,\n  tr: `' + trContent.replace(/`/g, '\\`') + '`\n};\n';
-            var updatedStContentTs = stContentTs.replace(/\};[\s]*$/, '};\n' + stEntry);
+            var stContentTs;
+            if (stContentFile.content) {
+                stContentTs = decodeURIComponent(escape(atob(stContentFile.content.replace(/\n/g, ''))));
+            } else if (stContentFile.download_url) {
+                var rawResp = await fetch(stContentFile.download_url);
+                stContentTs = await rawResp.text();
+            } else {
+                throw new Error('Cannot read article-content.ts');
+            }
+            var safeEnContent = (enContent || '').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+            var safeTrContent = (trContent || '').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+            var stEntry = '\narticleContent["' + slug + '"] = {\n  en: `' + safeEnContent + '`,\n  tr: `' + safeTrContent + '`\n};\n';
+            var updatedStContentTs = stContentTs + stEntry;
             await nlPublishToRepo(stRepo, 'src/lib/data/article-content.ts', updatedStContentTs, 'feat(insights): add content for ' + slug);
 
             // Update insights.ts
@@ -2273,7 +2317,15 @@ async function nlPublishAll() {
                 headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
             });
             var stInsightsFile = await stInsightsResp.json();
-            var stInsightsTs = atob(stInsightsFile.content.replace(/\n/g, ''));
+            var stInsightsTs;
+            if (stInsightsFile.content) {
+                stInsightsTs = decodeURIComponent(escape(atob(stInsightsFile.content.replace(/\n/g, ''))));
+            } else if (stInsightsFile.download_url) {
+                var rawInsResp = await fetch(stInsightsFile.download_url);
+                stInsightsTs = await rawInsResp.text();
+            } else {
+                throw new Error('Cannot read insights.ts');
+            }
             var newInsight = '  { slug: "' + slug + '", category: "strategyInsights", readTime: ' + readTime + ', date: "' + today + '", image: "/images/insights/' + slug + '.webp" },\n';
             var updatedStInsightsTs = stInsightsTs.replace(/\];[\s]*(\nexport|\nconst|\nexport const PILLAR|$)/, newInsight + '];\n$1');
             // fallback: insert before last ];
