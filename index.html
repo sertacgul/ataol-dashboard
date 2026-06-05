@@ -3572,7 +3572,7 @@ Kendi platformlarimiz:
 - 5 katmanli performans olcum cercevesi (Performance, Quality, Time, Risk, AI Insight)
 - Dakikalar icinde tam operasyonel cerceve kurulumu
 - Saha operasyonlari, envanter, is akislari, otomasyon, IoT entegrasyonu
-- Mobil-first: iOS native app + PWA
+- Mobil-first: iOS + Android + PWA
 - Kampanya: 3 aylik lisans alanlara +1 ay ucretsiz | Yillik lisans alanlara %15 indirim
 
 Kurumsal hizmetlerimiz:
@@ -3732,7 +3732,7 @@ function buildEmailHtml(d, lang) {
     const st_items = (d.st_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
     const al_items = (d.al_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
     const innov_items = (d.innovation_highlights || []).map(h => `<p style="margin:0 0 8px;font-size:13px;color:#e0e0e0;padding-left:8px;">&#9733; ${h}</p>`).join('');
-    const booking = d._booking_url || 'mailto:sertacgul@strategythrust.com';
+    const booking = d._booking_url || 'mailto:sertacgul@ataolai.tech';
 
     let institute_block = '';
     if (lang === 'tr' && d.institute_note) {
@@ -4077,7 +4077,7 @@ async function addToQueue() {
         lead_id: leadId,
         to_email: finalEmail,
         to_name: lead.company_name,
-        from_email: 'sertacgul@strategythrust.com',
+        from_email: 'sertacgul@ataolai.tech',
         subject: emailData.subject,
         body_html: emailData.body_html,
         body_text: emailData.body_html.replace(/<[^>]*>/g, ''),
