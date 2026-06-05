@@ -2126,7 +2126,11 @@ async function nlPublishAll() {
     var pillar = nlCurrentMeta ? nlCurrentMeta.pillar : '';
     var readTime = nlCurrentMeta ? (nlCurrentMeta.read_time || 5) : 5;
     var kwTr = nlCurrentMeta ? (nlCurrentMeta.keywords || []) : [];
+    if (typeof kwTr === 'string') kwTr = kwTr.split(',').map(function(k) { return k.trim(); });
+    if (!Array.isArray(kwTr)) kwTr = [];
     var kwEn = nlEnMeta ? (nlEnMeta.keywords || []) : [];
+    if (typeof kwEn === 'string') kwEn = kwEn.split(',').map(function(k) { return k.trim(); });
+    if (!Array.isArray(kwEn)) kwEn = [];
     var titleTr = nlCurrentMeta ? nlCurrentMeta.seo_title : slug;
     var titleEn = nlEnMeta ? nlEnMeta.seo_title : slug;
     var descTr = nlCurrentMeta ? nlCurrentMeta.meta_description : '';
