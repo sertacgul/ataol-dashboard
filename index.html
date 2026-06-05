@@ -2111,6 +2111,59 @@ async function nlPublishToRepo(repoConfig, filePath, content, commitMsg) {
     return await resp.json();
 }
 
+// Convert plain text to markdown for blog publishing
+function nlPlainToMarkdown(text) {
+    var lines = text.split('\n');
+    var result = [];
+    var i = 0;
+    while (i < lines.length) {
+        var line = lines[i].trim();
+        if (!line) { result.push(''); i++; continue; }
+
+        // Detect heading patterns
+        var isHeading = false;
+
+        // "Derin Analiz A:", "Derin Analiz B:", etc.
+        if (/^Derin Analiz\s*[A-Z]?\s*:/i.test(line)) isHeading = true;
+        // "Bağlam", "Kapanış", "Sonuç" — single/short lines that are section titles
+        else if (/^(Bağlam|Kapanis|Kapanış|Sonuç|Giris|Giriş|Context|Conclusion|Introduction|Closing)$/i.test(line)) isHeading = true;
+        // "ATAOL AI ... Perspektifi" or "... Perspective"
+        else if (/perspektifi|perspective/i.test(line) && line.length < 80) isHeading = true;
+        // "Sık Sorulan Sorular" / "Frequently Asked Questions"
+        else if (/s[ıi]k sorulan|frequently asked/i.test(line)) isHeading = true;
+        // "X nedir?" / "What is X?" — question headings under 100 chars
+        else if (line.endsWith('?') && line.length < 100 && !lines[i - 1]?.trim()) isHeading = true;
+        // "Bağlam & Sektör Analizi" or similar compound titles
+        else if (line.length < 80 && !line.endsWith('.') && !line.endsWith(',') && !line.includes('. ') && i > 0 && !lines[i - 1]?.trim()) isHeading = true;
+        // "Hook Açılış" / "Uzman Perspektifi" / "Eylem Çağrısı" pattern
+        else if (/^(Hook|Uzman|Eylem|Expert|Action|Deep Analysis)/i.test(line) && line.length < 80) isHeading = true;
+
+        if (isHeading) {
+            result.push('');
+            result.push('## ' + line);
+            result.push('');
+        } else {
+            // Detect numbered list items: "1. Something" "2. Something"
+            var numMatch = line.match(/^(\d+)\.\s+(.+)/);
+            if (numMatch && line.length < 200) {
+                // Keep as numbered list but ensure spacing
+                result.push(numMatch[1] + '. ' + numMatch[2]);
+            } else {
+                // Regular paragraph — ensure blank line before if previous was content
+                if (result.length > 0 && result[result.length - 1] && !result[result.length - 1].startsWith('#') && !result[result.length - 1].match(/^\d+\./)) {
+                    result.push('');
+                }
+                result.push(line);
+            }
+        }
+        i++;
+    }
+
+    // Clean up: remove triple+ blank lines
+    var md = result.join('\n').replace(/\n{4,}/g, '\n\n\n');
+    return md.trim();
+}
+
 async function nlPublishAll() {
     var btn = document.getElementById('btnNlPublishAll');
     btn.disabled = true;
@@ -2152,8 +2205,10 @@ async function nlPublishAll() {
     // ataolai.tech
     if (document.getElementById('nlPubAtaol').checked) {
         try {
-            var fmTr = '---\ntitle: "' + titleTr.replace(/"/g, '\\"') + '"\ndescription: "' + descTr.replace(/"/g, '\\"') + '"\ndate: "' + today + '"\npillar: "' + pillar + '"\nservice: "' + svc + '"\nkeywords: [' + kwTr.map(function(k) { return '"' + k + '"'; }).join(', ') + ']\nreadTime: ' + readTime + '\nfeatured: false\nlang: "tr"\nhreflang_alt: "' + enSlug + '"\n---\n\n' + trContent;
-            var fmEn = '---\ntitle: "' + titleEn.replace(/"/g, '\\"') + '"\ndescription: "' + descEn.replace(/"/g, '\\"') + '"\ndate: "' + today + '"\npillar: "' + pillar + '"\nservice: "' + svc + '"\nkeywords: [' + kwEn.map(function(k) { return '"' + k + '"'; }).join(', ') + ']\nreadTime: ' + readTime + '\nfeatured: false\nlang: "en"\nhreflang_alt: "' + slug + '"\n---\n\n' + enContent;
+            var mdTr = nlPlainToMarkdown(trContent);
+            var mdEn = nlPlainToMarkdown(enContent);
+            var fmTr = '---\ntitle: "' + titleTr.replace(/"/g, '\\"') + '"\ndescription: "' + descTr.replace(/"/g, '\\"') + '"\ndate: "' + today + '"\npillar: "' + pillar + '"\nservice: "' + svc + '"\nkeywords: [' + kwTr.map(function(k) { return '"' + k + '"'; }).join(', ') + ']\nreadTime: ' + readTime + '\nfeatured: false\nlang: "tr"\nhreflang_alt: "' + enSlug + '"\n---\n\n' + mdTr;
+            var fmEn = '---\ntitle: "' + titleEn.replace(/"/g, '\\"') + '"\ndescription: "' + descEn.replace(/"/g, '\\"') + '"\ndate: "' + today + '"\npillar: "' + pillar + '"\nservice: "' + svc + '"\nkeywords: [' + kwEn.map(function(k) { return '"' + k + '"'; }).join(', ') + ']\nreadTime: ' + readTime + '\nfeatured: false\nlang: "en"\nhreflang_alt: "' + slug + '"\n---\n\n' + mdEn;
             var ataolRepo = NL_PUBLISH_REPOS.ataolai;
             await nlPublishToRepo(ataolRepo, 'src/content/blog/' + slug + '.md', fmTr, 'feat(blog): add ' + slug + ' [TR]');
             await nlPublishToRepo(ataolRepo, 'src/content/blog/en/' + enSlug + '.md', fmEn, 'feat(blog): add ' + enSlug + ' [EN]');
