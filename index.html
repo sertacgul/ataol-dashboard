@@ -515,6 +515,10 @@
                 <div>Service: <b style="color:#22d3ee;" id="nlPubService"></b></div>
                 <div>Pillar: <b id="nlPubPillar"></b></div>
                 <div>Internal links: <span id="nlPubLinks"></span></div>
+                <div style="margin-top:8px;">
+                    <label style="font-size:12px;font-weight:600;color:#ccc;">Yayın Tarihi:</label>
+                    <input type="date" id="nlPubDate" style="margin-left:8px;padding:4px 8px;border:1px solid #555;border-radius:6px;background:#1a1a2e;color:#e2e8f0;font-size:12px;">
+                </div>
             </div>
             <div id="nlPublishStatus" style="font-size:12px;margin-bottom:12px;"></div>
             <div class="btn-group">
@@ -2118,6 +2122,7 @@ function nlSetPublishDefaults() {
     document.getElementById('nlPubLinkedIn').checked = true;
     document.getElementById('nlPubService').textContent = NL_SERVICE_LABELS[svc] || svc;
     document.getElementById('nlPubPillar').textContent = nlCurrentMeta ? nlCurrentMeta.pillar : '';
+    document.getElementById('nlPubDate').value = new Date().toISOString().slice(0, 10);
     var trContent = document.getElementById('nlContentEdit').innerText;
     var linkCount = (trContent.match(/\[INTERNAL_LINK:/g) || []).length;
     document.getElementById('nlPubLinks').textContent = linkCount + ' found';
@@ -2221,7 +2226,9 @@ async function nlPublishAll() {
     var trContent = document.getElementById('nlContentEdit').innerText;
     var enContent = document.getElementById('nlEnContentEdit').innerText || nlEnContent || '';
     var slug = nlCurrentMeta ? nlCurrentMeta.slug : ('nl-' + Date.now());
-    var today = new Date().toISOString().slice(0, 10);
+    var pubDateInput = document.getElementById('nlPubDate');
+    var pubDate = (pubDateInput && pubDateInput.value) ? pubDateInput.value : new Date().toISOString().slice(0, 10);
+    var today = pubDate;
     var svc = nlSelectedService;
     var pillar = nlCurrentMeta ? nlCurrentMeta.pillar : '';
     // Calculate readTime from word count (200 wpm TR, 250 wpm EN), clamped to 8-13
@@ -2279,7 +2286,14 @@ async function nlPublishAll() {
                 headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
             });
             var contentFile = await contentGetResp.json();
-            var contentTs = atob(contentFile.content.replace(/\n/g, ''));
+            var contentTs;
+            if (contentFile.content) {
+                try { contentTs = decodeURIComponent(escape(atob(contentFile.content.replace(/\n/g, '')))); }
+                catch (e) { contentTs = atob(contentFile.content.replace(/\n/g, '')); }
+            } else if (contentFile.download_url) {
+                var dlResp = await fetch(contentFile.download_url, { headers: { 'Authorization': 'token ' + TOKEN } });
+                contentTs = await dlResp.text();
+            } else { throw new Error('Cannot read blog-content.ts'); }
             var newEntry = '\nblogContent["' + slug + '"] = {\n  tr: `' + trContent.replace(/`/g, '\\`') + '`,\n  en: `' + enContent.replace(/`/g, '\\`') + '`\n};\n';
             var updatedContentTs = contentTs.replace(/\};[\s]*$/, '};\n' + newEntry);
             await nlPublishToRepo(alRepo, 'src/lib/data/blog-content.ts', updatedContentTs, 'feat(blog): add content for ' + slug);
@@ -2289,10 +2303,17 @@ async function nlPublishAll() {
                 headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
             });
             var postsFile = await postsGetResp.json();
-            var postsTs = atob(postsFile.content.replace(/\n/g, ''));
+            var postsTs;
+            if (postsFile.content) {
+                try { postsTs = decodeURIComponent(escape(atob(postsFile.content.replace(/\n/g, '')))); }
+                catch (e) { postsTs = atob(postsFile.content.replace(/\n/g, '')); }
+            } else if (postsFile.download_url) {
+                var dlResp2 = await fetch(postsFile.download_url, { headers: { 'Authorization': 'token ' + TOKEN } });
+                postsTs = await dlResp2.text();
+            } else { throw new Error('Cannot read blog-posts.ts'); }
             var kwTrStr = kwTr.map(function(k) { return '"' + k + '"'; }).join(', ');
             var kwEnStr = kwEn.map(function(k) { return '"' + k + '"'; }).join(', ');
-            var newPost = '  {\n    slug: "' + slug + '",\n    pillar: "' + pillar + '",\n    keywords_tr: [' + kwTrStr + '],\n    keywords_en: [' + kwEnStr + '],\n    date: "' + today + '",\n    readTime: ' + readTime + ',\n    featured: false,\n    image: "/images/blog/' + slug + '.webp"\n  },\n';
+            var newPost = '  {\n    slug: "' + slug + '",\n    title_tr: "' + titleTr.replace(/"/g, '\\"') + '",\n    title_en: "' + titleEn.replace(/"/g, '\\"') + '",\n    pillar: "' + pillar + '",\n    keywords_tr: [' + kwTrStr + '],\n    keywords_en: [' + kwEnStr + '],\n    date: "' + pubDate + '",\n    readTime: ' + readTime + ',\n    featured: false,\n    image: ""\n  },\n';
             var updatedPostsTs = postsTs.replace(/\];[\s]*$/, newPost + '];');
             await nlPublishToRepo(alRepo, 'src/lib/data/blog-posts.ts', updatedPostsTs, 'feat(blog): add post entry for ' + slug);
 
