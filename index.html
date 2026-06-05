@@ -398,6 +398,8 @@
             <span style="color:#555;font-size:10px;margin:0 4px;">|</span>
             <span class="trigger-btn" data-svc="li-al" onclick="generatePost('actledger',this)" style="color:#0a66c2;font-size:10px;padding:3px 8px;">AL Post</span>
             <span class="trigger-btn" data-svc="li-st" onclick="generatePost('strategythrust',this)" style="color:#0a66c2;font-size:10px;padding:3px 8px;">ST Post</span>
+            <span class="trigger-btn" data-svc="li-lab" onclick="generatePost('ailab',this)" style="color:#0a66c2;font-size:10px;padding:3px 8px;">Lab Post</span>
+            <span class="trigger-btn" data-svc="li-inst" onclick="generatePost('aiinstitute',this)" style="color:#0a66c2;font-size:10px;padding:3px 8px;">Inst Post</span>
             <span style="color:#555;font-size:10px;margin:0 4px;">|</span>
             <span class="trigger-btn" data-svc="newsletter" onclick="openNewsletter()" style="color:#ef6c00;font-size:10px;padding:3px 8px;font-weight:700;">Newsletter</span>
             <span class="trigger-btn" onclick="openCalendar()" style="color:#38bdf8;font-size:10px;padding:3px 8px;">Takvim</span>
@@ -706,60 +708,266 @@ async function triggerService(service, btn) {
 }
 
 // ---- LINKEDIN POST GENERATION ----
-async function generatePost(service, btn) {
-    var langChoice = prompt('Post dili? (tr / en)', 'tr');
+var postServiceConfig = {
+    actledger: {
+        label: 'ActLedger',
+        url: 'www.actledger.com',
+        tagline_tr: 'Operasyonel Mukemmellik Sistemi | ERP OS',
+        tagline_en: 'Operational Excellence System | ERP OS',
+        topics_tr: 'operasyonel mukemmellik, ERP, KPI yonetimi, blockchain denetim izi, kurumsal hafiza, performans analizi, surec iyilestirme, tedarik zinciri',
+        topics_en: 'operational excellence, ERP, KPI management, blockchain audit trail, institutional memory, performance analytics, process improvement, supply chain',
+        hashtags: '#ActLedger #OperasyonelMukemmellik #ERP #KPI #SurecIyilestirme'
+    },
+    strategythrust: {
+        label: 'StrategyThrust',
+        url: 'www.strategythrust.com',
+        tagline_tr: 'Stratejik Rapor Uretim Platformu',
+        tagline_en: 'Strategic Report Generation Platform',
+        topics_tr: 'stratejik analiz, rekabet istihbarati, pazar analizi, SWOT, Porter, PESTEL, sektorel rapor, danismanlik',
+        topics_en: 'strategic analysis, competitive intelligence, market analysis, SWOT, Porter, PESTEL, sector reports, consulting',
+        hashtags: '#StrategyThrust #StratejikAnaliz #RekabetIstihbarati #PazarAnalizi #Danismanlik'
+    },
+    ailab: {
+        label: 'ATAOL AI Lab',
+        url: 'www.ataolai.tech',
+        tagline_tr: 'B2B Yapay Zeka Entegrasyonu & Dijital Donusum',
+        tagline_en: 'B2B AI Integration & Digital Transformation',
+        topics_tr: 'AI entegrasyon, dijital donusum, is surecleri otomasyonu, ozel yazilim, veri analitigi, makine ogrenimi, RPA',
+        topics_en: 'AI integration, digital transformation, business process automation, custom software, data analytics, machine learning, RPA',
+        hashtags: '#ATAOLAI #DijitalDonusum #AIEntegrasyon #Otomasyon #YapayZeka'
+    },
+    aiinstitute: {
+        label: 'ATAOL AI Institute',
+        url: 'www.ataolai.tech/institute',
+        tagline_tr: 'Kurumsal Yapay Zeka Egitimi & AI Okuryazarligi',
+        tagline_en: 'Corporate AI Training & AI Literacy',
+        topics_tr: 'kurumsal AI egitimi, yapay zeka okuryazarligi, yonetici egitimi, AI stratejisi, prompt muhendisligi, veri okuryazarligi',
+        topics_en: 'corporate AI training, AI literacy, executive training, AI strategy, prompt engineering, data literacy',
+        hashtags: '#ATAOLAI #AIEgitimi #YapayZekaOkuryazarligi #KurumsalEgitim #AILiteracy'
+    }
+};
+
+function postCheckAiPatterns(text, lang) {
+    var patterns = lang === 'tr' ? NL_BANNED_TR : NL_BANNED_EN;
+    var found = [];
+    for (var i = 0; i < patterns.length; i++) {
+        var m = text.match(patterns[i]);
+        if (m) found.push(m[0]);
+    }
+    return found;
+}
+
+function showLinkedInPostModal(post, service, lang, triggerBtn, origBtnText) {
+    var cfg = postServiceConfig[service];
+    var svcLabel = cfg ? cfg.label : service;
+    var langLabel = lang === 'tr' ? 'Türkçe' : 'English';
+    var postText = post.post || '';
+    var wordCount = postText.split(/\s+/).filter(Boolean).length;
+    var aiHits = postCheckAiPatterns(postText, lang);
+
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+    var modal = document.createElement('div');
+    modal.style.cssText = 'background:#1e1e2e;border-radius:12px;max-width:620px;width:100%;max-height:92vh;overflow-y:auto;padding:24px;color:#e2e8f0;';
+
+    // Header
+    var header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;';
+    var title = document.createElement('h3');
+    title.style.cssText = 'margin:0;font-size:15px;color:#e2e8f0;';
+    title.textContent = 'LinkedIn Post — ' + svcLabel + ' (' + langLabel + ')';
+    var closeBtn = document.createElement('span');
+    closeBtn.style.cssText = 'cursor:pointer;font-size:22px;color:#94a3b8;line-height:1;';
+    closeBtn.textContent = '\u00d7';
+    closeBtn.onclick = function() { overlay.remove(); };
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    modal.appendChild(header);
+
+    // Meta strip
+    var meta = document.createElement('div');
+    meta.style.cssText = 'background:#2a2a3e;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:11px;color:#94a3b8;display:flex;flex-wrap:wrap;gap:8px;';
+    var catSpan = document.createElement('span');
+    catSpan.textContent = 'Kategori: ';
+    var catVal = document.createElement('strong');
+    catVal.style.color = '#e2e8f0';
+    catVal.textContent = post.category || '—';
+    catSpan.appendChild(catVal);
+    meta.appendChild(catSpan);
+
+    var timeSpan = document.createElement('span');
+    timeSpan.textContent = 'En iyi saat: ';
+    var timeVal = document.createElement('strong');
+    timeVal.style.color = '#e2e8f0';
+    timeVal.textContent = post.best_posting_time || '—';
+    timeSpan.appendChild(timeVal);
+    meta.appendChild(timeSpan);
+
+    var wcSpan = document.createElement('span');
+    wcSpan.textContent = wordCount + ' kelime';
+    meta.appendChild(wcSpan);
+    modal.appendChild(meta);
+
+    // Image suggestion
+    if (post.suggested_image) {
+        var imgRow = document.createElement('div');
+        imgRow.style.cssText = 'background:#2a2a3e;padding:8px 14px;border-radius:8px;margin-bottom:12px;font-size:11px;color:#94a3b8;';
+        var imgLabel = document.createElement('span');
+        imgLabel.textContent = 'Gorsel onerisi: ';
+        var imgVal = document.createElement('span');
+        imgVal.style.color = '#e2e8f0';
+        imgVal.textContent = post.suggested_image;
+        imgRow.appendChild(imgLabel);
+        imgRow.appendChild(imgVal);
+        modal.appendChild(imgRow);
+    }
+
+    // AI pattern warning
+    if (aiHits.length > 0) {
+        var warn = document.createElement('div');
+        warn.style.cssText = 'background:#3b1f1f;border:1px solid #ef4444;border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:11px;color:#fca5a5;';
+        warn.textContent = '\u26a0 AI kalip uyarisi: ' + aiHits.join(', ');
+        modal.appendChild(warn);
+    }
+
+    // Post textarea (editable)
+    var postArea = document.createElement('textarea');
+    postArea.id = 'linkedinPostText';
+    postArea.style.cssText = 'width:100%;box-sizing:border-box;min-height:260px;font-size:13px;line-height:1.7;color:#e2e8f0;background:#111827;border:1px solid #334155;border-radius:8px;padding:14px;resize:vertical;font-family:inherit;';
+    postArea.value = postText;
+    modal.appendChild(postArea);
+
+    // Hashtags
+    if (cfg && cfg.hashtags) {
+        var tagRow = document.createElement('div');
+        tagRow.style.cssText = 'margin-top:8px;font-size:11px;color:#0a66c2;';
+        tagRow.textContent = cfg.hashtags;
+        modal.appendChild(tagRow);
+    }
+
+    // Buttons
+    var btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:8px;margin-top:14px;';
+
+    var copyButton = document.createElement('button');
+    copyButton.style.cssText = 'flex:1;padding:10px;background:#0a66c2;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;';
+    copyButton.textContent = 'Kopyala';
+    copyButton.onclick = function() {
+        navigator.clipboard.writeText(postArea.value).then(function() {
+            copyButton.textContent = 'Kopyalandi!';
+            setTimeout(function() { copyButton.textContent = 'Kopyala'; }, 2000);
+        });
+    };
+
+    var regenButton = document.createElement('button');
+    regenButton.style.cssText = 'flex:1;padding:10px;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:8px;font-size:13px;cursor:pointer;';
+    regenButton.textContent = 'Yeniden Uret';
+    regenButton.onclick = function() {
+        overlay.remove();
+        generatePost(service, triggerBtn, lang);
+    };
+
+    var closeButton = document.createElement('button');
+    closeButton.style.cssText = 'flex:1;padding:10px;background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:8px;font-size:13px;cursor:pointer;';
+    closeButton.textContent = 'Kapat';
+    closeButton.onclick = function() { overlay.remove(); };
+
+    btnRow.appendChild(copyButton);
+    btnRow.appendChild(regenButton);
+    btnRow.appendChild(closeButton);
+    modal.appendChild(btnRow);
+
+    overlay.appendChild(modal);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+}
+
+async function generatePost(service, btn, prefillLang) {
+    var cfg = postServiceConfig[service];
+    if (!cfg) { alert('Unknown service: ' + service); return; }
+
+    var langChoice = prefillLang || prompt('Post dili? (tr / en)', 'tr');
     if (!langChoice) return;
     langChoice = langChoice.toLowerCase().trim();
     if (langChoice !== 'tr' && langChoice !== 'en') langChoice = 'tr';
+
+    if (!GEMINI_KEY) {
+        alert('Gemini API key bulunamadi. Lutfen Settings\'ten ekleyin.');
+        return;
+    }
 
     var origText = btn.textContent;
     btn.textContent = '...';
     btn.classList.add('running');
 
+    var topics = langChoice === 'tr' ? cfg.topics_tr : cfg.topics_en;
+    var tagline = langChoice === 'tr' ? cfg.tagline_tr : cfg.tagline_en;
+
+    var promptText;
+    if (langChoice === 'tr') {
+        promptText = 'Asagidaki hizmet icin LinkedIn gonderisi yaz:\n\n'
+            + 'Hizmet: ' + cfg.label + '\n'
+            + 'Web sitesi: ' + cfg.url + '\n'
+            + 'Taglaine: ' + tagline + '\n'
+            + 'Anahtar kelimeler: ' + topics + '\n\n'
+            + 'Kurallar:\n'
+            + '- 200-400 kelime arasi, otorite kurucu uzun format\n'
+            + '- Guclu bir giris cumlesi (istatistik, soru veya cesur bir ifade)\n'
+            + '- 1-2 gercek veri noktasi veya referans icerir\n'
+            + '- ' + cfg.url + ' sitesine yonlendiren bir CTA ile biter\n'
+            + '- 5 hashtag icerir: ' + cfg.hashtags + '\n'
+            + '- Kisisel ve uzman sesi, AI uretimi gibi gorUnmemeli\n'
+            + '- Dil: Turkce\n\n'
+            + 'SADECE JSON formatinda don:\n'
+            + '{"post":"...","category":"...","best_posting_time":"...","suggested_image":"..."}';
+    } else {
+        promptText = 'Write a LinkedIn post for the following service:\n\n'
+            + 'Service: ' + cfg.label + '\n'
+            + 'Website: ' + cfg.url + '\n'
+            + 'Tagline: ' + tagline + '\n'
+            + 'Keywords: ' + topics + '\n\n'
+            + 'Rules:\n'
+            + '- 200-400 words, authority-building long format\n'
+            + '- Strong hook opening (statistic, question, or bold statement)\n'
+            + '- Includes 1-2 real data points or references\n'
+            + '- Ends with a CTA linking to ' + cfg.url + '\n'
+            + '- Includes 5 hashtags: ' + cfg.hashtags + '\n'
+            + '- Personal and expert voice, must not sound AI-generated\n'
+            + '- Language: English\n\n'
+            + 'Return ONLY JSON:\n'
+            + '{"post":"...","category":"...","best_posting_time":"...","suggested_image":"..."}';
+    }
+
     try {
-        var resp = await fetch(WORKER_URL.replace('/run', '/linkedin') + '?service=' + service + '&lang=' + langChoice, {
+        var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
             method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + TRIGGER_SECRET }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: promptText }] }],
+                systemInstruction: { parts: [{ text: 'You are a LinkedIn content expert. Return ONLY valid JSON. No markdown, no code blocks, no explanation.' }] },
+                tools: [{ google_search: {} }],
+                generationConfig: { temperature: 0.9, thinkingConfig: { thinkingBudget: 0 } }
+            })
         });
-        if (!resp.ok) throw new Error(await resp.text());
-        var post = await resp.json();
+        if (!resp.ok) throw new Error('Gemini API ' + resp.status + ': ' + (await resp.text()));
+
+        var data = await resp.json();
+        var rawText = data.candidates[0].content.parts.filter(function(p) { return p.text; }).map(function(p) { return p.text; }).join('');
+
+        var jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error('JSON parse basarisiz');
+        var post = JSON.parse(jsonMatch[0]);
 
         btn.textContent = 'OK';
         btn.style.color = '#4caf50';
-
-        // Show post in a modal
-        var overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-        var modal = document.createElement('div');
-        modal.style.cssText = 'background:#fff;border-radius:12px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;';
-        var svcLabel = service === 'actledger' ? 'ActLedger' : 'StrategyThrust';
-        var langLabel = langChoice === 'tr' ? 'Turkce' : 'English';
-
-        modal.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
-            + '<h3 style="margin:0;font-size:16px;">LinkedIn Post - ' + svcLabel + ' (' + langLabel + ')</h3>'
-            + '<span style="cursor:pointer;font-size:20px;color:#888;" onclick="this.closest(\'div[style*=fixed]\').remove()">&times;</span>'
-            + '</div>'
-            + '<div style="background:#f0f2f5;padding:16px;border-radius:8px;margin-bottom:12px;">'
-            + '<p style="font-size:11px;color:#888;margin:0 0 4px;">Kategori: ' + (post.category||'') + ' | Saat: ' + (post.best_posting_time||'') + '</p>'
-            + '<p style="font-size:11px;color:#888;margin:0 0 8px;">Gorsel onerisi: ' + (post.suggested_image||'') + '</p>'
-            + '</div>'
-            + '<div style="white-space:pre-wrap;font-size:14px;line-height:1.6;color:#333;background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:16px;" id="linkedinPostText">'
-            + (post.post||'').replace(/</g, '&lt;')
-            + '</div>'
-            + '<div style="display:flex;gap:8px;margin-top:12px;">'
-            + '<button onclick="copyPost()" style="flex:1;padding:10px;background:#0a66c2;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Kopyala</button>'
-            + '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="flex:1;padding:10px;background:#f5f5f5;color:#333;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;">Kapat</button>'
-            + '</div>';
-
-        overlay.appendChild(modal);
-        overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
-        document.body.appendChild(overlay);
-
         setTimeout(function() {
             btn.textContent = origText;
             btn.classList.remove('running');
             btn.style.color = '';
         }, 3000);
+
+        showLinkedInPostModal(post, service, langChoice, btn, origText);
     } catch (e) {
         btn.textContent = origText;
         btn.classList.remove('running');
