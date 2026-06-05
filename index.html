@@ -440,7 +440,10 @@
             <div id="nlAiWarning" class="nl-ai-warning">Bu icerikte AI kaliplari tespit edildi - duzenlemeniz onerilir.</div>
             <div class="nl-preview-area">
                 <div class="nl-poster-preview"><img id="nlPosterImg" src="" alt="Poster preview"></div>
+                <div id="nlMetaPreview" style="margin-bottom:8px;"></div>
                 <div id="nlContentEdit" class="nl-preview-text" contenteditable="true"></div>
+                <div id="nlKwDensity"></div>
+                <div id="nlAeoChecklist" style="background:#1a1a2e;padding:10px;border-radius:8px;margin-top:8px;"></div>
             </div>
             <div class="btn-group">
                 <button class="btn btn-success" onclick="nlDownloadPoster()">Gorseli Indir (PNG)</button>
@@ -731,6 +734,9 @@ let nlGeneratedContent = '';
 let nlPosterBlob = null;
 let newslettersData = [];
 var nlCurrentSaveId = null;
+var nlCurrentMeta = null;
+var nlEnContent = '';
+var nlEnMeta = null;
 
 const NL_SERVICE_COLORS = {
     actledger: '#22d3ee',
@@ -755,6 +761,68 @@ const NL_SERVICE_ICONS = {
     strategythrust: '\u2691',
     ailab: '\u2A01',
     aiinstitute: '\u2302'
+};
+
+var NL_PILLARS = {
+    actledger: [
+        { id: 'operasyonel-mukemmellik', tr: 'Operasyonel Mükemmellik', en: 'Operational Excellence' },
+        { id: 'erp-kurumsal-kaynak', tr: 'ERP & Kurumsal Kaynak Planlaması', en: 'ERP & Enterprise Resource Planning' },
+        { id: 'kurumsal-hafiza', tr: 'Kurumsal Hafıza & Bilgi Yönetimi', en: 'Institutional Memory & Knowledge Management' },
+        { id: 'performans-strateji', tr: 'Performans & Strateji Analizi', en: 'Performance & Strategy Analysis' },
+        { id: 'lojistik-operasyon', tr: 'Lojistik & Operasyon Yönetimi', en: 'Logistics & Operations Management' },
+        { id: 'blockchain-denetim', tr: 'Blockchain & Denetim İzi', en: 'Blockchain & Audit Trail' }
+    ],
+    strategythrust: [
+        { id: 'stratejik-analiz', tr: 'Stratejik Analiz & Raporlama', en: 'Strategic Analysis & Reporting' },
+        { id: 'danismanlik-araclari', tr: 'Danışmanlık Araçları', en: 'Consulting Frameworks' }
+    ],
+    ailab: [{ id: 'ai-dijital-donusum', tr: 'AI & Dijital Dönüşüm', en: 'AI & Digital Transformation' }],
+    aiinstitute: [{ id: 'ai-dijital-donusum', tr: 'AI & Dijital Dönüşüm', en: 'AI & Digital Transformation' }]
+};
+
+var NL_PILLAR_KEYWORDS = {
+    'operasyonel-mukemmellik': {
+        tr: 'operasyonel mükemmellik, süreç iyileştirme, lean yönetim, operasyonel verimlilik, PDCA döngüsü',
+        en: 'operational excellence, process improvement, lean management, operational efficiency, PDCA cycle'
+    },
+    'erp-kurumsal-kaynak': {
+        tr: 'ERP sistemi, kurumsal kaynak planlaması, ERP yazılımı, bulut ERP, ERP implementasyonu',
+        en: 'ERP system, enterprise resource planning, ERP software, cloud ERP, ERP implementation'
+    },
+    'kurumsal-hafiza': {
+        tr: 'kurumsal hafıza, bilgi yönetimi, organizasyonel öğrenme, bilgi kaybı önleme, institutional memory',
+        en: 'institutional memory, knowledge management, organizational learning, knowledge retention'
+    },
+    'performans-strateji': {
+        tr: 'BCG Matrix, performans değerlendirme, KPI dashboard, balanced scorecard, stratejik planlama',
+        en: 'BCG Matrix, performance evaluation, KPI dashboard, balanced scorecard, strategic planning'
+    },
+    'lojistik-operasyon': {
+        tr: 'lojistik yönetimi, tedarik zinciri, depo yönetimi, operasyon yönetimi, saha takibi',
+        en: 'logistics management, supply chain, warehouse management, operations management, field tracking'
+    },
+    'blockchain-denetim': {
+        tr: 'blockchain denetim izi, değişmez kayıt, kurumsal şeffaflık, akıllı kontrat',
+        en: 'blockchain audit trail, immutable records, corporate transparency, smart contracts'
+    },
+    'stratejik-analiz': {
+        tr: 'stratejik analiz, rekabet istihbaratı, pazar analizi, SWOT analizi, sektör analizi',
+        en: 'strategic analysis, competitive intelligence, market analysis, SWOT analysis, industry analysis'
+    },
+    'danismanlik-araclari': {
+        tr: 'Porter beş güç, PESTEL analizi, değer zinciri, stratejik yol haritası',
+        en: 'Porter five forces, PESTEL analysis, value chain, strategic roadmap'
+    },
+    'ai-dijital-donusum': {
+        tr: 'kurumsal AI, dijital dönüşüm, yapay zeka okuryazarlığı, iş süreçleri otomasyonu, AI eğitimi',
+        en: 'enterprise AI, digital transformation, AI literacy, business process automation, AI training'
+    }
+};
+
+var NL_PUBLISH_REPOS = {
+    actledger: { owner: 'sertacgul', repo: 'actledger-frontend' },
+    strategythrust: { owner: 'sertacgul', repo: 'strategythrust-consulting-landing' },
+    ataolai: { owner: 'sertacgul', repo: 'ataol-website' }
 };
 
 const NL_BANNED_TR = [
@@ -930,12 +998,13 @@ async function nlGenerate() {
     var lang = document.getElementById('nlLang').value;
     var promptLang = lang === 'tr' ? 'Turkce' : 'English';
 
-    var seoKeywords = {
-        actledger: 'operasyonel mukemmellik, ERP OS, blockchain denetim izi, kurumsal hafiza, performans analizi',
-        strategythrust: 'stratejik rapor, rekabet istihbarati, pazar analizi, AI destekli arastirma, consulting-grade',
-        ailab: 'AI entegrasyon, dijital donusum, B2B yazilim, is surecleri otomasyonu, uctan uca cozum',
-        aiinstitute: 'kurumsal AI egitimi, yapay zeka okuryazarligi, yonetici egitimi, AI literacy'
-    };
+    // Pick pillar keywords for this service
+    var pillars = NL_PILLARS[service] || NL_PILLARS.actledger;
+    var pillarKwParts = pillars.map(function(p) {
+        var kw = NL_PILLAR_KEYWORDS[p.id];
+        return kw ? (lang === 'tr' ? kw.tr : kw.en) : '';
+    }).filter(Boolean);
+    var seoKw = pillarKwParts.join(', ');
 
     var bannedTR = '"Yapay zeka caginda", "dijital cagda", "hizla degisen dunyada", "Sonuc olarak", "Ozetle", "Son soz olarak", "Heyecan verici", "devrim niteliginde", "oyunun kurallarini degistiren", "Bu yazida ele alacagiz", "gelin birlikte inceleyelim", "Suphesiz", "kuskusuz", "tartismasiz", "Peki ama neden?", "Iste tam da bu noktada"';
     var bannedEN = '"In today\'s rapidly evolving", "In the era of AI", "In conclusion", "To sum up", "In summary", "Game-changing", "Revolutionary", "Groundbreaking", "Let\'s dive in", "Let\'s explore", "In this article we will", "Undoubtedly", "It\'s worth noting", "Needless to say", "But here\'s the thing", "Here\'s why that matters"';
@@ -944,33 +1013,48 @@ async function nlGenerate() {
     var serviceUrl = NL_SERVICE_URLS[service] || 'www.ataolai.tech';
     var serviceLabel = NL_SERVICE_LABELS[service] || service;
 
-    var prompt = 'Sen ATAOL AI Techs\'in kidemli sektor analistisin. ' + serviceLabel + ' adina ' + promptLang + ' dilinde uzun soluklu, otorite gonderen bir makale yaz.\n\n'
+    var prompt = '---META---\n'
+        + 'seo_title: (max 60 karakter, anahtar kelime iceren baslik)\n'
+        + 'meta_description: (max 155 karakter, direkt cevap iceren aciklama)\n'
+        + 'slug: (URL-friendly, tire ile ayrilmis)\n'
+        + 'keywords: (5-7 anahtar kelime, virgul ile ayrilmis)\n'
+        + 'read_time: (dakika cinsinden tahmini okuma suresi)\n'
+        + '---META---\n\n'
+        + 'Sen ATAOL AI Techs\'in kidemli sektor analistisin. ' + serviceLabel + ' adina ' + promptLang + ' dilinde 3000-5000 kelimelik, otorite gonderen bir makale yaz.\n\n'
         + 'Konu: ' + title + '\n'
         + 'Dil: ' + promptLang + '\n'
         + 'Hizmet: ' + serviceLabel + '\n\n'
+        + 'AEO KURALLARI (Answer Engine Optimization):\n'
+        + '- Ilk 100 kelimede konuya dogrudan cevap ver\n'
+        + '- En az 2 soru formatinda H2 baslik kullan (? ile biten)\n'
+        + '- En az 5 sayisal veri, istatistik veya yuzde deger ekle\n'
+        + '- En az 3 kez kisisel perspektif ifadesi kullan: "gozlemledigim", "deneyimlerime gore", "karsilastigim"\n'
+        + '- En az 2 ic link placeholder ekle: [INTERNAL_LINK:ilgili-makale-slug]\n\n'
         + 'YAZIM KURALLARI:\n'
         + '- Dogrudan veriyle bas, giris cumlesinde hemen konuya gir\n'
         + '- Gercek ornekler ve sektorel vakalar kullan\n'
         + '- Net pozisyon al, muglak kalma\n'
         + '- Kisa cumleler yaz (12-18 kelime)\n'
         + '- Paragraf basi maksimum 4 cumle\n'
-        + '- Alt basliklar soru degil, iddiadir\n'
         + '- Minimum 3 gercek referans ver (isim, kurum, tarih)\n'
         + '- Yazar perspektifini koru\n\n'
-        + 'YAPI (5 bolum):\n'
-        + '1. Guclu acilis: En carpici veriyle bas\n'
-        + '2. Baglem: Neden simdi bu konu onemli\n'
-        + '3. Derin analiz (3-4 alt baslik ile): Rakamlar, vakalar, karsilastirmalar\n'
-        + '4. ' + serviceLabel + ' perspektifi: Bu konuya nasil yaklasiyoruz\n'
-        + '5. Kapanis: Harekete gecirici, ' + serviceUrl + ' linki ile biten paragraf\n\n'
-        + 'SEO anahtar kelimeler (dogal yerlestir): ' + (seoKeywords[service] || seoKeywords.actledger) + '\n\n'
+        + 'YAPI (8 bolum):\n'
+        + '1. Hook (150-250 kelime): En carpici veriyle bas, ilk 100 kelimede direkt cevap ver\n'
+        + '2. Baglem (400-600 kelime): Neden simdi bu konu onemli, sektorel arka plan\n'
+        + '3. Derin Analiz A (400-600 kelime): Birinci alt konu, rakamlar ve vakalar\n'
+        + '4. Derin Analiz B (400-600 kelime): Ikinci alt konu, karsilastirmalar\n'
+        + '5. Derin Analiz C (400-600 kelime): Ucuncu alt konu, pratik ciktilar\n'
+        + '6. ' + serviceLabel + ' Perspektifi (300-500 kelime): Bu konuya nasil yaklasiyoruz, somut ornekler\n'
+        + '7. Kapanis (200-300 kelime): Harekete gecirici, ' + serviceUrl + ' linki ile biten paragraf\n'
+        + '8. Sik Sorulan Sorular: 3-5 soru-cevap cifti\n\n'
+        + 'SEO anahtar kelimeler (dogal yerlestir): ' + seoKw + '\n\n'
         + 'YASAK IFADELER (bunlari kullanma):\n' + banned + '\n\n'
         + 'KESINLIKLE YAPMA:\n'
         + '- Emoji kullanma\n'
         + '- Madde isareti ile dolgu yapma\n'
         + '- Genel tavsiye verme\n'
         + '- Markdown formatlama kullanma (# ** * gibi isaretler koyma)\n\n'
-        + 'Makaleyi duz metin olarak yaz, markdown olmadan.';
+        + 'Once ---META--- blogu yaz, sonra makaleyi duz metin olarak yaz, markdown olmadan.';
 
     try {
         var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
@@ -979,12 +1063,29 @@ async function nlGenerate() {
             body: JSON.stringify({
                 contents: [{ role: 'user', parts: [{ text: prompt }] }],
                 tools: [{ google_search: {} }],
-                generationConfig: { temperature: 1.0, maxOutputTokens: 8192, thinkingConfig: { thinkingBudget: 0 } }
+                generationConfig: { temperature: 1.0, maxOutputTokens: 16384, thinkingConfig: { thinkingBudget: 0 } }
             })
         });
         if (!resp.ok) throw new Error('Gemini API hatasi: ' + resp.status);
         var data = await resp.json();
         var raw = data.candidates[0].content.parts[0].text;
+
+        // Parse and strip META block
+        nlCurrentMeta = null;
+        var metaMatch = raw.match(/---META---\s*([\s\S]*?)\s*---META---/);
+        if (metaMatch) {
+            var metaBlock = metaMatch[1];
+            nlCurrentMeta = {};
+            metaBlock.split('\n').forEach(function(line) {
+                var sep = line.indexOf(':');
+                if (sep > -1) {
+                    var k = line.slice(0, sep).trim();
+                    var v = line.slice(sep + 1).trim();
+                    nlCurrentMeta[k] = v;
+                }
+            });
+            raw = raw.replace(/---META---[\s\S]*?---META---/, '').trim();
+        }
 
         // Strip markdown formatting
         var cleaned = raw
@@ -993,6 +1094,54 @@ async function nlGenerate() {
             .replace(/\*([^*]+)\*/g, '$1');
 
         document.getElementById('nlContentEdit').innerText = cleaned;
+
+        // Show meta preview using DOM methods (no untrusted HTML)
+        var metaEl = document.getElementById('nlMetaPreview');
+        if (metaEl) {
+            metaEl.textContent = '';
+            if (nlCurrentMeta) {
+                var metaWrap = document.createElement('div');
+                metaWrap.style.cssText = 'background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px;font-size:11px;line-height:1.6;';
+                var metaHead = document.createElement('div');
+                metaHead.style.cssText = 'color:#58a6ff;font-weight:600;margin-bottom:6px;';
+                metaHead.textContent = 'SEO Meta';
+                metaWrap.appendChild(metaHead);
+                Object.keys(nlCurrentMeta).forEach(function(k) {
+                    var row = document.createElement('div');
+                    var label = document.createElement('span');
+                    label.style.color = '#8b949e';
+                    label.textContent = k + ': ';
+                    var val = document.createElement('span');
+                    val.style.color = '#e6edf3';
+                    val.textContent = nlCurrentMeta[k];
+                    row.appendChild(label);
+                    row.appendChild(val);
+                    metaWrap.appendChild(row);
+                });
+                metaEl.appendChild(metaWrap);
+            }
+        }
+
+        // Keyword density using DOM methods
+        var kwEl = document.getElementById('nlKwDensity');
+        if (kwEl && seoKw) {
+            kwEl.textContent = '';
+            var words = cleaned.split(/\s+/).length;
+            var kwList = seoKw.split(',').map(function(k) { return k.trim(); }).filter(Boolean);
+            var densityParts = kwList.slice(0, 5).map(function(kw) {
+                var re = new RegExp(kw.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'), 'gi');
+                var count = (cleaned.match(re) || []).length;
+                var density = words > 0 ? ((count / words) * 100).toFixed(2) : '0.00';
+                return kw + ': ' + count + 'x (' + density + '%)';
+            });
+            var kwDiv = document.createElement('div');
+            kwDiv.style.cssText = 'font-size:11px;color:#8b949e;margin-top:6px;';
+            kwDiv.textContent = 'Kelime yogunlugu: ' + densityParts.join(' | ');
+            kwEl.appendChild(kwDiv);
+        }
+
+        // AEO checklist
+        nlUpdateAeoChecklist(cleaned);
 
         var matches = nlCheckAiPatterns(cleaned);
         var warning = document.getElementById('nlAiWarning');
@@ -1024,6 +1173,32 @@ async function nlGenerate() {
 async function nlRegenerate() {
     nlGoStage(2);
     nlGenerate();
+}
+
+function nlUpdateAeoChecklist(text) {
+    var el = document.getElementById('nlAeoChecklist');
+    if (!el) return;
+    var checks = [
+        { label: 'Direct answer (ilk 100 kelime)', pass: text.split(/\s+/).slice(0, 100).join(' ').length > 200 },
+        { label: 'Min 2 soru formatinda H2', pass: (text.match(/\?[\s]*\n/g) || []).length >= 2 },
+        { label: 'Min 5 sayisal veri', pass: (text.match(/\d+[%.,]\d*|\d{4}/g) || []).length >= 5 },
+        { label: 'FAQ bolumu', pass: /s[ıi]k sorulan|frequently asked/i.test(text) },
+        { label: 'Kisisel perspektif (min 3)', pass: (text.match(/gözlemlediğim|deneyimlerime|karşılaştığım|observed|experience|encountered/gi) || []).length >= 3 },
+        { label: 'Internal link placeholder', pass: (text.match(/\[INTERNAL_LINK:/g) || []).length >= 2 }
+    ];
+    el.textContent = '';
+    checks.forEach(function(c) {
+        var row = document.createElement('div');
+        row.style.cssText = 'font-size:11px;margin:2px 0;';
+        var icon = document.createElement('span');
+        icon.style.color = c.pass ? '#4ade80' : '#f87171';
+        icon.textContent = (c.pass ? '\u2713' : '\u2717') + ' ';
+        var label = document.createElement('span');
+        label.textContent = c.label;
+        row.appendChild(icon);
+        row.appendChild(label);
+        el.appendChild(row);
+    });
 }
 
 var NL_SERVICE_TAGLINES = {
