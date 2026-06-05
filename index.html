@@ -1471,11 +1471,11 @@ async function nlGenerate() {
         + '- Minimum 3 gercek referans ver (isim, kurum, tarih)\n'
         + '- Yazar perspektifini koru\n\n'
         + 'YAPI (8 bolum):\n'
-        + '1. Hook (150-250 kelime): En carpici veriyle bas, ilk 100 kelimede direkt cevap ver\n'
-        + '2. Baglem (400-600 kelime): Neden simdi bu konu onemli, sektorel arka plan\n'
-        + '3. Derin Analiz A (400-600 kelime): Birinci alt konu, rakamlar ve vakalar\n'
-        + '4. Derin Analiz B (400-600 kelime): Ikinci alt konu, karsilastirmalar\n'
-        + '5. Derin Analiz C (400-600 kelime): Ucuncu alt konu, pratik ciktilar\n'
+        + '1. Acilis (150-250 kelime): En carpici veriyle bas, ilk 100 kelimede direkt cevap ver. BASLIK YAZMA, direkt metne basla.\n'
+        + '2. Arka plan (400-600 kelime): Neden simdi bu konu onemli. Kendi anlamli basligini yaz (orn: "Sektorun Mevcut Durumu"). "Baglam" veya "Hook" gibi etiketler YAZMA.\n'
+        + '3. Birinci analiz bolumu (400-600 kelime): Konuyla ilgili anlamli bir baslik yaz (orn: "Maliyet Dinamiklerinin Gizli Katmanlari"). "Derin Analiz A" gibi etiketler YAZMA.\n'
+        + '4. Ikinci analiz bolumu (400-600 kelime): Farkli acidan anlamli bir baslik yaz. "Derin Analiz B" YAZMA.\n'
+        + '5. Ucuncu analiz bolumu (400-600 kelime): Pratik ciktilar icin anlamli baslik. "Derin Analiz C" YAZMA.\n'
         + '6. ' + serviceLabel + ' Perspektifi (300-500 kelime): Bu konuya nasil yaklasiyoruz, somut ornekler\n'
         + '7. Kapanis (200-300 kelime): Harekete gecirici, "bizimle iletisime gecin" ile biten paragraf. KESINLIKLE ' + serviceUrl + ' adresi YAZMA — kendi sitemize link verme.\n'
         + '8. Sik Sorulan Sorular: 3-5 soru-cevap cifti\n\n'
@@ -1648,7 +1648,7 @@ async function nlGenerateEnglish() {
         + '- DO NOT translate word-for-word. Rewrite for a global English-speaking audience.\n'
         + '- Adapt context, examples, and references to be internationally relevant.\n'
         + '- Use EN SEO keywords naturally: ' + seoKw + '\n'
-        + '- Maintain the 8-section structure: Hook, Context, Deep Analysis A/B/C, ' + serviceLabel + ' Perspective, Closing, FAQ\n'
+        + '- Maintain the 8-section structure but do NOT use labels like "Hook", "Context", "Deep Analysis A/B/C" as headings. Write meaningful descriptive headings instead (e.g. "The Hidden Cost Layers" not "Deep Analysis A"). Keep ' + serviceLabel + ' Perspective and FAQ sections.\n'
         + '- Target length: 3000-5000 words\n'
         + '- First 100 words must give a direct answer to the topic\n\n'
         + 'WRITING RULES:\n'
@@ -2182,8 +2182,8 @@ function nlPlainToMarkdown(text) {
         else if (line.endsWith('?') && line.length < 100 && !lines[i - 1]?.trim()) isHeading = true;
         // "Bağlam & Sektör Analizi" or similar compound titles
         else if (line.length < 80 && !line.endsWith('.') && !line.endsWith(',') && !line.includes('. ') && i > 0 && !lines[i - 1]?.trim()) isHeading = true;
-        // "Hook Açılış" / "Uzman Perspektifi" / "Eylem Çağrısı" pattern
-        else if (/^(Hook|Uzman|Eylem|Expert|Action|Deep Analysis)/i.test(line) && line.length < 80) isHeading = true;
+        // Known section label patterns (legacy — should no longer appear in new content)
+        else if (/^(Hook|Uzman|Eylem|Expert|Action|Deep Analysis|Derin Analiz)/i.test(line) && line.length < 80) isHeading = true;
 
         if (isHeading) {
             result.push('');
