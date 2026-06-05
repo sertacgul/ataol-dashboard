@@ -400,6 +400,7 @@
             <span class="trigger-btn" data-svc="li-st" onclick="generatePost('strategythrust',this)" style="color:#0a66c2;font-size:10px;padding:3px 8px;">ST Post</span>
             <span style="color:#555;font-size:10px;margin:0 4px;">|</span>
             <span class="trigger-btn" data-svc="newsletter" onclick="openNewsletter()" style="color:#ef6c00;font-size:10px;padding:3px 8px;font-weight:700;">Newsletter</span>
+            <span class="trigger-btn" onclick="openCalendar()" style="color:#38bdf8;font-size:10px;padding:3px 8px;">Takvim</span>
         </span>
         <span class="logout" onclick="logout()">Logout</span>
     </div>
@@ -900,6 +901,104 @@ function openNewsletter() {
 
 function closeNewsletter() {
     document.getElementById('nlOverlay').classList.add('hidden');
+}
+
+function openCalendar() {
+    var modal = document.getElementById('nlCalendarModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'nlCalendarModal';
+        modal.className = 'nl-overlay';
+        modal.innerHTML = '<div class="nl-box" style="max-width:700px;">'
+            + '<div class="nl-header"><h3>Icerik Takvimi</h3><button onclick="document.getElementById(\'nlCalendarModal\').classList.add(\'hidden\')">x</button></div>'
+            + '<div id="nlCalendarBody"></div></div>';
+        document.body.appendChild(modal);
+    }
+    modal.classList.remove('hidden');
+    nlRenderCalendar();
+}
+
+function nlRenderCalendar() {
+    var body = document.getElementById('nlCalendarBody');
+    if (!body) return;
+
+    var now = new Date();
+    var monthName = now.toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
+    var schedule = { 1: 'ActLedger #1', 3: 'ActLedger #2', 5: 'Rotasyonlu' };
+    var days = ['Paz', 'Pzt', 'Sal', 'Car', 'Per', 'Cum', 'Cmt'];
+
+    var year = now.getFullYear();
+    var month = now.getMonth();
+    var slots = [];
+    for (var d = 1; d <= 31; d++) {
+        var date = new Date(year, month, d);
+        if (date.getMonth() !== month) break;
+        var dow = date.getDay();
+        var dowMon = dow === 0 ? 7 : dow;
+        if (schedule[dowMon]) {
+            var dateStr = date.toISOString().slice(0, 10);
+            var published = newslettersData.find(function(n) { return n.created_at && n.created_at.slice(0, 10) === dateStr && n.published; });
+            slots.push({
+                date: dateStr,
+                day: days[dow],
+                label: schedule[dowMon],
+                published: !!published,
+                title: published ? (published.title_tr || published.title || published.slug || '') : ''
+            });
+        }
+    }
+
+    // Pillar coverage
+    var pillarCounts = {};
+    newslettersData.forEach(function(n) {
+        if (n.pillar && n.published) {
+            pillarCounts[n.pillar] = (pillarCounts[n.pillar] || 0) + 1;
+        }
+    });
+
+    // Build HTML using DOM methods
+    body.textContent = '';
+
+    var heading = document.createElement('div');
+    heading.style.cssText = 'font-size:14px;font-weight:600;margin-bottom:12px;';
+    heading.textContent = monthName;
+    body.appendChild(heading);
+
+    slots.forEach(function(s) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;';
+
+        var icon = document.createElement('span');
+        icon.style.color = s.published ? '#4ade80' : '#64748b';
+        icon.textContent = s.published ? String.fromCharCode(10003) : String.fromCharCode(9633);
+        row.appendChild(icon);
+
+        var dateSpan = document.createElement('span');
+        dateSpan.style.cssText = 'color:#aaa;width:60px;';
+        dateSpan.textContent = s.day + ' ' + s.date.slice(8, 10);
+        row.appendChild(dateSpan);
+
+        var labelSpan = document.createElement('span');
+        labelSpan.style.color = s.published ? '#e2e8f0' : '#64748b';
+        labelSpan.textContent = s.published ? s.title : s.label;
+        row.appendChild(labelSpan);
+
+        body.appendChild(row);
+    });
+
+    var publishedCount = slots.filter(function(s) { return s.published; }).length;
+
+    var stats = document.createElement('div');
+    stats.style.cssText = 'font-size:12px;color:#aaa;margin-top:12px;';
+    stats.textContent = 'Bu ay: ' + publishedCount + '/' + slots.length + ' yayinlandi';
+    body.appendChild(stats);
+
+    var totalPillars = (NL_PILLARS.actledger || []).length;
+    var coveredPillars = Object.keys(pillarCounts).length;
+    var coverage = document.createElement('div');
+    coverage.style.cssText = 'font-size:12px;color:#aaa;margin-top:4px;';
+    coverage.textContent = 'Pillar coverage: ' + coveredPillars + '/' + totalPillars + ' ActLedger';
+    body.appendChild(coverage);
 }
 
 function nlGoStage(n) {
