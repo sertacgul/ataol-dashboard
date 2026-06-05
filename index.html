@@ -1069,9 +1069,13 @@ async function nlFindTopics() {
         + '- En az 2 konu ActLedger ile, en az 1 konu StrategyThrust ile kesismeli\n'
         + '- Gercek guncel gelismelere dayansin (son 7 gun)\n'
         + '- Her konunun basligi ve aciklamasi ' + promptLang + ' dilinde olsun\n'
-        + '- Her konu icin: baslik, 1 cumle aciklama, kesisen hizmet alani (actledger/strategythrust/ailab/aiinstitute)\n\n'
+        + '- Her konu icin: baslik, 1 cumle aciklama, kesisen hizmet alani (actledger/strategythrust/ailab/aiinstitute)\n'
+        + '- Her konu icin hangi pillar\'a ait oldugunu belirt\n'
+        + '- ActLedger pillarlari: operasyonel-mukemmellik, erp-kurumsal-kaynak, kurumsal-hafiza, performans-strateji, lojistik-operasyon, blockchain-denetim\n'
+        + '- StrategyThrust pillarlari: stratejik-analiz, danismanlik-araclari\n'
+        + '- AI Lab/Institute pillar\u0131: ai-dijital-donusum\n\n'
         + 'SADECE JSON formatinda don, baska hicbir sey yazma:\n'
-        + '[{"title":"...","description":"...","service":"actledger|strategythrust|ailab|aiinstitute"}]';
+        + '[{"title":"...","description":"...","service":"actledger|strategythrust|ailab|aiinstitute","pillar":"pillar-id"}]';
 
     try {
         var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
@@ -1116,6 +1120,13 @@ async function nlFindTopics() {
             svcDiv.className = 'nl-topic-svc nl-svc-' + (t.service || 'actledger');
             svcDiv.textContent = NL_SERVICE_LABELS[t.service] || t.service;
             card.appendChild(svcDiv);
+
+            if (t.pillar) {
+                var pillarDiv = document.createElement('div');
+                pillarDiv.style.cssText = 'font-size:10px;color:#64748b;margin-top:4px;';
+                pillarDiv.textContent = 'Pillar: ' + t.pillar;
+                card.appendChild(pillarDiv);
+            }
 
             container.appendChild(card);
         }
