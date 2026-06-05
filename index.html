@@ -2294,11 +2294,13 @@ async function nlPublishAll() {
                 var dlResp = await fetch(contentFile.download_url, { headers: { 'Authorization': 'token ' + TOKEN } });
                 contentTs = await dlResp.text();
             } else { throw new Error('Cannot read blog-content.ts'); }
-            var newEntry = '\nblogContent["' + slug + '"] = {\n  tr: `' + trContent.replace(/`/g, '\\`') + '`,\n  en: `' + enContent.replace(/`/g, '\\`') + '`\n};\n';
-            var updatedContentTs = contentTs.replace(/\};[\s]*$/, '};\n' + newEntry);
-            await nlPublishToRepo(alRepo, 'src/lib/data/blog-content.ts', updatedContentTs, 'feat(blog): add content for ' + slug);
+            // Append content entry
+            var newEntry = '\nblogContent["' + slug + '"] = {\n  tr: `' + trContent.replace(/`/g, '\\`').replace(/\$/g, '\\$') + '`,\n  en: `' + (enContent || '').replace(/`/g, '\\`').replace(/\$/g, '\\$') + '`\n};\n';
+            var updatedContentTs = contentTs + newEntry;
+            await nlPublishToRepo(alRepo, 'src/lib/data/blog-content.ts', updatedContentTs, 'feat(blog): add ' + slug);
 
-            // Update blog-posts.ts
+            // Update blog-posts.ts — read fresh (after content commit)
+            await new Promise(function(r) { setTimeout(r, 1500); }); // wait for GitHub consistency
             var postsGetResp = await fetch('https://api.github.com/repos/' + alRepo.owner + '/' + alRepo.repo + '/contents/src/lib/data/blog-posts.ts', {
                 headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
             });
@@ -2313,9 +2315,21 @@ async function nlPublishAll() {
             } else { throw new Error('Cannot read blog-posts.ts'); }
             var kwTrStr = kwTr.map(function(k) { return '"' + k + '"'; }).join(', ');
             var kwEnStr = kwEn.map(function(k) { return '"' + k + '"'; }).join(', ');
-            var newPost = '  {\n    slug: "' + slug + '",\n    title_tr: "' + titleTr.replace(/"/g, '\\"') + '",\n    title_en: "' + titleEn.replace(/"/g, '\\"') + '",\n    pillar: "' + pillar + '",\n    keywords_tr: [' + kwTrStr + '],\n    keywords_en: [' + kwEnStr + '],\n    date: "' + pubDate + '",\n    readTime: ' + readTime + ',\n    featured: false,\n    image: ""\n  },\n';
-            var updatedPostsTs = postsTs.replace(/\];[\s]*$/, newPost + '];');
-            await nlPublishToRepo(alRepo, 'src/lib/data/blog-posts.ts', updatedPostsTs, 'feat(blog): add post entry for ' + slug);
+            var newPost = '  {\n    slug: "' + slug + '",\n    title_tr: "' + titleTr.replace(/"/g, '\\"') + '",\n    title_en: "' + titleEn.replace(/"/g, '\\"') + '",\n    pillar: "' + (pillar || 'operasyonel-mukemmellik') + '",\n    keywords_tr: [' + kwTrStr + '],\n    keywords_en: [' + kwEnStr + '],\n    date: "' + pubDate + '",\n    readTime: ' + readTime + ',\n    featured: false,\n    image: ""\n  },\n';
+            // Find last ]; in blogPosts array — try multiple patterns
+            var insertIdx = postsTs.lastIndexOf('];');
+            if (insertIdx > -1) {
+                var updatedPostsTs = postsTs.substring(0, insertIdx) + newPost + postsTs.substring(insertIdx);
+            } else {
+                // Fallback: append before PILLAR_LABELS
+                var pillarIdx = postsTs.indexOf('export const PILLAR_LABELS');
+                if (pillarIdx > -1) {
+                    var updatedPostsTs = postsTs.substring(0, pillarIdx) + newPost + '];\n\n' + postsTs.substring(pillarIdx);
+                } else {
+                    throw new Error('Cannot find insertion point in blog-posts.ts');
+                }
+            }
+            await nlPublishToRepo(alRepo, 'src/lib/data/blog-posts.ts', updatedPostsTs, 'feat(blog): add ' + slug + ' metadata');
 
             publishedTo.push('actledger');
             addStatus('actledger.com', true);
