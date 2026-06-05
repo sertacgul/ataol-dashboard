@@ -384,7 +384,7 @@ function buildEmailHtml(d, lang) {
   const st_items = (d.st_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
   const al_items = (d.al_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
   const innov_items = (d.innovation_highlights || []).map(h => `<p style="margin:0 0 8px;font-size:13px;color:#e0e0e0;padding-left:8px;">&#9733; ${h}</p>`).join('');
-  const booking = d._booking_url || 'mailto:sertacgul@strategythrust.com';
+  const booking = d._booking_url || 'mailto:sertacgul@ataolai.tech';
 
   let institute_block = '';
   if (lang === 'tr' && d.institute_note) {
@@ -618,7 +618,7 @@ async function main() {
         lead_id: lead.id,
         to_email: lead.contact_email,
         to_name: lead.contact_name,
-        from_email: 'sertacgul@strategythrust.com',
+        from_email: 'sertacgul@ataolai.tech',
         subject: ed.subject,
         body_html: ed.body_html,
         body_text: ed.body_text,
