@@ -2282,6 +2282,64 @@ async function nlPublishAll() {
             }
             await nlPublishToRepo(stRepo, 'src/lib/data/insights.ts', updatedStInsightsTs, 'feat(insights): add entry for ' + slug);
 
+            // Update tr.json translations (insightItems)
+            var stTrResp = await fetch('https://api.github.com/repos/' + stRepo.owner + '/' + stRepo.repo + '/contents/src/messages/tr.json', {
+                headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+            });
+            var stTrFile = await stTrResp.json();
+            var stTrJson = JSON.parse(decodeURIComponent(escape(atob(stTrFile.content.replace(/\n/g, '')))));
+            if (!stTrJson.insightItems) stTrJson.insightItems = {};
+            stTrJson.insightItems[slug] = {
+                title: titleTr,
+                excerpt: descTr
+            };
+            await nlPublishToRepo(stRepo, 'src/messages/tr.json', JSON.stringify(stTrJson, null, 2), 'feat(insights): add TR translation for ' + slug);
+
+            // Update en.json translations (insightItems)
+            var stEnResp = await fetch('https://api.github.com/repos/' + stRepo.owner + '/' + stRepo.repo + '/contents/src/messages/en.json', {
+                headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+            });
+            var stEnFile = await stEnResp.json();
+            var stEnJson = JSON.parse(decodeURIComponent(escape(atob(stEnFile.content.replace(/\n/g, '')))));
+            if (!stEnJson.insightItems) stEnJson.insightItems = {};
+            stEnJson.insightItems[slug] = {
+                title: titleEn,
+                excerpt: descEn
+            };
+            await nlPublishToRepo(stRepo, 'src/messages/en.json', JSON.stringify(stEnJson, null, 2), 'feat(insights): add EN translation for ' + slug);
+
+            // Upload poster image if available
+            if (nlPosterBlob) {
+                try {
+                    var reader = new FileReader();
+                    var posterB64 = await new Promise(function(resolve) {
+                        reader.onload = function() {
+                            var b64 = reader.result.split(',')[1];
+                            resolve(b64);
+                        };
+                        reader.readAsDataURL(nlPosterBlob);
+                    });
+                    var imgBody = { message: 'feat(insights): add image for ' + slug, content: posterB64 };
+                    // Check if image already exists
+                    try {
+                        var imgGetResp = await fetch('https://api.github.com/repos/' + stRepo.owner + '/' + stRepo.repo + '/contents/public/images/insights/' + slug + '.webp', {
+                            headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+                        });
+                        if (imgGetResp.ok) {
+                            var imgFile = await imgGetResp.json();
+                            imgBody.sha = imgFile.sha;
+                        }
+                    } catch (e) { /* doesn't exist */ }
+                    await fetch('https://api.github.com/repos/' + stRepo.owner + '/' + stRepo.repo + '/contents/public/images/insights/' + slug + '.webp', {
+                        method: 'PUT',
+                        headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify(imgBody)
+                    });
+                } catch (imgErr) {
+                    console.warn('ST image upload failed:', imgErr);
+                }
+            }
+
             publishedTo.push('strategythrust');
             addStatus('strategythrust.com', true);
         } catch (e) {
