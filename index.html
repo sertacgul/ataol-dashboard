@@ -243,12 +243,13 @@
             display: flex; gap: 20px; margin-top: 16px; align-items: flex-start;
         }
         .nl-preview-text {
-            flex: 1; min-height: 200px; max-height: 340px;
-            overflow-y: auto; border: 1.5px solid #e0e0e0;
-            border-radius: 8px; padding: 14px; font-size: 13px;
-            line-height: 1.7; color: #222; white-space: pre-wrap;
+            flex: 1; min-height: 300px; max-height: 500px;
+            overflow-y: auto; border: 2px solid #ccc;
+            border-radius: 8px; padding: 16px; font-size: 14px;
+            line-height: 1.8; color: #222; white-space: pre-wrap;
+            cursor: text; background: #fafafa;
         }
-        .nl-preview-text:focus { outline: none; border-color: #1565c0; }
+        .nl-preview-text:focus { outline: none; border-color: #1565c0; background: #fff; }
         .nl-ai-warning {
             display: none; background: #fffde7; border: 1px solid #ffe082;
             border-radius: 6px; padding: 8px 14px; font-size: 12px;
@@ -1096,7 +1097,7 @@ var NL_PILLAR_KEYWORDS = {
 
 var NL_PUBLISH_REPOS = {
     actledger: { owner: 'sertacgul', repo: 'actledger-frontend' },
-    strategythrust: { owner: 'sertacgul', repo: 'strategythrust-consulting-landing' },
+    strategythrust: { owner: 'sertacgul', repo: 'strategythrust-landing' },
     ataolai: { owner: 'sertacgul', repo: 'ataol-website' }
 };
 
