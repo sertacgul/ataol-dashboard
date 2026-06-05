@@ -453,8 +453,24 @@
             </div>
         </div>
 
-        <!-- Stage 4: Output -->
-        <div id="nlStage4" class="nl-stage">
+        <!-- Stage 4: English Preview -->
+        <div id="nlStage4En" class="nl-stage">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h4 style="margin:0;">English Version</h4>
+                <button id="btnNlGenerateEn" class="btn btn-success" onclick="nlGenerateEnglish()" style="font-size:13px;">Generate English</button>
+            </div>
+            <div id="nlEnMetaPreview" style="margin-bottom:8px;"></div>
+            <div id="nlEnAiWarning" class="nl-ai-warning" style="display:none;"></div>
+            <div id="nlEnContentEdit" class="nl-preview-text" contenteditable="true" style="min-height:200px;max-height:400px;overflow-y:auto;border:1px solid #333;border-radius:8px;padding:12px;font-size:13px;line-height:1.7;"></div>
+            <div id="nlEnKwDensity"></div>
+            <div class="btn-group" style="margin-top:12px;">
+                <button class="btn btn-success" onclick="nlGoStage(5)">Publish</button>
+                <button class="btn btn-outline" onclick="nlGoStage(3)">Geri</button>
+            </div>
+        </div>
+
+        <!-- Stage 6: Output -->
+        <div id="nlStage6Out" class="nl-stage">
             <div class="nl-preview-area" style="margin-bottom:16px;">
                 <div class="nl-poster-preview"><img id="nlPosterImgFinal" src="" alt="Poster"></div>
             </div>
@@ -855,14 +871,27 @@ function closeNewsletter() {
 
 function nlGoStage(n) {
     document.querySelectorAll('.nl-stage').forEach(function(s) { s.classList.remove('active'); });
-    document.getElementById('nlStage' + n).classList.add('active');
-    if (n === 4) {
+    var stageId;
+    if (n === 4) stageId = 'nlStage4En';
+    else if (n === 5) stageId = 'nlStage5Pub';
+    else if (n === 6) stageId = 'nlStage6Out';
+    else stageId = 'nlStage' + n;
+
+    var el = document.getElementById(stageId);
+    if (el) el.classList.add('active');
+
+    if (n === 3) {
         nlGeneratedContent = document.getElementById('nlContentEdit').innerText;
+    }
+    if (n === 6) {
         nlSaveToGist();
         nlRenderHistory();
     }
     if (n === 1) {
         nlCurrentSaveId = null;
+        nlCurrentMeta = null;
+        nlEnContent = '';
+        nlEnMeta = null;
     }
 }
 
@@ -1173,6 +1202,177 @@ async function nlGenerate() {
 async function nlRegenerate() {
     nlGoStage(2);
     nlGenerate();
+}
+
+async function nlGenerateEnglish() {
+    var trContent = document.getElementById('nlContentEdit').innerText.trim();
+    if (!trContent) {
+        alert('No Turkish content found. Please generate Turkish content first.');
+        return;
+    }
+
+    var btn = document.getElementById('btnNlGenerateEn');
+    btn.textContent = '';
+    var spinner = document.createElement('span');
+    spinner.className = 'nl-spinner';
+    btn.appendChild(spinner);
+    btn.appendChild(document.createTextNode(' Generating...'));
+    btn.disabled = true;
+
+    var service = nlSelectedService || 'actledger';
+    var pillars = NL_PILLARS[service] || NL_PILLARS.actledger;
+    var pillarKwParts = pillars.map(function(p) {
+        var kw = NL_PILLAR_KEYWORDS[p.id];
+        return kw ? kw.en : '';
+    }).filter(Boolean);
+    var seoKw = pillarKwParts.join(', ');
+
+    var serviceLabel = NL_SERVICE_LABELS[service] || service;
+    var serviceUrl = NL_SERVICE_URLS[service] || 'www.ataolai.tech';
+
+    var trSnippet = trContent.slice(0, 12000);
+
+    var prompt = '---META---\n'
+        + 'seo_title: (max 60 chars, keyword-rich title)\n'
+        + 'meta_description: (max 155 chars, direct answer)\n'
+        + 'slug: (URL-friendly, hyphen-separated)\n'
+        + 'keywords: (5-7 keywords, comma-separated)\n'
+        + 'read_time: (estimated read time in minutes)\n'
+        + '---META---\n\n'
+        + 'You are a senior sector analyst for ATAOL AI Techs. Rewrite the following Turkish article in English.\n\n'
+        + 'Service: ' + serviceLabel + '\n\n'
+        + 'REWRITE RULES:\n'
+        + '- DO NOT translate word-for-word. Rewrite for a global English-speaking audience.\n'
+        + '- Adapt context, examples, and references to be internationally relevant.\n'
+        + '- Use EN SEO keywords naturally: ' + seoKw + '\n'
+        + '- Maintain the 8-section structure: Hook, Context, Deep Analysis A/B/C, ' + serviceLabel + ' Perspective, Closing, FAQ\n'
+        + '- Target length: 3000-5000 words\n'
+        + '- First 100 words must give a direct answer to the topic\n\n'
+        + 'WRITING RULES:\n'
+        + '- Short sentences (12-18 words)\n'
+        + '- Max 4 sentences per paragraph\n'
+        + '- Min 5 numerical data points or percentages\n'
+        + '- Min 3 real references (name, institution, date)\n'
+        + '- Min 3 first-person perspective phrases: "in my observation", "from my experience", "I have encountered"\n'
+        + '- Min 2 internal link placeholders: [INTERNAL_LINK:related-article-slug]\n'
+        + '- Closing paragraph must end with a link to ' + serviceUrl + '\n\n'
+        + 'BANNED PHRASES (do not use):\n'
+        + '"In today\'s rapidly evolving", "In the era of AI", "In conclusion", "To sum up", "In summary", '
+        + '"Game-changing", "Revolutionary", "Groundbreaking", "Let\'s dive in", "Let\'s explore", '
+        + '"In this article we will", "Undoubtedly", "It\'s worth noting", "Needless to say", '
+        + '"But here\'s the thing", "Here\'s why that matters"\n\n'
+        + 'ABSOLUTELY DO NOT:\n'
+        + '- Use emojis\n'
+        + '- Use bullet points as filler\n'
+        + '- Give generic advice\n'
+        + '- Use markdown formatting (no #, **, * markers)\n\n'
+        + 'Write the ---META--- block first, then the article as plain text without markdown.\n\n'
+        + 'TURKISH ARTICLE TO REWRITE:\n' + trSnippet;
+
+    try {
+        var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 1.0, maxOutputTokens: 16384, thinkingConfig: { thinkingBudget: 0 } }
+            })
+        });
+        if (!resp.ok) throw new Error('Gemini API error: ' + resp.status);
+        var data = await resp.json();
+        var raw = data.candidates[0].content.parts.filter(function(p) { return p.text; }).map(function(p) { return p.text; }).join('');
+
+        // Parse and strip META block
+        nlEnMeta = null;
+        var metaMatch = raw.match(/---META---\s*([\s\S]*?)\s*---META---/);
+        if (metaMatch) {
+            var metaBlock = metaMatch[1];
+            nlEnMeta = {};
+            metaBlock.split('\n').forEach(function(line) {
+                var sep = line.indexOf(':');
+                if (sep > -1) {
+                    var k = line.slice(0, sep).trim();
+                    var v = line.slice(sep + 1).trim();
+                    nlEnMeta[k] = v;
+                }
+            });
+            raw = raw.replace(/---META---[\s\S]*?---META---/, '').trim();
+        }
+
+        // Strip markdown formatting
+        var cleaned = raw
+            .replace(/^#{1,6}\s+/gm, '')
+            .replace(/\*\*([^*]+)\*\*/g, '$1')
+            .replace(/\*([^*]+)\*/g, '$1');
+
+        nlEnContent = cleaned;
+        document.getElementById('nlEnContentEdit').innerText = cleaned;
+
+        // Show EN meta preview
+        var metaEl = document.getElementById('nlEnMetaPreview');
+        if (metaEl) {
+            metaEl.textContent = '';
+            if (nlEnMeta) {
+                var metaWrap = document.createElement('div');
+                metaWrap.style.cssText = 'background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px;font-size:11px;line-height:1.6;';
+                var metaHead = document.createElement('div');
+                metaHead.style.cssText = 'color:#58a6ff;font-weight:600;margin-bottom:6px;';
+                metaHead.textContent = 'SEO Meta (EN)';
+                metaWrap.appendChild(metaHead);
+                Object.keys(nlEnMeta).forEach(function(k) {
+                    var row = document.createElement('div');
+                    var label = document.createElement('span');
+                    label.style.color = '#8b949e';
+                    label.textContent = k + ': ';
+                    var val = document.createElement('span');
+                    val.style.color = '#e6edf3';
+                    val.textContent = nlEnMeta[k];
+                    row.appendChild(label);
+                    row.appendChild(val);
+                    metaWrap.appendChild(row);
+                });
+                metaEl.appendChild(metaWrap);
+            }
+        }
+
+        // Keyword density
+        var kwEl = document.getElementById('nlEnKwDensity');
+        if (kwEl && seoKw) {
+            kwEl.textContent = '';
+            var words = cleaned.split(/\s+/).length;
+            var kwList = seoKw.split(',').map(function(k) { return k.trim(); }).filter(Boolean);
+            var densityParts = kwList.slice(0, 5).map(function(kw) {
+                var re = new RegExp(kw.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'), 'gi');
+                var count = (cleaned.match(re) || []).length;
+                var density = words > 0 ? ((count / words) * 100).toFixed(2) : '0.00';
+                return kw + ': ' + count + 'x (' + density + '%)';
+            });
+            var kwDiv = document.createElement('div');
+            kwDiv.style.cssText = 'font-size:11px;color:#8b949e;margin-top:6px;';
+            kwDiv.textContent = 'Keyword density: ' + densityParts.join(' | ');
+            kwEl.appendChild(kwDiv);
+        }
+
+        // AI pattern check (EN patterns)
+        var savedLang = document.getElementById('nlLang').value;
+        document.getElementById('nlLang').value = 'en';
+        var matches = nlCheckAiPatterns(cleaned);
+        document.getElementById('nlLang').value = savedLang;
+        var warning = document.getElementById('nlEnAiWarning');
+        if (matches.length > 0) {
+            var preview = matches.slice(0, 3).join(' | ');
+            warning.textContent = matches.length + ' AI pattern(s) detected: ' + preview;
+            warning.style.display = '';
+        } else {
+            warning.style.display = 'none';
+        }
+
+    } catch (e) {
+        alert('English generation error: ' + e.message);
+    } finally {
+        btn.textContent = 'Generate English';
+        btn.disabled = false;
+    }
 }
 
 function nlUpdateAeoChecklist(text) {
