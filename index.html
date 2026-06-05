@@ -469,6 +469,39 @@
             </div>
         </div>
 
+        <!-- Stage 5: Publish -->
+        <div id="nlStage5Pub" class="nl-stage">
+            <h4 style="margin:0 0 12px;">Publish Targets</h4>
+            <div id="nlPublishTargets" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;">
+                    <input type="checkbox" id="nlPubLinkedIn" checked> LinkedIn Newsletter (copy + poster)
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;">
+                    <input type="checkbox" id="nlPubActledger"> actledger.com/blog
+                    <span style="font-size:11px;color:#aaa;">[TR] [EN]</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;">
+                    <input type="checkbox" id="nlPubStrategythrust"> strategythrust.com/insights
+                    <span style="font-size:11px;color:#aaa;">[TR] [EN]</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;">
+                    <input type="checkbox" id="nlPubAtaol"> ataolai.tech/blog
+                    <span style="font-size:11px;color:#aaa;">[TR] [EN]</span>
+                </label>
+            </div>
+            <div style="font-size:12px;color:#aaa;margin-bottom:12px;">
+                <div>Service: <b style="color:#22d3ee;" id="nlPubService"></b></div>
+                <div>Pillar: <b id="nlPubPillar"></b></div>
+                <div>Internal links: <span id="nlPubLinks"></span></div>
+            </div>
+            <div id="nlPublishStatus" style="font-size:12px;margin-bottom:12px;"></div>
+            <div class="btn-group">
+                <button id="btnNlPublishAll" class="btn btn-success" onclick="nlPublishAll()">Publish All</button>
+                <button class="btn btn-outline" onclick="nlGoStage(4)">Geri</button>
+                <button class="btn btn-outline" onclick="nlGoStage(6)" style="margin-left:auto;">Skip to Output</button>
+            </div>
+        </div>
+
         <!-- Stage 6: Output -->
         <div id="nlStage6Out" class="nl-stage">
             <div class="nl-preview-area" style="margin-bottom:16px;">
@@ -882,6 +915,9 @@ function nlGoStage(n) {
 
     if (n === 3) {
         nlGeneratedContent = document.getElementById('nlContentEdit').innerText;
+    }
+    if (n === 5) {
+        nlSetPublishDefaults();
     }
     if (n === 6) {
         nlSaveToGist();
@@ -1547,7 +1583,7 @@ function nlCopyContent() {
 }
 
 function nlSaveToGist() {
-    var content = document.getElementById('nlContentEdit').innerText;
+    var trContent = document.getElementById('nlContentEdit').innerText;
     var title = nlSelectedTopic ? nlSelectedTopic.title : document.getElementById('nlCustomTopic').value.trim();
     var lang = document.getElementById('nlLang').value;
 
@@ -1559,17 +1595,29 @@ function nlSaveToGist() {
     var entry = {
         id: nlCurrentSaveId || ('nl_' + Date.now()),
         title: title || 'Untitled',
+        title_tr: nlCurrentMeta ? nlCurrentMeta.seo_title : (title || 'Untitled'),
+        title_en: nlEnMeta ? nlEnMeta.seo_title : '',
+        slug: nlCurrentMeta ? nlCurrentMeta.slug : '',
         service: nlSelectedService,
+        content: trContent,
+        content_tr: trContent,
+        content_en: nlEnContent || '',
+        meta_description_tr: nlCurrentMeta ? nlCurrentMeta.meta_description : '',
+        meta_description_en: nlEnMeta ? nlEnMeta.meta_description : '',
+        keywords_tr: nlCurrentMeta ? nlCurrentMeta.keywords : [],
+        keywords_en: nlEnMeta ? nlEnMeta.keywords : [],
+        pillar: nlCurrentMeta ? nlCurrentMeta.pillar : '',
         language: lang,
-        content: content,
         created_at: new Date().toISOString(),
         published: false,
+        published_to: [],
         published_at: null
     };
 
     if (existingIdx >= 0) {
         entry.published = newslettersData[existingIdx].published;
         entry.published_at = newslettersData[existingIdx].published_at;
+        entry.published_to = newslettersData[existingIdx].published_to || [];
         newslettersData[existingIdx] = entry;
     } else {
         nlCurrentSaveId = entry.id;
@@ -1578,6 +1626,199 @@ function nlSaveToGist() {
     }
 
     saveData();
+}
+
+function nlSetPublishDefaults() {
+    var svc = nlSelectedService;
+    document.getElementById('nlPubActledger').checked = (svc === 'actledger');
+    document.getElementById('nlPubStrategythrust').checked = (svc === 'strategythrust');
+    document.getElementById('nlPubAtaol').checked = true;
+    document.getElementById('nlPubLinkedIn').checked = true;
+    document.getElementById('nlPubService').textContent = NL_SERVICE_LABELS[svc] || svc;
+    document.getElementById('nlPubPillar').textContent = nlCurrentMeta ? nlCurrentMeta.pillar : '';
+    var trContent = document.getElementById('nlContentEdit').innerText;
+    var linkCount = (trContent.match(/\[INTERNAL_LINK:/g) || []).length;
+    document.getElementById('nlPubLinks').textContent = linkCount + ' found';
+    document.getElementById('nlPubLinks').style.color = linkCount >= 2 ? '#4ade80' : '#f87171';
+}
+
+async function nlPublishToRepo(repoConfig, filePath, content, commitMsg) {
+    var sha = null;
+    try {
+        var getResp = await fetch('https://api.github.com/repos/' + repoConfig.owner + '/' + repoConfig.repo + '/contents/' + filePath, {
+            headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (getResp.ok) {
+            var fileData = await getResp.json();
+            sha = fileData.sha;
+        }
+    } catch (e) { /* file doesn't exist */ }
+
+    var body = {
+        message: commitMsg,
+        content: btoa(unescape(encodeURIComponent(content)))
+    };
+    if (sha) body.sha = sha;
+
+    var resp = await fetch('https://api.github.com/repos/' + repoConfig.owner + '/' + repoConfig.repo + '/contents/' + filePath, {
+        method: 'PUT',
+        headers: {
+            'Authorization': 'token ' + TOKEN,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+    if (!resp.ok) {
+        var err = await resp.json();
+        throw new Error(repoConfig.repo + ': ' + (err.message || resp.status));
+    }
+    return await resp.json();
+}
+
+async function nlPublishAll() {
+    var btn = document.getElementById('btnNlPublishAll');
+    btn.disabled = true;
+    btn.textContent = 'Publishing...';
+    var statusEl = document.getElementById('nlPublishStatus');
+    statusEl.textContent = '';
+
+    var trContent = document.getElementById('nlContentEdit').innerText;
+    var enContent = document.getElementById('nlEnContentEdit').innerText || nlEnContent || '';
+    var slug = nlCurrentMeta ? nlCurrentMeta.slug : ('nl-' + Date.now());
+    var today = new Date().toISOString().slice(0, 10);
+    var svc = nlSelectedService;
+    var pillar = nlCurrentMeta ? nlCurrentMeta.pillar : '';
+    var readTime = nlCurrentMeta ? (nlCurrentMeta.read_time || 5) : 5;
+    var kwTr = nlCurrentMeta ? (nlCurrentMeta.keywords || []) : [];
+    var kwEn = nlEnMeta ? (nlEnMeta.keywords || []) : [];
+    var titleTr = nlCurrentMeta ? nlCurrentMeta.seo_title : slug;
+    var titleEn = nlEnMeta ? nlEnMeta.seo_title : slug;
+    var descTr = nlCurrentMeta ? nlCurrentMeta.meta_description : '';
+    var descEn = nlEnMeta ? nlEnMeta.meta_description : '';
+    var enSlug = nlEnMeta ? (nlEnMeta.slug || (slug + '-en')) : (slug + '-en');
+
+    var publishedTo = [];
+    var lines = [];
+
+    function addStatus(target, ok, msg) {
+        var icon = ok ? '✓' : '✗';
+        var color = ok ? '#4ade80' : '#f87171';
+        var div = document.createElement('div');
+        div.style.cssText = 'color:' + color + ';margin:2px 0;';
+        div.textContent = icon + ' ' + target + (msg ? ': ' + msg : '');
+        statusEl.appendChild(div);
+    }
+
+    // ataolai.tech
+    if (document.getElementById('nlPubAtaol').checked) {
+        try {
+            var fmTr = '---\ntitle: "' + titleTr.replace(/"/g, '\\"') + '"\ndescription: "' + descTr.replace(/"/g, '\\"') + '"\ndate: "' + today + '"\npillar: "' + pillar + '"\nservice: "' + svc + '"\nkeywords: [' + kwTr.map(function(k) { return '"' + k + '"'; }).join(', ') + ']\nreadTime: ' + readTime + '\nfeatured: false\nlang: "tr"\nhreflang_alt: "' + enSlug + '"\n---\n\n' + trContent;
+            var fmEn = '---\ntitle: "' + titleEn.replace(/"/g, '\\"') + '"\ndescription: "' + descEn.replace(/"/g, '\\"') + '"\ndate: "' + today + '"\npillar: "' + pillar + '"\nservice: "' + svc + '"\nkeywords: [' + kwEn.map(function(k) { return '"' + k + '"'; }).join(', ') + ']\nreadTime: ' + readTime + '\nfeatured: false\nlang: "en"\nhreflang_alt: "' + slug + '"\n---\n\n' + enContent;
+            var ataolRepo = NL_PUBLISH_REPOS.ataolai;
+            await nlPublishToRepo(ataolRepo, 'src/content/blog/' + slug + '.md', fmTr, 'feat(blog): add ' + slug + ' [TR]');
+            await nlPublishToRepo(ataolRepo, 'src/content/blog/en/' + enSlug + '.md', fmEn, 'feat(blog): add ' + enSlug + ' [EN]');
+            publishedTo.push('ataolai');
+            addStatus('ataolai.tech', true);
+        } catch (e) {
+            addStatus('ataolai.tech', false, e.message);
+        }
+    }
+
+    // actledger.com
+    if (document.getElementById('nlPubActledger').checked) {
+        try {
+            var alRepo = NL_PUBLISH_REPOS.actledger;
+
+            // Update blog-content.ts
+            var contentGetResp = await fetch('https://api.github.com/repos/' + alRepo.owner + '/' + alRepo.repo + '/contents/src/lib/data/blog-content.ts', {
+                headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+            });
+            var contentFile = await contentGetResp.json();
+            var contentTs = atob(contentFile.content.replace(/\n/g, ''));
+            var newEntry = '\nblogContent["' + slug + '"] = {\n  tr: `' + trContent.replace(/`/g, '\\`') + '`,\n  en: `' + enContent.replace(/`/g, '\\`') + '`\n};\n';
+            var updatedContentTs = contentTs.replace(/\};[\s]*$/, '};\n' + newEntry);
+            await nlPublishToRepo(alRepo, 'src/lib/data/blog-content.ts', updatedContentTs, 'feat(blog): add content for ' + slug);
+
+            // Update blog-posts.ts
+            var postsGetResp = await fetch('https://api.github.com/repos/' + alRepo.owner + '/' + alRepo.repo + '/contents/src/lib/data/blog-posts.ts', {
+                headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+            });
+            var postsFile = await postsGetResp.json();
+            var postsTs = atob(postsFile.content.replace(/\n/g, ''));
+            var kwTrStr = kwTr.map(function(k) { return '"' + k + '"'; }).join(', ');
+            var kwEnStr = kwEn.map(function(k) { return '"' + k + '"'; }).join(', ');
+            var newPost = '  {\n    slug: "' + slug + '",\n    pillar: "' + pillar + '",\n    keywords_tr: [' + kwTrStr + '],\n    keywords_en: [' + kwEnStr + '],\n    date: "' + today + '",\n    readTime: ' + readTime + ',\n    featured: false,\n    image: "/images/blog/' + slug + '.webp"\n  },\n';
+            var updatedPostsTs = postsTs.replace(/\];[\s]*$/, newPost + '];');
+            await nlPublishToRepo(alRepo, 'src/lib/data/blog-posts.ts', updatedPostsTs, 'feat(blog): add post entry for ' + slug);
+
+            publishedTo.push('actledger');
+            addStatus('actledger.com', true);
+        } catch (e) {
+            addStatus('actledger.com', false, e.message);
+        }
+    }
+
+    // strategythrust.com
+    if (document.getElementById('nlPubStrategythrust').checked) {
+        try {
+            var stRepo = NL_PUBLISH_REPOS.strategythrust;
+
+            // Update article-content.ts
+            var stContentResp = await fetch('https://api.github.com/repos/' + stRepo.owner + '/' + stRepo.repo + '/contents/src/lib/data/article-content.ts', {
+                headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+            });
+            var stContentFile = await stContentResp.json();
+            var stContentTs = atob(stContentFile.content.replace(/\n/g, ''));
+            var stEntry = '\narticleContent["' + slug + '"] = {\n  en: `' + enContent.replace(/`/g, '\\`') + '`,\n  tr: `' + trContent.replace(/`/g, '\\`') + '`\n};\n';
+            var updatedStContentTs = stContentTs.replace(/\};[\s]*$/, '};\n' + stEntry);
+            await nlPublishToRepo(stRepo, 'src/lib/data/article-content.ts', updatedStContentTs, 'feat(insights): add content for ' + slug);
+
+            // Update insights.ts
+            var stInsightsResp = await fetch('https://api.github.com/repos/' + stRepo.owner + '/' + stRepo.repo + '/contents/src/lib/data/insights.ts', {
+                headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+            });
+            var stInsightsFile = await stInsightsResp.json();
+            var stInsightsTs = atob(stInsightsFile.content.replace(/\n/g, ''));
+            var newInsight = '  { slug: "' + slug + '", category: "strategyInsights", readTime: ' + readTime + ', date: "' + today + '", image: "/images/insights/' + slug + '.webp" },\n';
+            var updatedStInsightsTs = stInsightsTs.replace(/\];[\s]*(\nexport|\nconst|\nexport const PILLAR|$)/, newInsight + '];\n$1');
+            // fallback: insert before last ];
+            if (updatedStInsightsTs === stInsightsTs) {
+                updatedStInsightsTs = stInsightsTs.replace(/\];\s*$/, newInsight + '];');
+            }
+            await nlPublishToRepo(stRepo, 'src/lib/data/insights.ts', updatedStInsightsTs, 'feat(insights): add entry for ' + slug);
+
+            publishedTo.push('strategythrust');
+            addStatus('strategythrust.com', true);
+        } catch (e) {
+            addStatus('strategythrust.com', false, e.message);
+        }
+    }
+
+    // LinkedIn (mark only — user posts manually)
+    if (document.getElementById('nlPubLinkedIn').checked) {
+        publishedTo.push('linkedin');
+        addStatus('LinkedIn', true, 'ready — copy content from Output tab');
+    }
+
+    // Update saved entry with published_to
+    for (var i = 0; i < newslettersData.length; i++) {
+        if (newslettersData[i].id === nlCurrentSaveId) {
+            newslettersData[i].published_to = publishedTo;
+            if (publishedTo.length > 0) {
+                newslettersData[i].published = true;
+                newslettersData[i].published_at = new Date().toISOString();
+            }
+            break;
+        }
+    }
+    saveData();
+
+    btn.disabled = false;
+    btn.textContent = 'Publish All';
+    if (publishedTo.length > 0) {
+        showToast('Published to: ' + publishedTo.join(', '));
+    }
 }
 
 function nlMarkPublished() {
