@@ -516,6 +516,7 @@
                     <input type="checkbox" id="nlPublished" onchange="nlMarkPublished()"> Yayinlandi
                 </label>
             </div>
+            <div id="nlLinkedInPosts"></div>
             <div class="nl-history" id="nlHistory"></div>
         </div>
     </div>
@@ -1020,6 +1021,7 @@ function nlGoStage(n) {
     }
     if (n === 6) {
         nlSaveToGist();
+        nlGenerateLinkedInPosts();
         nlRenderHistory();
     }
     if (n === 1) {
@@ -1725,6 +1727,94 @@ function nlSaveToGist() {
     }
 
     saveData();
+}
+
+function nlGenerateLinkedInPosts() {
+    var trContent = document.getElementById('nlContentEdit') ? document.getElementById('nlContentEdit').innerText : '';
+    var title = nlCurrentMeta ? nlCurrentMeta.seo_title : '';
+    var service = nlSelectedService;
+    var svcLabel = NL_SERVICE_LABELS[service] || service;
+    var slug = nlCurrentMeta ? nlCurrentMeta.slug : '';
+    var pillar = nlCurrentMeta ? nlCurrentMeta.pillar : '';
+
+    var brandTags = {
+        actledger: '#ActLedger #OperasyonelMukemmellik',
+        strategythrust: '#StrategyThrust #StratejikAnaliz',
+        ailab: '#ATAOLAI #YapayZeka',
+        aiinstitute: '#ATAOLAI #YapayZeka'
+    };
+    var pillarTags = {
+        'operasyonel-mukemmellik': '#ERP #SurecIyilestirme #Verimlilik',
+        'erp-kurumsal-kaynak': '#ERP #KurumsalKaynakPlanlamasi #BulutERP',
+        'kurumsal-hafiza': '#BilgiYonetimi #KurumsalHafiza #DigitalTransformation',
+        'performans-strateji': '#BCGMatrix #StratejikPlanlama #RekabetAnalizi',
+        'lojistik-operasyon': '#TedarikZinciri #LojistikYonetimi #DepoYonetimi',
+        'blockchain-denetim': '#Blockchain #DenetimIzi #Seffaflik',
+        'stratejik-analiz': '#StratejikAnaliz #Rekabetİstihbarati #PazarAnalizi',
+        'danismanlik-araclari': '#Porter #PESTEL #DegerZinciri',
+        'ai-dijital-donusum': '#DijitalDonusum #AIEntegrasyon #Otomasyon'
+    };
+
+    var tags = (brandTags[service] || '') + ' ' + (pillarTags[pillar] || '');
+    var sentences = trContent.split(/(?<=[.!?])\s+/).filter(function(s) { return s.length > 30; });
+    var hook = sentences.slice(0, 2).join(' ');
+    var svcUrl = NL_SERVICE_URLS[service] || 'ataolai.tech';
+
+    var post1 = hook + '\n\nYeni yazimizda detayli analiz:\nhttps://www.' + svcUrl + '/blog/' + slug + '\n\n' + tags;
+
+    var stats = trContent.match(/\d+[%.,]?\d*\s+[a-zA-ZğüşıöçĞÜŞİÖÇ]+/g) || [];
+    var post2 = title + '\n\n' + stats.slice(0, 5).map(function(s, i) { return (i+1) + '. ' + s.trim(); }).join('\n')
+        + '\n\nDetayli analiz blogumuzda:\nhttps://www.' + svcUrl + '/blog/' + slug + '\n\n' + tags;
+
+    var post3 = 'Sizce ' + title.toLowerCase() + ' konusunda en buyuk zorluk nedir?\n\n'
+        + 'A) Teknoloji adaptasyonu\nB) Organizasyonel direnc\nC) Butce ve kaynak\nD) Yetkinlik eksikligi\n\n'
+        + 'Goruslerinizi yorumlarda paylasin.\n\n' + tags;
+
+    var container = document.getElementById('nlLinkedInPosts');
+    if (!container) return;
+    container.textContent = '';
+
+    var heading = document.createElement('h4');
+    heading.style.cssText = 'margin:12px 0 8px;';
+    heading.textContent = 'LinkedIn Post Varyantlari';
+    container.appendChild(heading);
+
+    var posts = [
+        { label: 'Teaser (bugun)', text: post1 },
+        { label: 'Insight Extract (+2 gun)', text: post2 },
+        { label: 'Discussion (+4 gun)', text: post3 }
+    ];
+
+    posts.forEach(function(p) {
+        var card = document.createElement('div');
+        card.style.cssText = 'background:#1a1a2e;border-radius:8px;padding:12px;margin-bottom:8px;';
+
+        var header = document.createElement('div');
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;';
+
+        var labelSpan = document.createElement('span');
+        labelSpan.style.cssText = 'font-size:11px;color:#aaa;';
+        labelSpan.textContent = p.label;
+        header.appendChild(labelSpan);
+
+        var copyBtn = document.createElement('button');
+        copyBtn.className = 'btn btn-outline';
+        copyBtn.style.cssText = 'font-size:11px;padding:2px 8px;';
+        copyBtn.textContent = 'Kopyala';
+        copyBtn.onclick = (function(text) {
+            return function() { navigator.clipboard.writeText(text); copyBtn.textContent = 'Kopyalandi!'; setTimeout(function() { copyBtn.textContent = 'Kopyala'; }, 1500); };
+        })(p.text);
+        header.appendChild(copyBtn);
+
+        card.appendChild(header);
+
+        var textDiv = document.createElement('div');
+        textDiv.style.cssText = 'font-size:12px;line-height:1.6;white-space:pre-wrap;';
+        textDiv.textContent = p.text;
+        card.appendChild(textDiv);
+
+        container.appendChild(card);
+    });
 }
 
 function nlSetPublishDefaults() {
