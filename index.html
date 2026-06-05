@@ -1828,7 +1828,34 @@ function nlGenerateLinkedInPosts() {
     });
 }
 
+async function nlCheckRepoAccess() {
+    if (!TOKEN) return false;
+    try {
+        var resp = await fetch('https://api.github.com/repos/sertacgul/actledger-frontend', {
+            headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (resp.status === 404 || resp.status === 403) return false;
+        var data = await resp.json();
+        return data.permissions && data.permissions.push;
+    } catch (e) { return false; }
+}
+
 function nlSetPublishDefaults() {
+    nlCheckRepoAccess().then(function(hasAccess) {
+        var existing = document.querySelector('.repo-warning');
+        if (existing) existing.remove();
+        if (!hasAccess) {
+            var warning = document.createElement('div');
+            warning.className = 'repo-warning';
+            warning.style.cssText = 'background:#7f1d1d;color:#fca5a5;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:12px;';
+            warning.textContent = 'GitHub token repo erisimi yok. Settings > Developer settings > Personal access tokens > repo scope ekleyin.';
+            var targets = document.getElementById('nlPublishTargets');
+            if (targets) targets.parentNode.insertBefore(warning, targets);
+            document.getElementById('nlPubActledger').disabled = true;
+            document.getElementById('nlPubStrategythrust').disabled = true;
+            document.getElementById('nlPubAtaol').disabled = true;
+        }
+    });
     var svc = nlSelectedService;
     document.getElementById('nlPubActledger').checked = (svc === 'actledger');
     document.getElementById('nlPubStrategythrust').checked = (svc === 'strategythrust');
