@@ -455,19 +455,21 @@
             </div>
         </div>
 
-        <!-- Stage 3: Preview + Edit -->
+        <!-- Stage 3: Preview + Edit (TR) -->
         <div id="nlStage3" class="nl-stage">
-            <div id="nlAiWarning" class="nl-ai-warning">Bu icerikte AI kaliplari tespit edildi - duzenlemeniz onerilir.</div>
-            <div class="nl-preview-area">
-                <div class="nl-poster-preview"><img id="nlPosterImg" src="" alt="Poster preview"></div>
-                <div id="nlMetaPreview" style="margin-bottom:8px;"></div>
-                <div id="nlContentEdit" class="nl-preview-text" contenteditable="true"></div>
-                <div id="nlKwDensity"></div>
-                <div id="nlAeoChecklist" style="background:#1a1a2e;padding:10px;border-radius:8px;margin-top:8px;"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h4 style="margin:0;">Turkce Icerik</h4>
+                <span style="font-size:11px;color:#888;">Metni asagida duzenleyebilirsiniz</span>
             </div>
-            <div class="btn-group">
+            <div id="nlAiWarning" class="nl-ai-warning">Bu icerikte AI kaliplari tespit edildi - duzenlemeniz onerilir.</div>
+            <div id="nlMetaPreview" style="margin-bottom:8px;"></div>
+            <div class="nl-poster-preview" style="margin-bottom:10px;"><img id="nlPosterImg" src="" alt="Poster preview"></div>
+            <div id="nlContentEdit" class="nl-preview-text" contenteditable="true" style="min-height:300px;max-height:500px;"></div>
+            <div id="nlKwDensity"></div>
+            <div id="nlAeoChecklist" style="background:#1a1a2e;padding:10px;border-radius:8px;margin-top:8px;"></div>
+            <div class="btn-group" style="margin-top:12px;">
                 <button class="btn btn-success" onclick="nlDownloadPoster()">Gorseli Indir (PNG)</button>
-                <button class="btn btn-success" onclick="nlGoStage(4)">Devam</button>
+                <button class="btn btn-success" onclick="nlGoStage(4)">Devam (EN)</button>
                 <button class="btn btn-outline" onclick="nlRegenerate()">Yeniden Olustur</button>
                 <button class="btn btn-outline" onclick="nlGoStage(2)">Geri</button>
             </div>
@@ -1050,7 +1052,9 @@ var NL_PILLARS = {
     ],
     strategythrust: [
         { id: 'stratejik-analiz', tr: 'Stratejik Analiz & Raporlama', en: 'Strategic Analysis & Reporting' },
-        { id: 'danismanlik-araclari', tr: 'Danışmanlık Araçları', en: 'Consulting Frameworks' }
+        { id: 'danismanlik-araclari', tr: 'Danışmanlık Araçları & Çerçeveler', en: 'Consulting Frameworks & Tools' },
+        { id: 'yonetim-danismanligi', tr: 'Yönetim Danışmanlığı', en: 'Management Consulting' },
+        { id: 'kurumsal-strateji', tr: 'Kurumsal Strateji & Dönüşüm', en: 'Corporate Strategy & Transformation' }
     ],
     ailab: [{ id: 'ai-dijital-donusum', tr: 'AI & Dijital Dönüşüm', en: 'AI & Digital Transformation' }],
     aiinstitute: [{ id: 'ai-dijital-donusum', tr: 'AI & Dijital Dönüşüm', en: 'AI & Digital Transformation' }]
@@ -1082,12 +1086,20 @@ var NL_PILLAR_KEYWORDS = {
         en: 'blockchain audit trail, immutable records, corporate transparency, smart contracts'
     },
     'stratejik-analiz': {
-        tr: 'stratejik analiz, rekabet istihbaratı, pazar analizi, SWOT analizi, sektör analizi',
-        en: 'strategic analysis, competitive intelligence, market analysis, SWOT analysis, industry analysis'
+        tr: 'stratejik analiz, rekabet istihbaratı, pazar analizi, SWOT analizi, sektör analizi, stratejik planlama, pazar araştırması, rekabet analizi',
+        en: 'strategic analysis, competitive intelligence, market analysis, SWOT analysis, industry analysis, strategic planning, market research, competitive benchmarking'
     },
     'danismanlik-araclari': {
-        tr: 'Porter beş güç, PESTEL analizi, değer zinciri, stratejik yol haritası',
-        en: 'Porter five forces, PESTEL analysis, value chain, strategic roadmap'
+        tr: 'Porter beş güç, PESTEL analizi, değer zinciri, stratejik yol haritası, McKinsey 7S, balanced scorecard, senaryo planlama',
+        en: 'Porter five forces, PESTEL analysis, value chain, strategic roadmap, McKinsey 7S framework, balanced scorecard, scenario planning'
+    },
+    'yonetim-danismanligi': {
+        tr: 'yönetim danışmanlığı, kurumsal dönüşüm, organizasyonel yapılanma, iş stratejisi, büyüme stratejisi, operasyonel iyileştirme, C-level danışmanlık, stratejik karar destek',
+        en: 'management consulting, corporate transformation, organizational design, business strategy, growth strategy, operational improvement, C-level advisory, strategic decision support'
+    },
+    'kurumsal-strateji': {
+        tr: 'kurumsal strateji, dijital dönüşüm stratejisi, iş modeli inovasyonu, birleşme ve satın alma, pazar giriş stratejisi, ölçekleme stratejisi, sürdürülebilir büyüme',
+        en: 'corporate strategy, digital transformation strategy, business model innovation, mergers and acquisitions, market entry strategy, scaling strategy, sustainable growth'
     },
     'ai-dijital-donusum': {
         tr: 'kurumsal AI, dijital dönüşüm, yapay zeka okuryazarlığı, iş süreçleri otomasyonu, AI eğitimi',
@@ -2293,19 +2305,21 @@ async function nlPublishAll() {
         try {
             var stRepo = NL_PUBLISH_REPOS.strategythrust;
 
-            // Update article-content.ts (may be large — use raw_url if truncated)
+            // Update article-content.ts
             var stContentResp = await fetch('https://api.github.com/repos/' + stRepo.owner + '/' + stRepo.repo + '/contents/src/lib/data/article-content.ts', {
                 headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
             });
+            if (!stContentResp.ok) throw new Error('article-content.ts fetch failed: ' + stContentResp.status);
             var stContentFile = await stContentResp.json();
             var stContentTs;
-            if (stContentFile.content) {
-                stContentTs = decodeURIComponent(escape(atob(stContentFile.content.replace(/\n/g, ''))));
+            if (stContentFile.content && stContentFile.content.length > 0) {
+                try { stContentTs = decodeURIComponent(escape(atob(stContentFile.content.replace(/\n/g, '')))); }
+                catch (decErr) { stContentTs = atob(stContentFile.content.replace(/\n/g, '')); }
             } else if (stContentFile.download_url) {
-                var rawResp = await fetch(stContentFile.download_url);
+                var rawResp = await fetch(stContentFile.download_url, { headers: { 'Authorization': 'token ' + TOKEN } });
                 stContentTs = await rawResp.text();
             } else {
-                throw new Error('Cannot read article-content.ts');
+                throw new Error('Cannot read article-content.ts — no content or download_url');
             }
             var safeEnContent = (enContent || '').replace(/`/g, '\\`').replace(/\$/g, '\\$');
             var safeTrContent = (trContent || '').replace(/`/g, '\\`').replace(/\$/g, '\\$');
@@ -2317,17 +2331,27 @@ async function nlPublishAll() {
             var stInsightsResp = await fetch('https://api.github.com/repos/' + stRepo.owner + '/' + stRepo.repo + '/contents/src/lib/data/insights.ts', {
                 headers: { 'Authorization': 'token ' + TOKEN, 'Accept': 'application/vnd.github.v3+json' }
             });
+            if (!stInsightsResp.ok) throw new Error('insights.ts fetch failed: ' + stInsightsResp.status);
             var stInsightsFile = await stInsightsResp.json();
             var stInsightsTs;
-            if (stInsightsFile.content) {
-                stInsightsTs = decodeURIComponent(escape(atob(stInsightsFile.content.replace(/\n/g, ''))));
+            if (stInsightsFile.content && stInsightsFile.content.length > 0) {
+                try { stInsightsTs = decodeURIComponent(escape(atob(stInsightsFile.content.replace(/\n/g, '')))); }
+                catch (decErr) { stInsightsTs = atob(stInsightsFile.content.replace(/\n/g, '')); }
             } else if (stInsightsFile.download_url) {
-                var rawInsResp = await fetch(stInsightsFile.download_url);
+                var rawInsResp = await fetch(stInsightsFile.download_url, { headers: { 'Authorization': 'token ' + TOKEN } });
                 stInsightsTs = await rawInsResp.text();
             } else {
-                throw new Error('Cannot read insights.ts');
+                throw new Error('Cannot read insights.ts — no content or download_url');
             }
-            var newInsight = '  { slug: "' + slug + '", category: "strategyInsights", readTime: ' + readTime + ', date: "' + today + '", image: "/images/insights/' + slug + '.webp" },\n';
+            // Map pillar to ST category
+            var stCategoryMap = {
+                'stratejik-analiz': 'strategyIntelligence',
+                'danismanlik-araclari': 'strategyFrameworks',
+                'yonetim-danismanligi': 'strategyInsights',
+                'kurumsal-strateji': 'strategyInsights'
+            };
+            var stCategory = stCategoryMap[pillar] || 'strategyInsights';
+            var newInsight = '  { slug: "' + slug + '", category: "' + stCategory + '", readTime: ' + readTime + ', date: "' + today + '", image: "/images/insights/' + slug + '.webp" },\n';
             var updatedStInsightsTs = stInsightsTs.replace(/\];[\s]*(\nexport|\nconst|\nexport const PILLAR|$)/, newInsight + '];\n$1');
             // fallback: insert before last ];
             if (updatedStInsightsTs === stInsightsTs) {
