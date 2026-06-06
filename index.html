@@ -1066,16 +1066,16 @@ var NL_PILLARS = {
 
 var NL_PILLAR_KEYWORDS = {
     'operasyonel-mukemmellik': {
-        tr: 'operasyonel mükemmellik, süreç iyileştirme, lean yönetim, operasyonel verimlilik, PDCA döngüsü',
-        en: 'operational excellence, process improvement, lean management, operational efficiency, PDCA cycle'
+        tr: 'operasyonel mükemmellik, AI operasyon yönetimi, süreç iyileştirme, operasyonel verimlilik, izlenebilirlik, denetlenebilirlik, PDCA döngüsü, lean yönetim',
+        en: 'operational excellence, AI operations management, process improvement, operational efficiency, traceability, auditability, PDCA cycle, lean management'
     },
     'erp-kurumsal-kaynak': {
-        tr: 'ERP sistemi, kurumsal kaynak planlaması, ERP yazılımı, bulut ERP, ERP implementasyonu',
-        en: 'ERP system, enterprise resource planning, ERP software, cloud ERP, ERP implementation'
+        tr: 'AI operasyon yönetim sistemi, kurumsal kaynak yönetimi, operasyon yönetimi platformu, bulut operasyon sistemi, dijital operasyon dönüşümü',
+        en: 'AI operations management system, enterprise operations platform, cloud operations system, digital operations transformation, AI OMS'
     },
     'kurumsal-hafiza': {
-        tr: 'kurumsal hafıza, bilgi yönetimi, organizasyonel öğrenme, bilgi kaybı önleme, institutional memory',
-        en: 'institutional memory, knowledge management, organizational learning, knowledge retention'
+        tr: 'kurumsal hafıza, bilgi yönetimi, organizasyonel öğrenme, bilgi kaybı önleme, blockchain denetim izi, değiştirilemeyen kayıt, izlenebilirlik',
+        en: 'institutional memory, knowledge management, organizational learning, knowledge retention, blockchain audit trail, immutable records, traceability'
     },
     'performans-strateji': {
         tr: 'BCG Matrix, performans değerlendirme, KPI dashboard, balanced scorecard, stratejik planlama',
@@ -1086,8 +1086,8 @@ var NL_PILLAR_KEYWORDS = {
         en: 'logistics management, supply chain, warehouse management, operations management, field tracking'
     },
     'blockchain-denetim': {
-        tr: 'blockchain denetim izi, değişmez kayıt, kurumsal şeffaflık, akıllı kontrat',
-        en: 'blockchain audit trail, immutable records, corporate transparency, smart contracts'
+        tr: 'blockchain denetim izi, değiştirilemeyen kayıt, kurumsal şeffaflık, akıllı kontrat, izlenebilirlik, denetlenebilirlik, veri bütünlüğü',
+        en: 'blockchain audit trail, immutable records, corporate transparency, smart contracts, traceability, auditability, data integrity'
     },
     'stratejik-analiz': {
         tr: 'stratejik analiz, rekabet istihbaratı, pazar analizi, SWOT analizi, sektör analizi, stratejik planlama, pazar araştırması, rekabet analizi',
@@ -1457,9 +1457,17 @@ async function nlGenerate() {
         + 'read_time: (dakika cinsinden tahmini okuma suresi)\n'
         + '---META---\n\n'
         + 'Sen ATAOL AI Techs\'in kidemli sektor analistisin. ' + serviceLabel + ' adina ' + promptLang + ' dilinde 3000-5000 kelimelik, otorite gonderen bir makale yaz.\n\n'
+        + 'TARIH: Bugun ' + new Date().toISOString().slice(0, 10) + '. Yil 2026. Tum veriler, referanslar ve ornekler 2024-2026 donemini yansitmali. "2025\'e kadar" gibi gecmis referanslar KULLANMA, guncel yaz.\n\n'
         + 'Konu: ' + title + '\n'
         + 'Dil: ' + promptLang + '\n'
         + 'Hizmet: ' + serviceLabel + '\n\n'
+        + (service === 'actledger' ? 'ACTLEDGER KONUMLAMASI (KRITIK):\n'
+        + '- ActLedger bir ERP programi DEGILDIR. "ERP", "ERP yazilimi", "ERP sistemi" ifadelerini kullanMA.\n'
+        + '- ActLedger = AI-Powered Operations Management System (AI OMS) — yapay zeka destekli operasyon yonetim sistemi.\n'
+        + '- Ayirt edici deger onerileri: (1) Blockchain denetimli kurumsal hafiza — degistirilemeyen kayitlar, (2) AI destekli operasyon yonetimi — OperIQ, (3) Izlenebilirlik ve denetlenebilirlik — her islem kayit altinda, (4) Kurumsal seffaflik — blockchain denetim izi.\n'
+        + '- Odak kavramlar: kurumsal hafiza, izlenebilirlik (traceability), denetlenebilirlik (auditability), operasyonel mukemmellik, degistirilemeyen kayit (immutable record), blockchain denetim izi (blockchain audit trail).\n'
+        + '- ActLedger\'i "isletmenizin operasyonel isletim sistemi" olarak konumla.\n'
+        + '- Geleneksel ERP sistemlerinden farkini vurgula: ERP statik veri yonetimi yapar, ActLedger gercek zamanli operasyon yonetimi + AI + blockchain birlestirir.\n\n' : '')
         + 'AEO KURALLARI (Answer Engine Optimization):\n'
         + '- Ilk 100 kelimede konuya dogrudan cevap ver\n'
         + '- En az 2 soru formatinda H2 baslik kullan (? ile biten)\n'
@@ -1647,7 +1655,14 @@ async function nlGenerateEnglish() {
         + 'read_time: (estimated read time in minutes)\n'
         + '---META---\n\n'
         + 'You are a senior sector analyst for ATAOL AI Techs. Rewrite the following Turkish article in English.\n\n'
+        + 'DATE: Today is ' + new Date().toISOString().slice(0, 10) + '. Year is 2026. All data, references and examples must reflect the 2024-2026 period. Do NOT use outdated references like "by 2025".\n\n'
         + 'Service: ' + serviceLabel + '\n\n'
+        + (service === 'actledger' ? 'ACTLEDGER POSITIONING (CRITICAL):\n'
+        + '- ActLedger is NOT an ERP. Do NOT use "ERP", "ERP software", "ERP system".\n'
+        + '- ActLedger = AI-Powered Operations Management System (AI OMS).\n'
+        + '- Key differentiators: (1) Blockchain-audited corporate memory — immutable records, (2) AI-powered operations management — OperIQ, (3) Full traceability and auditability, (4) Corporate transparency via blockchain audit trail.\n'
+        + '- Focus concepts: corporate memory, traceability, auditability, operational excellence, immutable records, blockchain audit trail.\n'
+        + '- Position ActLedger as "your enterprise operational operating system".\n\n' : '')
         + 'REWRITE RULES:\n'
         + '- DO NOT translate word-for-word. Rewrite for a global English-speaking audience.\n'
         + '- Adapt context, examples, and references to be internationally relevant.\n'
@@ -2514,6 +2529,18 @@ async function nlPublishAll() {
             break;
         }
     }
+    // Append to publish_log
+    if (!window._publishLog) window._publishLog = [];
+    window._publishLog.push({
+        slug: slug,
+        title_tr: titleTr,
+        service: svc,
+        pillar: pillar,
+        date: pubDate,
+        published_to: publishedTo,
+        published_at: new Date().toISOString()
+    });
+
     saveData();
 
     btn.disabled = false;
@@ -2653,6 +2680,7 @@ async function loadData() {
             emailsData = data.emails || [];
             leadsData = data.leads || [];
             newslettersData = data.newsletters || [];
+            window._publishLog = data.publish_log || [];
             repairLeadIds();
             renderAll();
             return;
@@ -2680,6 +2708,7 @@ async function loadData() {
         emailsData = data.emails || [];
         leadsData = data.leads || [];
         newslettersData = data.newsletters || [];
+        window._publishLog = data.publish_log || [];
         repairLeadIds();
         renderAll();
     } catch (e2) {
@@ -2694,6 +2723,7 @@ async function saveData() {
         emails: emailsData,
         leads: leadsData,
         newsletters: newslettersData,
+        publish_log: window._publishLog || [],
         updated_at: new Date().toISOString()
     };
     const jsonStr = JSON.stringify(data);
