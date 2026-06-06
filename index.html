@@ -2253,7 +2253,8 @@ function nlSetPublishDefaults() {
     document.getElementById('nlPubLinks').style.color = linkCount >= 2 ? '#4ade80' : '#f87171';
 }
 
-async function nlPublishToRepo(repoConfig, filePath, content, commitMsg) {
+async function nlPublishToRepo(repoConfig, filePath, content, commitMsg, retryCount) {
+    retryCount = retryCount || 0;
     var sha = null;
     try {
         var getResp = await fetch('https://api.github.com/repos/' + repoConfig.owner + '/' + repoConfig.repo + '/contents/' + filePath, {
@@ -2263,7 +2264,7 @@ async function nlPublishToRepo(repoConfig, filePath, content, commitMsg) {
             var fileData = await getResp.json();
             sha = fileData.sha;
         }
-    } catch (e) { /* file doesn't exist */ }
+    } catch (e) { /* file doesn't exist or network error */ }
 
     var body = {
         message: commitMsg,
@@ -2271,15 +2272,31 @@ async function nlPublishToRepo(repoConfig, filePath, content, commitMsg) {
     };
     if (sha) body.sha = sha;
 
-    var resp = await fetch('https://api.github.com/repos/' + repoConfig.owner + '/' + repoConfig.repo + '/contents/' + filePath, {
-        method: 'PUT',
-        headers: {
-            'Authorization': 'token ' + TOKEN,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
+    var resp;
+    try {
+        resp = await fetch('https://api.github.com/repos/' + repoConfig.owner + '/' + repoConfig.repo + '/contents/' + filePath, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'token ' + TOKEN,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+    } catch (networkErr) {
+        // Network error — retry once after 2 seconds
+        if (retryCount < 2) {
+            await new Promise(function(r) { setTimeout(r, 2000); });
+            return nlPublishToRepo(repoConfig, filePath, content, commitMsg, retryCount + 1);
+        }
+        throw new Error('Network error: ' + networkErr.message);
+    }
+
+    // Handle 409 conflict (SHA mismatch from concurrent writes) — refetch SHA and retry
+    if (resp.status === 409 && retryCount < 2) {
+        await new Promise(function(r) { setTimeout(r, 1500); });
+        return nlPublishToRepo(repoConfig, filePath, content, commitMsg, retryCount + 1);
+    }
     if (!resp.ok) {
         var err = await resp.json();
         throw new Error(repoConfig.repo + ': ' + (err.message || resp.status));
@@ -2444,6 +2461,7 @@ async function nlPublishAll() {
         } catch (e) {
             addStatus('ataolai.tech', false, e.message);
         }
+        await new Promise(function(r) { setTimeout(r, 1000); }); // rate limit koruması
     }
 
     // actledger.com
