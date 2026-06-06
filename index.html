@@ -2224,13 +2224,7 @@ function nlPlainToMarkdown(text) {
         md = md.replace(allPatterns[p], '$1\n\n## $2\n\n');
     }
 
-    // Step 3: Generic heading detection — short phrase (< 80 chars) ending without period, between two sentences
-    md = md.replace(/([.!?])\s*([A-ZÇĞİÖŞÜ][a-zçğıöşü]+(?: [A-ZÇĞİÖŞÜa-zçğıöşü&:]+){1,8})\s*([A-ZÇĞİÖŞÜ][a-zçğıöşü])/g, function(match, punct, heading, nextStart) {
-        if (heading.length > 80 || heading.includes('. ') || heading.endsWith('.')) return match;
-        // Check it looks like a heading (no period inside, reasonably short)
-        if (/[.!?]/.test(heading)) return match;
-        return punct + '\n\n## ' + heading + '\n\n' + nextStart;
-    });
+    // Step 3: Removed — generic heading detection was too aggressive
 
     // Step 4: FAQ formatting — "Sık Sorulan Sorular" / "Frequently Asked Questions" labels → remove
     md = md.replace(/\n*##\s*Sık Sorulan Sorular\s*\n*/gi, '\n\n');
@@ -2247,10 +2241,20 @@ function nlPlainToMarkdown(text) {
     // Also handle "S: Question?C: Answer" format
     md = md.replace(/S:\s*([^?]+\?)\s*C:\s*/g, '\n\n**$1**\n\n');
 
-    // Step 7: Split long paragraphs — after 3+ sentences, insert paragraph break
-    md = md.replace(/([.!?])\s+([A-ZÇĞİÖŞÜ])/g, function(match, punct, next) {
-        return punct + '\n\n' + next;
-    });
+    // Step 7: Split very long text blocks — only if no \n\n exists yet (text is one giant block)
+    // Count existing paragraph breaks; if fewer than 3, do sentence-level splitting every ~4 sentences
+    var existingBreaks = (md.match(/\n\n/g) || []).length;
+    if (existingBreaks < 3) {
+        var sentences = md.split(/(?<=[.!?])\s+(?=[A-ZÇĞİÖŞÜ])/);
+        if (sentences.length > 8) {
+            var rebuilt = '';
+            for (var s = 0; s < sentences.length; s++) {
+                rebuilt += sentences[s] + ' ';
+                if ((s + 1) % 4 === 0 && s < sentences.length - 1) rebuilt += '\n\n';
+            }
+            md = rebuilt.trim();
+        }
+    }
 
     // Step 8: Remove [INTERNAL_LINK:...] placeholders
     md = md.replace(/\s*\[INTERNAL_LINK:[^\]]+\]/g, '');
