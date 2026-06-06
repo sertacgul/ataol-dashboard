@@ -2294,8 +2294,10 @@ async function nlPublishAll() {
                 var dlResp = await fetch(contentFile.download_url, { headers: { 'Authorization': 'token ' + TOKEN } });
                 contentTs = await dlResp.text();
             } else { throw new Error('Cannot read blog-content.ts'); }
-            // Append content entry
-            var newEntry = '\nblogContent["' + slug + '"] = {\n  tr: `' + trContent.replace(/`/g, '\\`').replace(/\$/g, '\\$') + '`,\n  en: `' + (enContent || '').replace(/`/g, '\\`').replace(/\$/g, '\\$') + '`\n};\n';
+            // Append content entry (with markdown formatting)
+            var alMdTr = nlPlainToMarkdown(trContent || '');
+            var alMdEn = nlPlainToMarkdown(enContent || '');
+            var newEntry = '\nblogContent["' + slug + '"] = {\n  tr: `' + alMdTr.replace(/`/g, '\\`').replace(/\$/g, '\\$') + '`,\n  en: `' + alMdEn.replace(/`/g, '\\`').replace(/\$/g, '\\$') + '`\n};\n';
             var updatedContentTs = contentTs + newEntry;
             await nlPublishToRepo(alRepo, 'src/lib/data/blog-content.ts', updatedContentTs, 'feat(blog): add ' + slug);
 
