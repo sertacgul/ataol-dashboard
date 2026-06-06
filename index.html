@@ -1265,9 +1265,18 @@ function nlRenderLogbook() {
     if (!body) return;
     body.textContent = '';
 
-    // Gather all published newsletters
+    // Gather from both sources: newslettersData + publish_log
     var published = newslettersData.filter(function(n) { return n.published; });
-    published.sort(function(a, b) { return (b.published_at || b.created_at || '').localeCompare(a.published_at || a.created_at || ''); });
+    // Merge publish_log entries that aren't in newslettersData
+    var nlSlugs = {};
+    published.forEach(function(n) { nlSlugs[n.slug || n.id] = true; });
+    (window._publishLog || []).forEach(function(log) {
+        if (!nlSlugs[log.slug]) {
+            published.push(log);
+            nlSlugs[log.slug] = true;
+        }
+    });
+    published.sort(function(a, b) { return (b.published_at || b.created_at || b.date || '').localeCompare(a.published_at || a.created_at || a.date || ''); });
 
     // Stats
     var statsDiv = document.createElement('div');
@@ -2399,8 +2408,10 @@ async function nlPublishAll() {
     var statusEl = document.getElementById('nlPublishStatus');
     statusEl.textContent = '';
 
-    var trContent = document.getElementById('nlContentEdit').innerText;
-    var enContent = document.getElementById('nlEnContentEdit').innerText || nlEnContent || '';
+    // Always read from the editable divs — user may have edited the text
+    var trContent = document.getElementById('nlContentEdit').innerText.trim();
+    var enEl = document.getElementById('nlEnContentEdit');
+    var enContent = (enEl && enEl.innerText.trim()) ? enEl.innerText.trim() : (nlEnContent || '');
     // Generate slug from meta or title — NEVER use nl-timestamp
     var slug = (nlCurrentMeta && nlCurrentMeta.slug) ? nlCurrentMeta.slug : '';
     if (!slug || slug.startsWith('nl-')) {
@@ -2676,11 +2687,15 @@ async function nlPublishAll() {
     window._publishLog.push({
         slug: slug,
         title_tr: titleTr,
+        title_en: titleEn,
         service: svc,
         pillar: pillar,
         date: pubDate,
+        readTime: readTime,
         published_to: publishedTo,
-        published_at: new Date().toISOString()
+        published_at: new Date().toISOString(),
+        word_count_tr: trWordCount,
+        word_count_en: (enContent || '').split(/\s+/).length
     });
 
     await saveData();
