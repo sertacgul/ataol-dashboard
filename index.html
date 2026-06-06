@@ -2165,54 +2165,85 @@ async function nlPublishToRepo(repoConfig, filePath, content, commitMsg) {
 
 // Convert plain text to markdown for blog publishing
 function nlPlainToMarkdown(text) {
-    var lines = text.split('\n');
-    var result = [];
-    var i = 0;
-    while (i < lines.length) {
-        var line = lines[i].trim();
-        if (!line) { result.push(''); i++; continue; }
+    if (!text) return '';
+    var md = text;
 
-        // Detect heading patterns
-        var isHeading = false;
+    // Step 1: Remove ## from very first line if present
+    md = md.replace(/^##\s*/, '');
 
-        // "Derin Analiz A:", "Derin Analiz B:", etc.
-        if (/^Derin Analiz\s*[A-Z]?\s*:/i.test(line)) isHeading = true;
-        // "Bağlam", "Kapanış", "Sonuç" — single/short lines that are section titles
-        else if (/^(Bağlam|Kapanis|Kapanış|Sonuç|Giris|Giriş|Context|Conclusion|Introduction|Closing)$/i.test(line)) isHeading = true;
-        // "ATAOL AI ... Perspektifi" or "... Perspective"
-        else if (/perspektifi|perspective/i.test(line) && line.length < 80) isHeading = true;
-        // "Sık Sorulan Sorular" / "Frequently Asked Questions"
-        else if (/s[ıi]k sorulan|frequently asked/i.test(line)) isHeading = true;
-        // "X nedir?" / "What is X?" — question headings under 100 chars
-        else if (line.endsWith('?') && line.length < 100 && !lines[i - 1]?.trim()) isHeading = true;
-        // "Bağlam & Sektör Analizi" or similar compound titles
-        else if (line.length < 80 && !line.endsWith('.') && !line.endsWith(',') && !line.includes('. ') && i > 0 && !lines[i - 1]?.trim()) isHeading = true;
-        // Known section label patterns (legacy — should no longer appear in new content)
-        else if (/^(Hook|Uzman|Eylem|Expert|Action|Deep Analysis|Derin Analiz)/i.test(line) && line.length < 80) isHeading = true;
+    // Step 2: Insert \n\n before known heading patterns (regex-based, works on single-line text)
+    // Turkish headings
+    var trHeadings = [
+        /([.!?])\s*(Sektörün Mevcut Durumu)/g,
+        /([.!?])\s*(Maliyet Dinamiklerinin Gizli Katmanları[^?]*)/g,
+        /([.!?])\s*(Kurumsal (?:Bilgi|Hafıza)[^?]*(?:\?|$))/g,
+        /([.!?])\s*(Veriye Dayalı[^?]*(?:\?|$))/g,
+        /([.!?])\s*(ActLedger (?:Perspektifi|ile)[^.]{0,60})/g,
+        /([.!?])\s*(StrategyThrust Perspektifi)/g,
+        /([.!?])\s*(ATAOL AI (?:Lab|Institute) Perspektifi)/g,
+        /([.!?])\s*(Performans Yönetiminde[^?]*(?:\?|$))/g,
+        /([.!?])\s*(Çevik Performans[^?]*(?:\?|$))/g,
+        /([.!?])\s*(Sürekli Geri Bildirim[^?]*(?:\?|$))/g,
+        /([.!?])\s*(Yapay Zeka[^?]{5,80}(?:\?|$))/g,
+        /([.!?])\s*(Kurumsal Şeffaflık[^?]*(?:\?|$))/g,
+        /([.!?])\s*(Dijital Dönüşüm[^?]*(?:\?|$))/g,
+        /([.!?])\s*(Operasyonel[^?]{5,60}(?:\?|$))/g,
+    ];
+    // English headings
+    var enHeadings = [
+        /([.!?])\s*(The (?:State|Evolving|Hidden|Critical|Importance)[^?]{5,80})/g,
+        /([.!?])\s*((?:Why|How|What|When|Where) [A-Z][^?]{5,80}\?)/g,
+        /([.!?])\s*(ActLedger['']?s? (?:Perspective|Approach)[^.]{0,60})/g,
+        /([.!?])\s*(StrategyThrust Perspective)/g,
+        /([.!?])\s*(ATAOL AI (?:Lab|Institute) Perspective)/g,
+        /([.!?])\s*(Strategies to [A-Z][^.]{5,60})/g,
+        /([.!?])\s*(Empowering [A-Z][^.]{5,60})/g,
+        /([.!?])\s*(Implementing [A-Z][^.]{5,60})/g,
+        /([.!?])\s*(Transforming [A-Z][^.]{5,60})/g,
+        /([.!?])\s*(Ensuring [A-Z][^.]{5,60})/g,
+        /([.!?])\s*(Corporate [A-Z][^?]{5,60})/g,
+    ];
 
-        if (isHeading) {
-            result.push('');
-            result.push('## ' + line);
-            result.push('');
-        } else {
-            // Detect numbered list items: "1. Something" "2. Something"
-            var numMatch = line.match(/^(\d+)\.\s+(.+)/);
-            if (numMatch && line.length < 200) {
-                // Keep as numbered list but ensure spacing
-                result.push(numMatch[1] + '. ' + numMatch[2]);
-            } else {
-                // Regular paragraph — ensure blank line before if previous was content
-                if (result.length > 0 && result[result.length - 1] && !result[result.length - 1].startsWith('#') && !result[result.length - 1].match(/^\d+\./)) {
-                    result.push('');
-                }
-                result.push(line);
-            }
-        }
-        i++;
+    var allPatterns = trHeadings.concat(enHeadings);
+    for (var p = 0; p < allPatterns.length; p++) {
+        md = md.replace(allPatterns[p], '$1\n\n## $2\n\n');
     }
 
-    // Clean up: remove triple+ blank lines
-    var md = result.join('\n').replace(/\n{4,}/g, '\n\n\n');
+    // Step 3: Generic heading detection — short phrase (< 80 chars) ending without period, between two sentences
+    md = md.replace(/([.!?])\s*([A-ZÇĞİÖŞÜ][a-zçğıöşü]+(?: [A-ZÇĞİÖŞÜa-zçğıöşü&:]+){1,8})\s*([A-ZÇĞİÖŞÜ][a-zçğıöşü])/g, function(match, punct, heading, nextStart) {
+        if (heading.length > 80 || heading.includes('. ') || heading.endsWith('.')) return match;
+        // Check it looks like a heading (no period inside, reasonably short)
+        if (/[.!?]/.test(heading)) return match;
+        return punct + '\n\n## ' + heading + '\n\n' + nextStart;
+    });
+
+    // Step 4: FAQ formatting — "Sık Sorulan Sorular" / "Frequently Asked Questions" labels → remove
+    md = md.replace(/\n*##\s*Sık Sorulan Sorular\s*\n*/gi, '\n\n');
+    md = md.replace(/\n*##\s*Frequently Asked Questions\s*\n*/gi, '\n\n');
+    md = md.replace(/Sık Sorulan Sorular\s*/gi, '\n\n');
+    md = md.replace(/Frequently Asked Questions\s*/gi, '\n\n');
+
+    // Step 5: Kapanış/Closing/Sonuç labels → remove (keep content)
+    md = md.replace(/\n*##\s*Kapanış\s*\n*/gi, '\n\n');
+    md = md.replace(/\n*##\s*Closing\s*\n*/gi, '\n\n');
+
+    // Step 6: Numbered FAQ items — "1. Question?Answer" → "1. Question?\n\nAnswer"
+    md = md.replace(/(\d+)\.\s*([^?]+\?)\s*([A-ZÇĞİÖŞÜ])/g, '\n\n$1. $2\n\n$3');
+    // Also handle "S: Question?C: Answer" format
+    md = md.replace(/S:\s*([^?]+\?)\s*C:\s*/g, '\n\n**$1**\n\n');
+
+    // Step 7: Split long paragraphs — after 3+ sentences, insert paragraph break
+    md = md.replace(/([.!?])\s+([A-ZÇĞİÖŞÜ])/g, function(match, punct, next) {
+        return punct + '\n\n' + next;
+    });
+
+    // Step 8: Remove [INTERNAL_LINK:...] placeholders
+    md = md.replace(/\s*\[INTERNAL_LINK:[^\]]+\]/g, '');
+
+    // Step 9: Clean up excessive newlines
+    md = md.replace(/\n{4,}/g, '\n\n\n');
+    md = md.replace(/^\s+/, '');
+
     return md.trim();
 }
 
