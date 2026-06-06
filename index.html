@@ -2271,7 +2271,18 @@ async function nlPublishAll() {
 
     var trContent = document.getElementById('nlContentEdit').innerText;
     var enContent = document.getElementById('nlEnContentEdit').innerText || nlEnContent || '';
-    var slug = nlCurrentMeta ? nlCurrentMeta.slug : ('nl-' + Date.now());
+    // Generate slug from meta or title — NEVER use nl-timestamp
+    var slug = (nlCurrentMeta && nlCurrentMeta.slug) ? nlCurrentMeta.slug : '';
+    if (!slug || slug.startsWith('nl-')) {
+        // Generate slug from title
+        var titleForSlug = (nlCurrentMeta && nlCurrentMeta.seo_title) || (nlSelectedTopic && nlSelectedTopic.title) || '';
+        slug = titleForSlug.toLowerCase()
+            .replace(/[çÇ]/g, 'c').replace(/[ğĞ]/g, 'g').replace(/[ıİ]/g, 'i')
+            .replace(/[öÖ]/g, 'o').replace(/[şŞ]/g, 's').replace(/[üÜ]/g, 'u')
+            .replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-')
+            .replace(/^-|-$/g, '').substring(0, 60);
+        if (!slug) slug = 'makale-' + Date.now();
+    }
     var pubDateInput = document.getElementById('nlPubDate');
     var pubDate = (pubDateInput && pubDateInput.value) ? pubDateInput.value : new Date().toISOString().slice(0, 10);
     var today = pubDate;
@@ -2541,7 +2552,7 @@ async function nlPublishAll() {
         published_at: new Date().toISOString()
     });
 
-    saveData();
+    await saveData();
 
     btn.disabled = false;
     btn.textContent = 'Publish All';
