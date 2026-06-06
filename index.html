@@ -404,6 +404,7 @@
             <span style="color:#555;font-size:10px;margin:0 4px;">|</span>
             <span class="trigger-btn" data-svc="newsletter" onclick="openNewsletter()" style="color:#ef6c00;font-size:10px;padding:3px 8px;font-weight:700;">Newsletter</span>
             <span class="trigger-btn" onclick="openCalendar()" style="color:#38bdf8;font-size:10px;padding:3px 8px;">Takvim</span>
+            <span class="trigger-btn" onclick="openLogbook()" style="color:#a78bfa;font-size:10px;padding:3px 8px;">Logbook</span>
         </span>
         <span class="logout" onclick="logout()">Logout</span>
     </div>
@@ -1243,6 +1244,106 @@ function nlRenderCalendar() {
     body.appendChild(coverage);
 }
 
+// ---- LOGBOOK ----
+function openLogbook() {
+    var modal = document.getElementById('nlLogbookModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'nlLogbookModal';
+        modal.className = 'nl-overlay';
+        modal.innerHTML = '<div class="nl-box" style="max-width:800px;max-height:90vh;overflow-y:auto;">'
+            + '<div class="nl-header"><h3>Newsletter Logbook</h3><button onclick="document.getElementById(\'nlLogbookModal\').classList.add(\'hidden\')">x</button></div>'
+            + '<div id="nlLogbookBody"></div></div>';
+        document.body.appendChild(modal);
+    }
+    modal.classList.remove('hidden');
+    nlRenderLogbook();
+}
+
+function nlRenderLogbook() {
+    var body = document.getElementById('nlLogbookBody');
+    if (!body) return;
+    body.textContent = '';
+
+    // Gather all published newsletters
+    var published = newslettersData.filter(function(n) { return n.published; });
+    published.sort(function(a, b) { return (b.published_at || b.created_at || '').localeCompare(a.published_at || a.created_at || ''); });
+
+    // Stats
+    var statsDiv = document.createElement('div');
+    statsDiv.style.cssText = 'display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;';
+    var totalPub = published.length;
+    var services = {};
+    var slugs = {};
+    published.forEach(function(n) {
+        services[n.service] = (services[n.service] || 0) + 1;
+        slugs[n.slug || n.id] = true;
+    });
+    statsDiv.innerHTML = '<div style="background:#1a1a2e;padding:8px 14px;border-radius:8px;font-size:12px;">'
+        + '<div style="color:#aaa;">Toplam</div><div style="color:#22d3ee;font-size:18px;font-weight:700;">' + totalPub + '</div></div>'
+        + Object.keys(services).map(function(s) {
+            return '<div style="background:#1a1a2e;padding:8px 14px;border-radius:8px;font-size:12px;">'
+                + '<div style="color:#aaa;">' + (NL_SERVICE_LABELS[s] || s) + '</div>'
+                + '<div style="color:#22d3ee;font-size:18px;font-weight:700;">' + services[s] + '</div></div>';
+        }).join('');
+    body.appendChild(statsDiv);
+
+    // Published slugs for duplicate check
+    var heading = document.createElement('div');
+    heading.style.cssText = 'font-size:11px;color:#888;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;';
+    heading.textContent = 'Yayinlanan Makaleler (' + totalPub + ')';
+    body.appendChild(heading);
+
+    if (published.length === 0) {
+        var empty = document.createElement('div');
+        empty.style.cssText = 'color:#666;font-size:13px;padding:20px 0;text-align:center;';
+        empty.textContent = 'Henuz yayinlanan makale yok.';
+        body.appendChild(empty);
+        return;
+    }
+
+    published.forEach(function(n) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px;';
+
+        var dateCol = document.createElement('div');
+        dateCol.style.cssText = 'width:75px;flex-shrink:0;color:#888;';
+        dateCol.textContent = (n.published_at || n.created_at || '').slice(0, 10);
+        row.appendChild(dateCol);
+
+        var svcCol = document.createElement('div');
+        svcCol.style.cssText = 'width:100px;flex-shrink:0;';
+        var svcBadge = document.createElement('span');
+        svcBadge.style.cssText = 'font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:rgba(6,182,212,0.12);color:#22d3ee;';
+        svcBadge.textContent = NL_SERVICE_LABELS[n.service] || n.service || '-';
+        svcCol.appendChild(svcBadge);
+        row.appendChild(svcCol);
+
+        var titleCol = document.createElement('div');
+        titleCol.style.cssText = 'flex:1;color:#e2e8f0;font-weight:500;';
+        titleCol.textContent = n.title_tr || n.title || n.slug || n.id;
+        row.appendChild(titleCol);
+
+        var targetsCol = document.createElement('div');
+        targetsCol.style.cssText = 'width:120px;flex-shrink:0;color:#888;font-size:10px;';
+        targetsCol.textContent = (n.published_to || []).join(', ') || '-';
+        row.appendChild(targetsCol);
+
+        body.appendChild(row);
+    });
+}
+
+// Get list of previously published slugs for topic dedup
+function nlGetPublishedSlugs() {
+    var slugs = [];
+    newslettersData.forEach(function(n) {
+        if (n.published && (n.slug || n.title_tr)) {
+            slugs.push(n.slug || n.title_tr || '');
+        }
+    });
+    return slugs;
+}
+
 function nlGoStage(n) {
     document.querySelectorAll('.nl-stage').forEach(function(s) { s.classList.remove('active'); });
     var stageId;
@@ -1326,13 +1427,21 @@ async function nlFindTopics() {
 
     var prompt = 'Sen ATAOL AI Techs icin trend arastirmacisisin. Asagidaki hizmet alanlariyla kesisen, bu hafta gundemde olan 5 konu bul.\n\n'
         + 'Hizmet alanlari:\n' + svcList + '\n\n'
+        + 'TARIH: Bugun ' + new Date().toISOString().slice(0, 10) + '. Yil 2026.\n\n'
         + 'Kurallar:\n'
         + '- Konulari secili hizmetlere dengeli dagit\n'
         + '- Gercek guncel gelismelere dayansin (son 7 gun)\n'
         + '- Her konunun basligi ve aciklamasi ' + promptLang + ' dilinde olsun\n'
         + '- Her konu icin: baslik, 1 cumle aciklama, kesisen hizmet alani (' + svcIds + ')\n'
         + '- Her konu icin hangi pillar\'a ait oldugunu belirt\n'
+        + '- DAHA ONCE YAYINLANAN konulara BENZER konu ONERME. Farkli ve taze konular bul.\n'
         + pillarList + '\n\n'
+        + (function() {
+            var slugs = nlGetPublishedSlugs();
+            if (slugs.length === 0) return '';
+            var titles = newslettersData.filter(function(n) { return n.published; }).map(function(n) { return n.title_tr || n.slug || ''; }).filter(Boolean);
+            return 'DAHA ONCE YAYINLANAN MAKALELER (benzerlerini onerme):\n' + titles.slice(0, 20).map(function(t) { return '- ' + t; }).join('\n') + '\n\n';
+        })()
         + 'SADECE JSON formatinda don, baska hicbir sey yazma:\n'
         + '[{"title":"...","description":"...","service":"' + svcIds + '","pillar":"pillar-id"}]';
 
