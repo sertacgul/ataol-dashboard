@@ -2928,6 +2928,17 @@ async function loadData() {
             newslettersData = data.newsletters || [];
             window._publishLog = data.publish_log || [];
             window.assessmentsData = data.assessments || [];
+            // Also load assessments from separate assessments.json file
+            try {
+                var asmtUrl = 'https://gist.githubusercontent.com/' + REPO_OWNER + '/' + GIST_ID + '/raw/assessments.json?t=' + Date.now();
+                var asmtResp = await fetch(asmtUrl);
+                if (asmtResp.ok) {
+                    var asmtData = JSON.parse(await asmtResp.text());
+                    if (Array.isArray(asmtData) && asmtData.length > 0) {
+                        window.assessmentsData = asmtData;
+                    }
+                }
+            } catch (ae) { /* assessments.json may not exist yet */ }
             repairLeadIds();
             renderAll();
             return;
@@ -2957,6 +2968,21 @@ async function loadData() {
         newslettersData = data.newsletters || [];
         window._publishLog = data.publish_log || [];
         window.assessmentsData = data.assessments || [];
+        // Also load from separate assessments.json
+        try {
+            var asmtFile = gist.files['assessments.json'];
+            if (asmtFile) {
+                var asmtContent = asmtFile.content;
+                if (!asmtContent && asmtFile.raw_url) {
+                    var ar = await fetch(asmtFile.raw_url);
+                    asmtContent = await ar.text();
+                }
+                var asmtArr = JSON.parse(asmtContent || '[]');
+                if (Array.isArray(asmtArr) && asmtArr.length > 0) {
+                    window.assessmentsData = asmtArr;
+                }
+            }
+        } catch (ae) { /* OK */ }
         repairLeadIds();
         renderAll();
     } catch (e2) {
@@ -2984,7 +3010,12 @@ async function saveData() {
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ files: { 'emails.json': { content: jsonStr } } })
+        body: JSON.stringify({
+            files: {
+                'emails.json': { content: jsonStr },
+                'assessments.json': { content: JSON.stringify(window.assessmentsData || []) }
+            }
+        })
     });
     if (!resp.ok) {
         const errText = await resp.text().catch(() => '');
