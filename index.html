@@ -4818,6 +4818,80 @@ function buildAssessmentEmailHTML(a) {
             <table style="width:100%;border-collapse:collapse;">${recItems}</table>
         </div>` : ''}
 
+        <!-- Solution Recommendations (dynamic upsell/cross-sell based on scores) -->
+        ${(function() {
+            const scores = a.scores || {};
+            const solutions = [];
+
+            // ActLedger — always primary, triggered by d1, d3, d5
+            if ((scores.d1 || 0) < 70 || (scores.d3 || 0) < 70 || (scores.d5 || 0) < 70) {
+                solutions.push({
+                    name: 'ActLedger',
+                    color: '#22d3ee',
+                    url: 'https://www.actledger.com',
+                    tagline: 'AI Destekli Operasyon Yönetim Sistemi',
+                    desc: 'Operasyonel süreçlerinizi tek bir platformda birleştirin. Blockchain denetim izi ile kurumsal hafızanızı koruma altına alın, AI destekli içgörülerle darboğazları anında tespit edin. 15 sektör, 7800+ KPI şablonu.',
+                    match: 'Dijital altyapı, kurumsal hafıza ve teknoloji entegrasyonu boyutlarındaki gelişim alanlarınız için'
+                });
+            } else {
+                solutions.push({
+                    name: 'ActLedger',
+                    color: '#22d3ee',
+                    url: 'https://www.actledger.com',
+                    tagline: 'AI Destekli Operasyon Yönetim Sistemi',
+                    desc: 'Mevcut operasyonel mükemmelliğinizi bir üst seviyeye taşıyın. Blockchain denetim izi, gerçek zamanlı performans analizi ve sektöre özel KPI şablonları ile lider konumunuzu pekiştirin.',
+                    match: 'Operasyonel süreçlerinizi optimize etmek ve rekabet avantajınızı sürdürmek için'
+                });
+            }
+
+            // StrategyThrust — triggered by d2
+            if ((scores.d2 || 0) < 65) {
+                solutions.push({
+                    name: 'StrategyThrust',
+                    color: '#6366f1',
+                    url: 'https://www.strategythrust.com',
+                    tagline: 'Stratejik Rapor Üretim Platformu',
+                    desc: 'Consulting-grade stratejik raporları dakikalar içinde üretin. Rekabet istihbaratı, pazar analizi ve sektör raporları ile veriye dayalı karar alma kültürünü güçlendirin.',
+                    match: 'Stratejik karar alma ve analitik boyutundaki gelişim potansiyeliniz için'
+                });
+            }
+
+            // ATAOL AI Institute — triggered by d4
+            if ((scores.d4 || 0) < 65) {
+                solutions.push({
+                    name: 'ATAOL AI Institute',
+                    color: '#a855f7',
+                    url: 'https://www.ataolai.tech/institute',
+                    tagline: 'Kurumsal AI Eğitim Programları',
+                    desc: 'Yöneticilerinizin ve ekiplerinizin yapay zeka okuryazarlığını artırın. İnteraktif atölye çalışmaları, sertifika programları ve sektöre özel AI stratejisi eğitimleri.',
+                    match: 'İnsan kaynağı ve AI yetkinliği boyutundaki eğitim ihtiyacınız için'
+                });
+            }
+
+            // ATAOL AI Lab — triggered by d5
+            if ((scores.d5 || 0) < 60) {
+                solutions.push({
+                    name: 'ATAOL AI Lab',
+                    color: '#f59e0b',
+                    url: 'https://www.ataolai.tech/#services',
+                    tagline: 'B2B AI Entegrasyon ve Dijital Çözümler',
+                    desc: 'İş süreçlerinize uçtan uca yapay zeka entegrasyonu sağlayın. Özel yazılım geliştirme, otomasyon çözümleri ve dijital dönüşüm danışmanlığı.',
+                    match: 'Teknoloji entegrasyonu ve inovasyon boyutundaki dönüşüm ihtiyacınız için'
+                });
+            }
+
+            return `<div style="margin-bottom:24px;padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+                <p style="margin:0 0 16px;font-size:14px;font-weight:700;color:#1f2937;">Değerlendirmenize Özel Çözüm Önerileri</p>
+                ${solutions.map(s => `<div style="margin-bottom:16px;padding:14px 16px;background:#ffffff;border-left:4px solid ${s.color};border-radius:0 8px 8px 0;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:${s.color};">${s.name}</p>
+                    <p style="margin:0 0 6px;font-size:11px;color:#6b7280;font-style:italic;">${s.tagline}</p>
+                    <p style="margin:0 0 8px;font-size:12px;color:#374151;line-height:1.5;">${s.desc}</p>
+                    <p style="margin:0;font-size:11px;color:#9ca3af;">${s.match}</p>
+                    <a href="${s.url}" style="display:inline-block;margin-top:8px;font-size:11px;color:${s.color};font-weight:600;text-decoration:none;">Detaylı bilgi →</a>
+                </div>`).join('')}
+            </div>`;
+        })()}
+
         <!-- CTA -->
         <div style="text-align:center;padding:20px 0;margin:16px 0;border-top:1px solid #e5e7eb;">
             <p style="margin:0 0 12px;font-size:13px;color:#6b7280;">Bu sonuçları detaylı değerlendirmek ve kurumunuza özel bir yol haritası oluşturmak ister misiniz?</p>
