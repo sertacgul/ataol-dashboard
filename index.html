@@ -4773,12 +4773,14 @@ function buildAssessmentEmailHTML(a) {
         <p style="margin:0 0 16px;font-size:15px;color:#1f2937;">Sayın ${escapeHtml(companyName || 'Yetkili')},</p>
         <p style="margin:0 0 20px;font-size:14px;color:#4b5563;">Kurumsal AI Olgunluk Değerlendirmeniz tamamlanmıştır. Aşağıda, uzman ekibimiz tarafından hazırlanan detaylı analiz raporunuzu bulabilirsiniz.</p>
 
-        <!-- Overall Score -->
+        <!-- Overall Score + Radar Chart -->
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:24px;text-align:center;margin-bottom:24px;">
             <p style="margin:0 0 4px;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Genel Olgunluk Puanı</p>
             <p style="margin:0;font-size:42px;font-weight:800;color:#1f2937;">${overall}<span style="font-size:20px;color:#6b7280;">/100</span></p>
             <p style="margin:4px 0 0;font-size:16px;color:#0891b2;font-weight:600;">${escapeHtml(level)}</p>
             ${sector ? `<p style="margin:8px 0 0;font-size:12px;color:#9ca3af;">Sektör: ${escapeHtml(sector)}</p>` : ''}
+            <!-- Radar Chart -->
+            <div style="margin-top:20px;">${generateRadarChartSVG(a.scores || {})}</div>
         </div>
 
         <!-- Methodology Note -->
@@ -4819,7 +4821,7 @@ function buildAssessmentEmailHTML(a) {
         <!-- CTA -->
         <div style="text-align:center;padding:20px 0;margin:16px 0;border-top:1px solid #e5e7eb;">
             <p style="margin:0 0 12px;font-size:13px;color:#6b7280;">Bu sonuçları detaylı değerlendirmek ve kurumunuza özel bir yol haritası oluşturmak ister misiniz?</p>
-            <a href="https://www.ataolai.tech/#contact" style="display:inline-block;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Ücretsiz Danışmanlık Görüşmesi</a>
+            <a href="https://www.ataolai.tech/#contact" style="display:inline-block;background:#0f172a;color:#22d3ee;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;border:2px solid #22d3ee;">Ücretsiz Danışmanlık Görüşmesi</a>
         </div>
 
         <!-- Signature -->
