@@ -4689,7 +4689,7 @@ function openAssessmentDetail(id) {
         </div>
 
         <div class="btn-group">
-            <button class="btn btn-success" onclick="approveAndSendAssessment('${id}', this)">Onayla ve E-posta İçeriğini Kopyala</button>
+            <button class="btn btn-success" onclick="approveAndSendAssessment('${id}', this)">Onayla ve Gönder</button>
             <button class="btn btn-outline" onclick="saveAssessmentEdits('${id}', this)">Kaydet</button>
             <button class="btn btn-outline" onclick="this.closest('.email-detail-overlay').remove()">Kapat</button>
         </div>
@@ -4814,45 +4814,49 @@ async function approveAndSendAssessment(id, btn) {
     if (summ) a.analysis.summary = summ.value;
 
     const html = buildAssessmentEmailHTML(a);
-
-    // Copy to clipboard
-    try {
-        await navigator.clipboard.writeText(html);
-    } catch (e) {
-        // fallback: show in textarea
-    }
-
-    a.status = 'sent';
-    a.sent_at = new Date().toISOString();
+    const subject = a.lang === 'en'
+        ? 'Your Corporate AI Maturity Assessment Results — ATAOL AI Techs'
+        : 'Kurumsal AI Olgunluk Değerlendirmeniz Hazır — ATAOL AI Techs';
 
     const origText = btn.textContent;
-    btn.textContent = 'Kaydediliyor...';
+    btn.textContent = 'Gönderiliyor...';
     btn.disabled = true;
 
     try {
+        // Send via outreach worker Gmail API (api.ataolai.tech)
+        const sendResp = await fetch('https://api.ataolai.tech/assessment-send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ataol-trigger-2026'
+            },
+            body: JSON.stringify({
+                to: a.email,
+                subject: subject,
+                html: html,
+                from_name: 'ATAOL AI Techs'
+            })
+        });
+
+        if (!sendResp.ok) {
+            const errText = await sendResp.text();
+            throw new Error('Email gönderilemedi: ' + errText.substring(0, 100));
+        }
+
+        a.status = 'sent';
+        a.sent_at = new Date().toISOString();
         await saveData();
         renderAssessments();
-        showToast('E-posta HTML\'i kopyalandı! Durum "Gönderildi" olarak güncellendi.', 'success');
+        showToast('Değerlendirme emaili ' + a.email + ' adresine gönderildi!', 'success');
 
-        // Show send instructions
+        // Close modal
         const overlay = btn.closest('.email-detail-overlay');
-        const infoDiv = document.createElement('div');
-        infoDiv.style.cssText = 'background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px 16px;margin-top:12px;font-size:13px;';
-        infoDiv.innerHTML = `<strong style="color:#15803d;">E-posta içeriği kopyalandı!</strong><br>
-            <span style="color:#374151;">Gmail ile gönderin:</span><br>
-            <span style="color:#555;">To: <b>${escapeHtml(a.email)}</b></span><br>
-            <span style="color:#555;">Subject: <b>Kurumsal AI Olgunluk Değerlendirmeniz Hazır — ATAOL AI Techs</b></span><br>
-            <span style="color:#888;font-size:11px;">Gmail'de "Compose" → "More options" → HTML yapıştırın</span>`;
-        if (overlay) {
-            const btnGroup = overlay.querySelector('.btn-group');
-            if (btnGroup) btnGroup.insertAdjacentElement('afterend', infoDiv);
-        }
+        if (overlay) setTimeout(() => overlay.remove(), 1500);
     } catch (e) {
-        showToast('Kayıt başarısız: ' + e.message, 'error');
+        showToast('Hata: ' + e.message, 'error');
+        btn.textContent = origText;
+        btn.disabled = false;
     }
-
-    btn.textContent = origText;
-    btn.disabled = false;
 }
 
 function openNewAssessmentModal() {
