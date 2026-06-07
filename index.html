@@ -430,18 +430,24 @@
                 <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;">Hedef Hizmetler:</label>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
                     <label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid rgba(34,211,238,0.3);background:rgba(34,211,238,0.08);cursor:pointer;">
-                        <input type="checkbox" id="nlSvcActledger" checked> ActLedger
+                        <input type="checkbox" id="nlSvcActledger" checked onchange="nlUpdatePillarDropdown()"> ActLedger
                     </label>
                     <label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.08);cursor:pointer;">
-                        <input type="checkbox" id="nlSvcStrategythrust"> StrategyThrust
+                        <input type="checkbox" id="nlSvcStrategythrust" onchange="nlUpdatePillarDropdown()"> StrategyThrust
                     </label>
                     <label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.08);cursor:pointer;">
-                        <input type="checkbox" id="nlSvcAilab"> ATAOL AI Lab
+                        <input type="checkbox" id="nlSvcAilab" onchange="nlUpdatePillarDropdown()"> ATAOL AI Lab
                     </label>
                     <label style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid rgba(168,85,247,0.3);background:rgba(168,85,247,0.08);cursor:pointer;">
-                        <input type="checkbox" id="nlSvcAiinstitute"> ATAOL AI Institute
+                        <input type="checkbox" id="nlSvcAiinstitute" onchange="nlUpdatePillarDropdown()"> ATAOL AI Institute
                     </label>
                 </div>
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;">Pillar:</label>
+                <select id="nlPillarSelect" style="padding:6px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;width:100%;">
+                    <option value="">Otomatik (Gemini secer)</option>
+                </select>
             </div>
             <button class="btn btn-success" onclick="nlFindTopics()" id="btnNlTopics">Konu Bul</button>
         </div>
@@ -519,6 +525,10 @@
                 <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
                     <label style="font-size:13px;font-weight:600;color:#333;">Yayin Tarihi:</label>
                     <input type="date" id="nlPubDate" style="padding:6px 12px;border:2px solid #0891b2;border-radius:8px;background:#fff;color:#333;font-size:14px;font-weight:600;cursor:pointer;">
+                </div>
+                <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">Okuma Suresi (dk):</label>
+                    <input type="number" id="nlPubReadTime" min="5" max="20" value="10" style="padding:6px 12px;border:2px solid #0891b2;border-radius:8px;background:#fff;color:#333;font-size:14px;font-weight:600;width:70px;">
                 </div>
             </div>
             <div id="nlPublishStatus" style="font-size:12px;margin-bottom:12px;"></div>
@@ -1138,6 +1148,7 @@ const NL_BANNED_EN = [
 
 function openNewsletter() {
     document.getElementById('nlOverlay').classList.remove('hidden');
+    nlUpdatePillarDropdown();
     nlGoStage(1);
     nlRenderHistory();
 }
@@ -1398,6 +1409,54 @@ function escapeHtml(s) {
     return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
 }
 
+function nlUpdatePillarDropdown() {
+    var select = document.getElementById('nlPillarSelect');
+    if (!select) return;
+    var currentVal = select.value;
+    // Clear all options except the "automatic" one
+    select.textContent = '';
+    var autoOpt = document.createElement('option');
+    autoOpt.value = '';
+    autoOpt.textContent = 'Otomatik (Gemini secer)';
+    select.appendChild(autoOpt);
+
+    // Collect pillars from checked services
+    var svcIds = ['actledger', 'strategythrust', 'ailab', 'aiinstitute'];
+    var cbIds = { actledger: 'nlSvcActledger', strategythrust: 'nlSvcStrategythrust', ailab: 'nlSvcAilab', aiinstitute: 'nlSvcAiinstitute' };
+    var seen = {};
+    for (var s = 0; s < svcIds.length; s++) {
+        var svc = svcIds[s];
+        var cb = document.getElementById(cbIds[svc]);
+        if (!cb || !cb.checked) continue;
+        var pillars = NL_PILLARS[svc] || [];
+        for (var p = 0; p < pillars.length; p++) {
+            var pill = pillars[p];
+            if (seen[pill.id]) continue;
+            seen[pill.id] = true;
+            var opt = document.createElement('option');
+            opt.value = pill.id;
+            opt.textContent = pill.tr;
+            select.appendChild(opt);
+        }
+    }
+    // Restore previous selection if still valid
+    if (currentVal) {
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === currentVal) { select.value = currentVal; break; }
+        }
+    }
+}
+
+function nlFormatForSite(text, site) {
+    var md = nlPlainToMarkdown(text);
+    if (site === 'actledger') {
+        // ActLedger: remove ## prefixes — BlogArticle.tsx uses plain text heading detection
+        md = md.replace(/^## /gm, '');
+    }
+    // ataolai and strategythrust keep ## headings (Astro and Next.js render them)
+    return md;
+}
+
 async function nlFindTopics() {
     var btn = document.getElementById('btnNlTopics');
     btn.textContent = '';
@@ -1434,16 +1493,22 @@ async function nlFindTopics() {
     var pillarList = selectedSvcs.map(function(s) { return '- ' + svcPillars[s]; }).join('\n');
     var svcIds = selectedSvcs.join('|');
 
-    var prompt = 'Sen ATAOL AI Techs icin trend arastirmacisisin. Asagidaki hizmet alanlariyla kesisen, bu hafta gundemde olan 5 konu bul.\n\n'
+    // Read selected pillar from dropdown
+    var pillarSelectEl = document.getElementById('nlPillarSelect');
+    var selectedPillar = pillarSelectEl ? pillarSelectEl.value : '';
+    var pillarConstraint = selectedPillar
+        ? '- Konu MUTLAKA su pillara ait olmali: ' + selectedPillar + '\n'
+        : '- Konu hangi pillara ait oldugunu belirt\n';
+
+    var prompt = 'Sen ATAOL AI Techs icin trend arastirmacisisin. Asagidaki hizmet alanlariyla kesisen, bu hafta gundemde olan 1 konu bul.\n\n'
         + 'Hizmet alanlari:\n' + svcList + '\n\n'
         + 'TARIH: Bugun ' + new Date().toISOString().slice(0, 10) + '. Yil 2026.\n\n'
         + 'Kurallar:\n'
-        + '- Konulari secili hizmetlere dengeli dagit\n'
         + '- Gercek guncel gelismelere dayansin (son 7 gun)\n'
-        + '- Her konunun basligi ve aciklamasi ' + promptLang + ' dilinde olsun\n'
-        + '- Her konu icin: baslik, 1 cumle aciklama, kesisen hizmet alani (' + svcIds + ')\n'
-        + '- Her konu icin hangi pillar\'a ait oldugunu belirt\n'
-        + '- DAHA ONCE YAYINLANAN konulara BENZER konu ONERME. Farkli ve taze konular bul.\n'
+        + '- Konunun basligi ve aciklamasi ' + promptLang + ' dilinde olsun\n'
+        + '- Konu icin: baslik, 1 cumle aciklama, kesisen hizmet alani (' + svcIds + ')\n'
+        + pillarConstraint
+        + '- DAHA ONCE YAYINLANAN konulara BENZER konu ONERME. Farkli ve taze bir konu bul.\n'
         + pillarList + '\n\n'
         + (function() {
             var slugs = nlGetPublishedSlugs();
@@ -2429,10 +2494,9 @@ async function nlPublishAll() {
     var today = pubDate;
     var svc = nlSelectedService;
     var pillar = nlCurrentMeta ? nlCurrentMeta.pillar : '';
-    // Calculate readTime from word count (200 wpm TR, 250 wpm EN), clamped to 8-13
     var trWordCount = (trContent || '').split(/\s+/).length;
-    var readTime = Math.round(trWordCount / 200);
-    readTime = Math.max(8, Math.min(13, readTime));
+    var readTimeInput = document.getElementById('nlPubReadTime');
+    var readTime = (readTimeInput && readTimeInput.value) ? parseInt(readTimeInput.value) : 10;
     var kwTr = nlCurrentMeta ? (nlCurrentMeta.keywords || []) : [];
     if (typeof kwTr === 'string') kwTr = kwTr.split(',').map(function(k) { return k.trim(); });
     if (!Array.isArray(kwTr)) kwTr = [];
@@ -2444,6 +2508,16 @@ async function nlPublishAll() {
     var descTr = nlCurrentMeta ? nlCurrentMeta.meta_description : '';
     var descEn = nlEnMeta ? nlEnMeta.meta_description : '';
     var enSlug = nlEnMeta ? (nlEnMeta.slug || (slug + '-en')) : (slug + '-en');
+
+    // Check for duplicate title before publishing
+    var existingTitles = newslettersData.filter(function(n) { return n.published; }).map(function(n) { return (n.title_tr || '').toLowerCase(); });
+    if (existingTitles.indexOf(titleTr.toLowerCase()) > -1) {
+        if (!confirm('Bu baslikta bir makale zaten yayinlandi: "' + titleTr + '". Yine de devam etmek istiyor musunuz?')) {
+            btn.disabled = false;
+            btn.textContent = 'Publish All';
+            return;
+        }
+    }
 
     var publishedTo = [];
     var lines = [];
@@ -2460,8 +2534,8 @@ async function nlPublishAll() {
     // ataolai.tech
     if (document.getElementById('nlPubAtaol').checked) {
         try {
-            var mdTr = nlPlainToMarkdown(trContent);
-            var mdEn = nlPlainToMarkdown(enContent);
+            var mdTr = nlFormatForSite(trContent, 'ataolai');
+            var mdEn = nlFormatForSite(enContent, 'ataolai');
             var fmTr = '---\ntitle: "' + titleTr.replace(/"/g, '\\"') + '"\ndescription: "' + descTr.replace(/"/g, '\\"') + '"\ndate: "' + today + '"\npillar: "' + pillar + '"\nservice: "' + svc + '"\nkeywords: [' + kwTr.map(function(k) { return '"' + k + '"'; }).join(', ') + ']\nreadTime: ' + readTime + '\nfeatured: false\nlang: "tr"\nhreflang_alt: "' + enSlug + '"\n---\n\n' + mdTr;
             var fmEn = '---\ntitle: "' + titleEn.replace(/"/g, '\\"') + '"\ndescription: "' + descEn.replace(/"/g, '\\"') + '"\ndate: "' + today + '"\npillar: "' + pillar + '"\nservice: "' + svc + '"\nkeywords: [' + kwEn.map(function(k) { return '"' + k + '"'; }).join(', ') + ']\nreadTime: ' + readTime + '\nfeatured: false\nlang: "en"\nhreflang_alt: "' + slug + '"\n---\n\n' + mdEn;
             var ataolRepo = NL_PUBLISH_REPOS.ataolai;
@@ -2494,8 +2568,8 @@ async function nlPublishAll() {
                 contentTs = await dlResp.text();
             } else { throw new Error('Cannot read blog-content.ts'); }
             // Append content entry (with markdown formatting)
-            var alMdTr = nlPlainToMarkdown(trContent || '');
-            var alMdEn = nlPlainToMarkdown(enContent || '');
+            var alMdTr = nlFormatForSite(trContent || '', 'actledger');
+            var alMdEn = nlFormatForSite(enContent || '', 'actledger');
             var newEntry = '\nblogContent["' + slug + '"] = {\n  tr: `' + alMdTr.replace(/`/g, '\\`').replace(/\$/g, '\\$') + '`,\n  en: `' + alMdEn.replace(/`/g, '\\`').replace(/\$/g, '\\$') + '`\n};\n';
             var updatedContentTs = contentTs + newEntry;
             await nlPublishToRepo(alRepo, 'src/lib/data/blog-content.ts', updatedContentTs, 'feat(blog): add ' + slug);
@@ -2560,8 +2634,8 @@ async function nlPublishAll() {
             } else {
                 throw new Error('Cannot read article-content.ts — no content or download_url');
             }
-            var stMdTr = nlPlainToMarkdown(trContent || '');
-            var stMdEn = nlPlainToMarkdown(enContent || '');
+            var stMdTr = nlFormatForSite(trContent || '', 'strategythrust');
+            var stMdEn = nlFormatForSite(enContent || '', 'strategythrust');
             var safeEnContent = stMdEn.replace(/`/g, '\\`').replace(/\$/g, '\\$');
             var safeTrContent = stMdTr.replace(/`/g, '\\`').replace(/\$/g, '\\$');
             var stEntry = '\narticleContent["' + slug + '"] = {\n  en: `' + safeEnContent + '`,\n  tr: `' + safeTrContent + '`\n};\n';
@@ -2682,21 +2756,23 @@ async function nlPublishAll() {
             break;
         }
     }
-    // Append to publish_log
-    if (!window._publishLog) window._publishLog = [];
-    window._publishLog.push({
-        slug: slug,
-        title_tr: titleTr,
-        title_en: titleEn,
-        service: svc,
-        pillar: pillar,
-        date: pubDate,
-        readTime: readTime,
-        published_to: publishedTo,
-        published_at: new Date().toISOString(),
-        word_count_tr: trWordCount,
-        word_count_en: (enContent || '').split(/\s+/).length
-    });
+    // Append to publish_log only on successful publish
+    if (publishedTo.length > 0) {
+        if (!window._publishLog) window._publishLog = [];
+        window._publishLog.push({
+            slug: slug,
+            title_tr: titleTr,
+            title_en: titleEn,
+            service: svc,
+            pillar: pillar,
+            date: pubDate,
+            readTime: readTime,
+            published_to: publishedTo,
+            published_at: new Date().toISOString(),
+            word_count_tr: trWordCount,
+            word_count_en: (enContent || '').split(/\s+/).length
+        });
+    }
 
     await saveData();
 
