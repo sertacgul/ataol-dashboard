@@ -4730,68 +4730,118 @@ function saveAssessmentEdits(id, btn) {
 }
 
 function buildAssessmentEmailHTML(a) {
-    const overall = a.scores ? Math.round(Object.values(a.scores).reduce((s, v) => s + v, 0) / Object.values(a.scores).length) : 0;
-    const color = assessmentScoreColor(overall);
-    const level = assessmentScoreLevel(overall);
-    const svgChart = generateRadarChartSVG(a.scores || {});
+    const overall = a.overall_score || (a.scores ? Math.round(Object.values(a.scores).reduce((s, v) => s + v, 0) / Object.values(a.scores).length) : 0);
+    const level = a.level || assessmentScoreLevel(overall);
+    const analysis = a.analysis || {};
+    const dimComments = analysis.dimension_comments || analysis;
+    const recommendations = a.recommendations || analysis.recommendations || [];
+    const sectorBenchmark = analysis.sector_benchmark || '';
+    const overallSummary = analysis.overall_summary || analysis.summary || '';
+    const companyName = a.company_name || '';
+    const sector = a.sector || '';
 
     const dimRows = ASSESSMENT_DIMENSIONS.map((d, i) => {
-        const score = (a.scores || {})[d.key] || 0;
-        const bg = i % 2 === 0 ? '#f8fafc' : '#ffffff';
-        const sColor = assessmentScoreColor(score);
-        const comment = ((a.analysis || {})[d.key] || '');
-        const levelLabel = assessmentScoreLevel(score);
-        return `<tr style="background:${bg};">
-            <td style="padding:10px;font-weight:600;font-size:13px;">${d.label}</td>
-            <td style="padding:10px;text-align:center;font-size:16px;font-weight:700;color:${sColor};">${score}</td>
-            <td style="padding:10px;text-align:center;font-size:12px;color:#64748b;">${levelLabel}</td>
-            <td style="padding:10px;font-size:12px;color:#374151;">${escapeHtml(comment)}</td>
+        const score = Math.round((a.scores || {})[d.key] || 0);
+        const bg = i % 2 === 0 ? '#f9fafb' : '#ffffff';
+        const comment = dimComments[d.key] || '';
+        const lvl = assessmentScoreLevel(score);
+        return `<tr style="background:${bg};border-bottom:1px solid #e5e7eb;">
+            <td style="padding:14px 12px;font-weight:600;font-size:14px;color:#1f2937;">${d.label}</td>
+            <td style="padding:14px 12px;text-align:center;font-size:18px;font-weight:700;color:#1f2937;">${score}</td>
+            <td style="padding:14px 12px;text-align:center;font-size:12px;color:#6b7280;font-weight:500;">${lvl}</td>
+        </tr>
+        <tr style="background:${bg};">
+            <td colspan="3" style="padding:0 12px 14px;font-size:13px;color:#4b5563;line-height:1.6;">${escapeHtml(comment)}</td>
         </tr>`;
     }).join('');
 
-    const recs = (a.recommendations || []).map(r => `<li style="margin-bottom:6px;">${escapeHtml(r)}</li>`).join('');
+    const recItems = recommendations.map((r, i) => `<tr>
+        <td style="padding:8px 12px;vertical-align:top;font-weight:700;color:#0891b2;font-size:14px;">${i + 1}.</td>
+        <td style="padding:8px 12px;font-size:13px;color:#374151;line-height:1.6;">${escapeHtml(r)}</td>
+    </tr>`).join('');
 
-    return `<div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;">
-    <div style="background:#0f172a;padding:24px;text-align:center;">
-        <h1 style="color:#06b6d4;margin:0;font-size:20px;">Kurumsal AI Olgunluk Değerlendirmesi</h1>
-        <p style="color:#94a3b8;margin:8px 0 0;font-size:13px;">ATAOL AI Techs | www.ataolai.tech</p>
+    return `<div style="max-width:620px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1f2937;line-height:1.6;">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#0a0a1a 0%,#1a1a3e 50%,#0f2460 100%);padding:24px 30px 20px;border-radius:12px 12px 0 0;">
+        <img src="https://sertacgul.github.io/ataol-dashboard/ataol-logo.png" alt="ATAOL AI Techs" style="height:48px;" />
+        <div style="margin-top:12px;height:3px;background:linear-gradient(90deg,#4fc3f7,#22d3ee,#1976d2,transparent);border-radius:2px;"></div>
     </div>
-    <div style="text-align:center;padding:24px;background:#f8fafc;">
-        <div style="font-size:48px;font-weight:900;color:${color};">${overall}<span style="font-size:22px;">/100</span></div>
-        <div style="font-size:18px;color:#64748b;margin-top:4px;">${level}</div>
-        <div style="font-size:13px;color:#94a3b8;margin-top:4px;">${escapeHtml(a.company_name || a.email)}</div>
+
+    <!-- Body -->
+    <div style="background:#ffffff;padding:30px;border-left:1px solid #e8e8e8;border-right:1px solid #e8e8e8;">
+        <!-- Greeting -->
+        <p style="margin:0 0 16px;font-size:15px;color:#1f2937;">Sayın ${escapeHtml(companyName || 'Yetkili')},</p>
+        <p style="margin:0 0 20px;font-size:14px;color:#4b5563;">Kurumsal AI Olgunluk Değerlendirmeniz tamamlanmıştır. Aşağıda, uzman ekibimiz tarafından hazırlanan detaylı analiz raporunuzu bulabilirsiniz.</p>
+
+        <!-- Overall Score -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:24px;text-align:center;margin-bottom:24px;">
+            <p style="margin:0 0 4px;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Genel Olgunluk Puanı</p>
+            <p style="margin:0;font-size:42px;font-weight:800;color:#1f2937;">${overall}<span style="font-size:20px;color:#6b7280;">/100</span></p>
+            <p style="margin:4px 0 0;font-size:16px;color:#0891b2;font-weight:600;">${escapeHtml(level)}</p>
+            ${sector ? `<p style="margin:8px 0 0;font-size:12px;color:#9ca3af;">Sektör: ${escapeHtml(sector)}</p>` : ''}
+        </div>
+
+        <!-- Methodology Note -->
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px 16px;margin-bottom:24px;">
+            <p style="margin:0;font-size:12px;color:#1e40af;font-weight:600;">Değerlendirme Metodolojisi</p>
+            <p style="margin:6px 0 0;font-size:12px;color:#3b82f6;line-height:1.5;">Bu analiz, 5 temel boyutta toplam 22 ölçüt üzerinden gerçekleştirilmiştir: Dijital Altyapı &amp; Operasyon Yönetimi (5 ölçüt), Stratejik Karar Alma &amp; Analitik (4 ölçüt), Kurumsal Bilgi Yönetimi &amp; Hafıza (5 ölçüt), İnsan Kaynağı &amp; AI Yetkinliği (4 ölçüt), Teknoloji Entegrasyonu &amp; İnovasyon (4 ölçüt). Her ölçüt 1-5 arası puanlanarak boyut bazında 100 üzerinden normalize edilmiştir.</p>
+        </div>
+
+        <!-- Overall Summary -->
+        ${overallSummary ? `<div style="margin-bottom:24px;">
+            <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1f2937;">Genel Değerlendirme</p>
+            <p style="margin:0;font-size:14px;color:#374151;line-height:1.7;">${escapeHtml(overallSummary)}</p>
+        </div>` : ''}
+
+        <!-- Dimension Table -->
+        <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#1f2937;">Boyut Bazlı Detaylı Analiz</p>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:24px;">
+            <tr style="background:#1e293b;">
+                <th style="padding:12px;text-align:left;font-size:12px;color:#f1f5f9;font-weight:600;">Boyut</th>
+                <th style="padding:12px;text-align:center;font-size:12px;color:#f1f5f9;font-weight:600;">Puan</th>
+                <th style="padding:12px;text-align:center;font-size:12px;color:#f1f5f9;font-weight:600;">Seviye</th>
+            </tr>
+            ${dimRows}
+        </table>
+
+        <!-- Sector Benchmark -->
+        ${sectorBenchmark ? `<div style="background:#f0fdfa;border-left:4px solid #0891b2;padding:14px 16px;margin-bottom:24px;border-radius:0 8px 8px 0;">
+            <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#0891b2;">Sektör Kıyaslaması</p>
+            <p style="margin:0;font-size:13px;color:#374151;line-height:1.6;">${escapeHtml(sectorBenchmark)}</p>
+        </div>` : ''}
+
+        <!-- Recommendations -->
+        ${recItems ? `<div style="margin-bottom:24px;">
+            <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#1f2937;">Stratejik Öneriler</p>
+            <table style="width:100%;border-collapse:collapse;">${recItems}</table>
+        </div>` : ''}
+
+        <!-- CTA -->
+        <div style="text-align:center;padding:20px 0;margin:16px 0;border-top:1px solid #e5e7eb;">
+            <p style="margin:0 0 12px;font-size:13px;color:#6b7280;">Bu sonuçları detaylı değerlendirmek ve kurumunuza özel bir yol haritası oluşturmak ister misiniz?</p>
+            <a href="https://www.ataolai.tech/#contact" style="display:inline-block;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Ücretsiz Danışmanlık Görüşmesi</a>
+        </div>
+
+        <!-- Signature -->
+        <p style="margin:0;font-size:13px;color:#333;">Sertaç Gül<br><span style="color:#888;font-size:12px;">Founder, ATAOL AI Techs</span></p>
     </div>
-    <div style="text-align:center;padding:16px;background:#0f172a;">
-        ${svgChart}
-    </div>
-    <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-        <tr style="background:#0f172a;color:#fff;">
-            <th style="padding:10px;text-align:left;font-size:12px;">Boyut</th>
-            <th style="padding:10px;text-align:center;font-size:12px;">Puan</th>
-            <th style="padding:10px;text-align:center;font-size:12px;">Seviye</th>
-            <th style="padding:10px;text-align:left;font-size:12px;">Değerlendirme</th>
-        </tr>
-        ${dimRows}
-    </table>
-    ${(a.analysis || {}).sector_benchmark ? `<div style="background:#f0fdfa;padding:16px;margin:16px;border-left:4px solid #06b6d4;border-radius:4px;">
-        <strong style="font-size:13px;">Sektör Kıyaslaması:</strong>
-        <p style="margin:6px 0 0;font-size:13px;color:#374151;">${escapeHtml((a.analysis || {}).sector_benchmark)}</p>
-    </div>` : ''}
-    ${recs ? `<div style="padding:16px;">
-        <h3 style="font-size:14px;margin:0 0 10px;">Önerilen Aksiyonlar</h3>
-        <ol style="padding-left:18px;margin:0;font-size:13px;color:#374151;">${recs}</ol>
-    </div>` : ''}
-    ${(a.analysis || {}).summary ? `<div style="padding:0 16px 16px;">
-        <h3 style="font-size:14px;margin:0 0 8px;">Genel Özet</h3>
-        <p style="font-size:13px;color:#374151;margin:0;">${escapeHtml((a.analysis || {}).summary)}</p>
-    </div>` : ''}
-    <div style="text-align:center;padding:24px;background:#f8fafc;">
-        <a href="https://www.ataolai.tech/#contact" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">
-            Ücretsiz Danışmanlık Görüşmesi İçin Tıklayın
-        </a>
-    </div>
-    <div style="background:#0f172a;padding:16px;text-align:center;color:#94a3b8;font-size:12px;">
-        ATAOL AI Techs | www.ataolai.tech<br>info@ataolai.tech
+
+    <!-- Footer (same as outreach) -->
+    <div style="background:#f8f9fa;padding:20px 30px;border-radius:0 0 12px 12px;border:1px solid #e8e8e8;border-top:none;">
+        <table style="width:100%;" cellpadding="0" cellspacing="0"><tr>
+            <td style="vertical-align:middle;">
+                <p style="margin:0;font-size:12px;color:#888;">
+                    <a href="https://www.ataolai.tech" style="color:#1a1a2e;text-decoration:none;font-weight:600;">ataolai.tech</a>&nbsp;|&nbsp;<a href="https://strategythrust.com" style="color:#1976d2;text-decoration:none;">strategythrust.com</a>&nbsp;|&nbsp;<a href="https://actledger.com" style="color:#22d3ee;text-decoration:none;">actledger.com</a>
+                </p>
+            </td>
+            <td style="vertical-align:middle;text-align:right;">
+                <a href="https://www.linkedin.com/company/ataol-ai-techs" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" style="height:16px;width:16px;" />
+                    <span style="color:#0a66c2;font-size:11px;">Follow us</span>
+                </a>
+            </td>
+        </tr></table>
+        <p style="margin:12px 0 0;font-size:10px;color:#aaa;font-style:italic;">Bu değerlendirme ATAOL AI Techs uzman ekibi tarafından hazırlanmıştır. info@ataolai.tech</p>
     </div>
 </div>`;
 }
