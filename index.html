@@ -389,6 +389,7 @@
             <a onclick="showTab('sentlog')" id="tab-sentlog">Sent Log</a>
             <a onclick="showTab('approvedlog')" id="tab-approvedlog">Outreach Log</a>
             <a onclick="showTab('gmaps')" id="tab-gmaps" style="color:#34a853;">&#128205; Maps</a>
+            <a onclick="showTab('assessments')" id="tab-assessments" style="color:#a855f7;">Assessments</a>
             <a onclick="showTab('newoutreach')" id="tab-newoutreach" style="color:#4fc3f7;font-weight:600;">+ New</a>
         </nav>
         <span class="trigger-group">
@@ -603,6 +604,17 @@
         <div id="view-approvedlog" class="hidden"><div id="approvedLogContent"></div></div>
         <div id="view-gmaps" class="hidden"><div id="gmapsContent"></div></div>
 
+        <div id="view-assessments" class="hidden">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h3>AI Olgunluk Değerlendirmeleri</h3>
+                    <button class="btn btn-success" onclick="openNewAssessmentModal()" style="font-size:13px;padding:7px 16px;">+ Yeni Ekle</button>
+                </div>
+                <div id="assessmentStats" style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;"></div>
+                <div id="assessmentList"></div>
+            </div>
+        </div>
+
         <div id="view-newoutreach" class="hidden">
             <div class="card">
                 <h3 style="margin-bottom:4px;">New Outreach</h3>
@@ -663,6 +675,7 @@ const GIST_ID = '3a783c6e0d525a36da50cc4821e55552';
 let TOKEN = '';
 let emailsData = [];
 let leadsData = [];
+window.assessmentsData = [];
 // ---- AUTH ----
 function login() {
     const token = document.getElementById('tokenInput').value.trim();
@@ -2914,6 +2927,7 @@ async function loadData() {
             leadsData = data.leads || [];
             newslettersData = data.newsletters || [];
             window._publishLog = data.publish_log || [];
+            window.assessmentsData = data.assessments || [];
             repairLeadIds();
             renderAll();
             return;
@@ -2942,6 +2956,7 @@ async function loadData() {
         leadsData = data.leads || [];
         newslettersData = data.newsletters || [];
         window._publishLog = data.publish_log || [];
+        window.assessmentsData = data.assessments || [];
         repairLeadIds();
         renderAll();
     } catch (e2) {
@@ -2957,6 +2972,7 @@ async function saveData() {
         leads: leadsData,
         newsletters: newslettersData,
         publish_log: window._publishLog || [],
+        assessments: window.assessmentsData || [],
         updated_at: new Date().toISOString()
     };
     const jsonStr = JSON.stringify(data);
@@ -2988,6 +3004,7 @@ function renderAll() {
     renderSentLog();
     renderOutreachLog();
     renderGmaps();
+    renderAssessments();
     // Update tab counts
     const pendingCount = emailsData.filter(e => e.status === 'pending_review').length;
     const sentCount = emailsData.filter(e => e.status === 'sent').length;
@@ -3538,12 +3555,13 @@ function renderEmailList(containerId, emails, emptyMsg) {
 
 // ---- TABS ----
 function showTab(tab) {
-    ['overview','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','newoutreach'].forEach(t => {
+    ['overview','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','newoutreach'].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const tabEl = document.getElementById(`tab-${t}`);
         if (view) view.classList.toggle('hidden', t !== tab);
         if (tabEl) tabEl.classList.toggle('active', t === tab);
     });
+    if (tab === 'assessments') renderAssessments();
 }
 
 // ---- SCALE TRANSFORM ----
@@ -4432,6 +4450,500 @@ async function addToQueue() {
 
     showToast(`${lead.company_name} kuyruga eklendi!`, 'success');
     showTab('pending');
+}
+
+// ---- ASSESSMENTS ----
+const ASSESSMENT_DIMENSIONS = [
+    { key: 'd1', label: 'Strateji & Vizyon' },
+    { key: 'd2', label: 'Veri & Altyapı' },
+    { key: 'd3', label: 'Süreç & Otomasyon' },
+    { key: 'd4', label: 'İnsan & Kültür' },
+    { key: 'd5', label: 'Yönetişim & Etik' }
+];
+
+function assessmentScoreColor(score) {
+    if (score >= 70) return '#16a34a';
+    if (score >= 45) return '#d97706';
+    return '#dc2626';
+}
+
+function assessmentScoreLevel(score) {
+    if (score >= 70) return 'İleri Seviye';
+    if (score >= 45) return 'Gelişmekte';
+    return 'Başlangıç';
+}
+
+function generateRadarChartSVG(scores) {
+    const dims = ASSESSMENT_DIMENSIONS;
+    const n = dims.length;
+    const cx = 200, cy = 200, maxR = 140;
+    const angles = dims.map((_, i) => (i * 2 * Math.PI / n) - Math.PI / 2);
+
+    function point(r, angle) {
+        return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+    }
+
+    // Grid polygons (20%, 40%, 60%, 80%, 100%)
+    let gridLines = '';
+    for (let g = 1; g <= 5; g++) {
+        const r = maxR * g / 5;
+        const pts = angles.map(a => point(r, a));
+        const d = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ') + ' Z';
+        gridLines += `<path d="${d}" fill="none" stroke="#334155" stroke-width="0.8" opacity="0.6"/>`;
+    }
+
+    // Axis lines
+    let axisLines = '';
+    angles.forEach(a => {
+        const p = point(maxR, a);
+        axisLines += `<line x1="${cx}" y1="${cy}" x2="${p.x.toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="#334155" stroke-width="0.8" opacity="0.6"/>`;
+    });
+
+    // Data polygon
+    const dataPoints = dims.map((d, i) => {
+        const val = (scores[d.key] || 0) / 100;
+        return point(maxR * val, angles[i]);
+    });
+    const dataDPath = dataPoints.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ') + ' Z';
+
+    // Labels
+    let labels = '';
+    dims.forEach((d, i) => {
+        const labelR = maxR + 24;
+        const p = point(labelR, angles[i]);
+        const score = scores[d.key] || 0;
+        const scoreColor = assessmentScoreColor(score);
+        labels += `<text x="${p.x.toFixed(1)}" y="${(p.y - 6).toFixed(1)}" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="sans-serif">${d.label}</text>`;
+        labels += `<text x="${p.x.toFixed(1)}" y="${(p.y + 8).toFixed(1)}" text-anchor="middle" fill="${scoreColor}" font-size="11" font-weight="700" font-family="sans-serif">${score}</text>`;
+    });
+
+    return `<svg viewBox="0 0 400 400" width="400" height="400" xmlns="http://www.w3.org/2000/svg" style="background:#0f172a;border-radius:8px;">
+        ${gridLines}
+        ${axisLines}
+        <path d="${dataDPath}" fill="#06b6d4" fill-opacity="0.25" stroke="#06b6d4" stroke-width="2"/>
+        ${dataPoints.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="#06b6d4"/>`).join('')}
+        ${labels}
+    </svg>`;
+}
+
+function renderAssessments() {
+    const stats = document.getElementById('assessmentStats');
+    const list = document.getElementById('assessmentList');
+    if (!stats || !list) return;
+
+    const data = window.assessmentsData || [];
+    const pending = data.filter(a => a.status === 'pending').length;
+    const approved = data.filter(a => a.status === 'approved').length;
+    const sent = data.filter(a => a.status === 'sent').length;
+
+    stats.innerHTML = `
+        <div style="background:#fff3e0;padding:10px 16px;border-radius:8px;min-width:100px;">
+            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Bekliyor</div>
+            <div style="font-size:22px;font-weight:700;color:#d97706;">${pending}</div>
+        </div>
+        <div style="background:#eff6ff;padding:10px 16px;border-radius:8px;min-width:100px;">
+            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Onaylı</div>
+            <div style="font-size:22px;font-weight:700;color:#1d4ed8;">${approved}</div>
+        </div>
+        <div style="background:#f0fdf4;padding:10px 16px;border-radius:8px;min-width:100px;">
+            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Gönderildi</div>
+            <div style="font-size:22px;font-weight:700;color:#15803d;">${sent}</div>
+        </div>
+    `;
+
+    if (data.length === 0) {
+        list.innerHTML = '<div class="empty">Henüz değerlendirme yok. "+ Yeni Ekle" ile başlayın.</div>';
+        return;
+    }
+
+    const sorted = [...data].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+    list.innerHTML = sorted.map((a, idx) => {
+        const overall = a.scores ? Math.round(Object.values(a.scores).reduce((s, v) => s + v, 0) / Object.values(a.scores).length) : 0;
+        const color = assessmentScoreColor(overall);
+        const statusBadgeMap = { pending: 'badge-pending', approved: 'badge-approved', sent: 'badge-sent' };
+        const statusLabelMap = { pending: 'Bekliyor', approved: 'Onaylı', sent: 'Gönderildi' };
+        const badgeCls = statusBadgeMap[a.status] || 'badge-pending';
+        const badgeLabel = statusLabelMap[a.status] || a.status;
+        const dateStr = a.created_at ? a.created_at.slice(0, 10) : '-';
+        return `<div class="email-item" style="cursor:default;border-left-color:${color}">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div class="company">${escapeHtml(a.company_name || a.email)}</div>
+                    <div class="meta">${escapeHtml(a.email)} · ${escapeHtml(a.sector || '')} · ${dateStr}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:20px;font-weight:800;color:${color};">${overall}</span>
+                    <span class="badge ${badgeCls}">${badgeLabel}</span>
+                    <button class="qbtn" onclick="openAssessmentDetail('${a.id}')">Görüntüle</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function openAssessmentDetail(id) {
+    const a = (window.assessmentsData || []).find(x => x.id === id);
+    if (!a) return;
+
+    const overall = a.scores ? Math.round(Object.values(a.scores).reduce((s, v) => s + v, 0) / Object.values(a.scores).length) : 0;
+    const color = assessmentScoreColor(overall);
+    const level = assessmentScoreLevel(overall);
+    const svgChart = generateRadarChartSVG(a.scores || {});
+
+    const dimRows = ASSESSMENT_DIMENSIONS.map(d => {
+        const score = (a.scores || {})[d.key] || 0;
+        const barColor = assessmentScoreColor(score);
+        const comment = ((a.analysis || {})[d.key] || '');
+        return `<tr>
+            <td style="padding:8px 10px;font-weight:600;font-size:13px;">${d.label}</td>
+            <td style="padding:8px 10px;text-align:center;">
+                <span style="font-size:16px;font-weight:700;color:${barColor};">${score}</span>
+                <div style="background:#f0f0f0;border-radius:4px;height:6px;margin-top:4px;width:80px;">
+                    <div style="background:${barColor};width:${score}%;height:6px;border-radius:4px;"></div>
+                </div>
+            </td>
+            <td style="padding:8px 10px;">
+                <textarea id="analysis_${d.key}_${id}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;resize:vertical;min-height:50px;font-family:inherit;">${escapeHtml(comment)}</textarea>
+            </td>
+        </tr>`;
+    }).join('');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'email-detail-overlay';
+    overlay.style.zIndex = '500';
+    overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+
+    overlay.innerHTML = `<div class="email-detail-box" style="width:760px;max-height:90vh;overflow-y:auto;">
+        <div class="header">
+            <h3 style="margin:0;font-size:16px;">${escapeHtml(a.company_name || a.email)} — AI Olgunluk Raporu</h3>
+            <span class="close-btn" onclick="this.closest('.email-detail-overlay').remove()">&times;</span>
+        </div>
+
+        <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+                <div class="field"><strong>Email:</strong> ${escapeHtml(a.email)}</div>
+                <div class="field"><strong>Şirket:</strong> ${escapeHtml(a.company_name || '-')}</div>
+                <div class="field"><strong>Sektör:</strong> ${escapeHtml(a.sector || '-')}</div>
+                <div class="field"><strong>Boyut:</strong> ${escapeHtml(a.company_size || '-')}</div>
+                <div class="field"><strong>Tarih:</strong> ${(a.created_at || '').slice(0, 10)}</div>
+                <div style="margin-top:12px;text-align:center;">
+                    <div style="font-size:48px;font-weight:900;color:${color};">${overall}<span style="font-size:20px;">/100</span></div>
+                    <div style="font-size:14px;color:#64748b;">${level}</div>
+                </div>
+            </div>
+            <div style="flex-shrink:0;">${svgChart.replace('width="400" height="400"', 'width="220" height="220"')}</div>
+        </div>
+
+        <h4 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;color:#888;letter-spacing:0.5px;">Boyut Değerlendirmeleri</h4>
+        <table style="margin-bottom:16px;">
+            <thead><tr>
+                <th style="width:150px;">Boyut</th>
+                <th style="width:120px;text-align:center;">Puan</th>
+                <th>Değerlendirme (düzenlenebilir)</th>
+            </tr></thead>
+            <tbody>${dimRows}</tbody>
+        </table>
+
+        <div class="form-group">
+            <label>Sektör Kıyaslaması</label>
+            <textarea id="benchmark_${id}" rows="2" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit;">${escapeHtml((a.analysis || {}).sector_benchmark || '')}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Önerilen Aksiyonlar (her satır bir öneri)</label>
+            <textarea id="recommendations_${id}" rows="4" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit;">${escapeHtml((a.recommendations || []).join('\n'))}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Genel Özet</label>
+            <textarea id="summary_${id}" rows="3" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit;">${escapeHtml((a.analysis || {}).summary || '')}</textarea>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="approveAndSendAssessment('${id}', this)">Onayla ve E-posta İçeriğini Kopyala</button>
+            <button class="btn btn-outline" onclick="saveAssessmentEdits('${id}', this)">Kaydet</button>
+            <button class="btn btn-outline" onclick="this.closest('.email-detail-overlay').remove()">Kapat</button>
+        </div>
+    </div>`;
+
+    document.body.appendChild(overlay);
+}
+
+function saveAssessmentEdits(id, btn) {
+    const a = (window.assessmentsData || []).find(x => x.id === id);
+    if (!a) return;
+
+    a.analysis = a.analysis || {};
+    ASSESSMENT_DIMENSIONS.forEach(d => {
+        const el = document.getElementById(`analysis_${d.key}_${id}`);
+        if (el) a.analysis[d.key] = el.value;
+    });
+    const bench = document.getElementById(`benchmark_${id}`);
+    if (bench) a.analysis.sector_benchmark = bench.value;
+    const recs = document.getElementById(`recommendations_${id}`);
+    if (recs) a.recommendations = recs.value.split('\n').map(s => s.trim()).filter(Boolean);
+    const summ = document.getElementById(`summary_${id}`);
+    if (summ) a.analysis.summary = summ.value;
+
+    const origText = btn.textContent;
+    btn.textContent = 'Kaydediliyor...';
+    btn.disabled = true;
+    saveData().then(() => {
+        renderAssessments();
+        showToast('Değerlendirme kaydedildi.', 'success');
+        btn.textContent = origText;
+        btn.disabled = false;
+    }).catch(e => {
+        showToast('Kayıt başarısız: ' + e.message, 'error');
+        btn.textContent = origText;
+        btn.disabled = false;
+    });
+}
+
+function buildAssessmentEmailHTML(a) {
+    const overall = a.scores ? Math.round(Object.values(a.scores).reduce((s, v) => s + v, 0) / Object.values(a.scores).length) : 0;
+    const color = assessmentScoreColor(overall);
+    const level = assessmentScoreLevel(overall);
+    const svgChart = generateRadarChartSVG(a.scores || {});
+
+    const dimRows = ASSESSMENT_DIMENSIONS.map((d, i) => {
+        const score = (a.scores || {})[d.key] || 0;
+        const bg = i % 2 === 0 ? '#f8fafc' : '#ffffff';
+        const sColor = assessmentScoreColor(score);
+        const comment = ((a.analysis || {})[d.key] || '');
+        const levelLabel = assessmentScoreLevel(score);
+        return `<tr style="background:${bg};">
+            <td style="padding:10px;font-weight:600;font-size:13px;">${d.label}</td>
+            <td style="padding:10px;text-align:center;font-size:16px;font-weight:700;color:${sColor};">${score}</td>
+            <td style="padding:10px;text-align:center;font-size:12px;color:#64748b;">${levelLabel}</td>
+            <td style="padding:10px;font-size:12px;color:#374151;">${escapeHtml(comment)}</td>
+        </tr>`;
+    }).join('');
+
+    const recs = (a.recommendations || []).map(r => `<li style="margin-bottom:6px;">${escapeHtml(r)}</li>`).join('');
+
+    return `<div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;">
+    <div style="background:#0f172a;padding:24px;text-align:center;">
+        <h1 style="color:#06b6d4;margin:0;font-size:20px;">Kurumsal AI Olgunluk Değerlendirmesi</h1>
+        <p style="color:#94a3b8;margin:8px 0 0;font-size:13px;">ATAOL AI Techs | www.ataolai.tech</p>
+    </div>
+    <div style="text-align:center;padding:24px;background:#f8fafc;">
+        <div style="font-size:48px;font-weight:900;color:${color};">${overall}<span style="font-size:22px;">/100</span></div>
+        <div style="font-size:18px;color:#64748b;margin-top:4px;">${level}</div>
+        <div style="font-size:13px;color:#94a3b8;margin-top:4px;">${escapeHtml(a.company_name || a.email)}</div>
+    </div>
+    <div style="text-align:center;padding:16px;background:#0f172a;">
+        ${svgChart}
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+        <tr style="background:#0f172a;color:#fff;">
+            <th style="padding:10px;text-align:left;font-size:12px;">Boyut</th>
+            <th style="padding:10px;text-align:center;font-size:12px;">Puan</th>
+            <th style="padding:10px;text-align:center;font-size:12px;">Seviye</th>
+            <th style="padding:10px;text-align:left;font-size:12px;">Değerlendirme</th>
+        </tr>
+        ${dimRows}
+    </table>
+    ${(a.analysis || {}).sector_benchmark ? `<div style="background:#f0fdfa;padding:16px;margin:16px;border-left:4px solid #06b6d4;border-radius:4px;">
+        <strong style="font-size:13px;">Sektör Kıyaslaması:</strong>
+        <p style="margin:6px 0 0;font-size:13px;color:#374151;">${escapeHtml((a.analysis || {}).sector_benchmark)}</p>
+    </div>` : ''}
+    ${recs ? `<div style="padding:16px;">
+        <h3 style="font-size:14px;margin:0 0 10px;">Önerilen Aksiyonlar</h3>
+        <ol style="padding-left:18px;margin:0;font-size:13px;color:#374151;">${recs}</ol>
+    </div>` : ''}
+    ${(a.analysis || {}).summary ? `<div style="padding:0 16px 16px;">
+        <h3 style="font-size:14px;margin:0 0 8px;">Genel Özet</h3>
+        <p style="font-size:13px;color:#374151;margin:0;">${escapeHtml((a.analysis || {}).summary)}</p>
+    </div>` : ''}
+    <div style="text-align:center;padding:24px;background:#f8fafc;">
+        <a href="https://www.ataolai.tech/#contact" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">
+            Ücretsiz Danışmanlık Görüşmesi İçin Tıklayın
+        </a>
+    </div>
+    <div style="background:#0f172a;padding:16px;text-align:center;color:#94a3b8;font-size:12px;">
+        ATAOL AI Techs | www.ataolai.tech<br>info@ataolai.tech
+    </div>
+</div>`;
+}
+
+async function approveAndSendAssessment(id, btn) {
+    const a = (window.assessmentsData || []).find(x => x.id === id);
+    if (!a) return;
+
+    // Collect edits first
+    a.analysis = a.analysis || {};
+    ASSESSMENT_DIMENSIONS.forEach(d => {
+        const el = document.getElementById(`analysis_${d.key}_${id}`);
+        if (el) a.analysis[d.key] = el.value;
+    });
+    const bench = document.getElementById(`benchmark_${id}`);
+    if (bench) a.analysis.sector_benchmark = bench.value;
+    const recs = document.getElementById(`recommendations_${id}`);
+    if (recs) a.recommendations = recs.value.split('\n').map(s => s.trim()).filter(Boolean);
+    const summ = document.getElementById(`summary_${id}`);
+    if (summ) a.analysis.summary = summ.value;
+
+    const html = buildAssessmentEmailHTML(a);
+
+    // Copy to clipboard
+    try {
+        await navigator.clipboard.writeText(html);
+    } catch (e) {
+        // fallback: show in textarea
+    }
+
+    a.status = 'sent';
+    a.sent_at = new Date().toISOString();
+
+    const origText = btn.textContent;
+    btn.textContent = 'Kaydediliyor...';
+    btn.disabled = true;
+
+    try {
+        await saveData();
+        renderAssessments();
+        showToast('E-posta HTML\'i kopyalandı! Durum "Gönderildi" olarak güncellendi.', 'success');
+
+        // Show send instructions
+        const overlay = btn.closest('.email-detail-overlay');
+        const infoDiv = document.createElement('div');
+        infoDiv.style.cssText = 'background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px 16px;margin-top:12px;font-size:13px;';
+        infoDiv.innerHTML = `<strong style="color:#15803d;">E-posta içeriği kopyalandı!</strong><br>
+            <span style="color:#374151;">Gmail ile gönderin:</span><br>
+            <span style="color:#555;">To: <b>${escapeHtml(a.email)}</b></span><br>
+            <span style="color:#555;">Subject: <b>Kurumsal AI Olgunluk Değerlendirmeniz Hazır — ATAOL AI Techs</b></span><br>
+            <span style="color:#888;font-size:11px;">Gmail'de "Compose" → "More options" → HTML yapıştırın</span>`;
+        if (overlay) {
+            const btnGroup = overlay.querySelector('.btn-group');
+            if (btnGroup) btnGroup.insertAdjacentElement('afterend', infoDiv);
+        }
+    } catch (e) {
+        showToast('Kayıt başarısız: ' + e.message, 'error');
+    }
+
+    btn.textContent = origText;
+    btn.disabled = false;
+}
+
+function openNewAssessmentModal() {
+    const overlay = document.createElement('div');
+    overlay.className = 'email-detail-overlay';
+    overlay.style.zIndex = '500';
+    overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+
+    const dimInputs = ASSESSMENT_DIMENSIONS.map(d =>
+        `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <label style="width:150px;font-size:12px;font-weight:600;color:#555;">${d.label}</label>
+            <input type="number" id="new_score_${d.key}" min="0" max="100" value="50"
+                style="width:70px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
+            <span style="font-size:11px;color:#888;">/100</span>
+        </div>`
+    ).join('');
+
+    overlay.innerHTML = `<div class="email-detail-box" style="width:560px;max-height:90vh;overflow-y:auto;">
+        <div class="header">
+            <h3 style="margin:0;font-size:16px;">Yeni Değerlendirme Ekle</h3>
+            <span class="close-btn" onclick="this.closest('.email-detail-overlay').remove()">&times;</span>
+        </div>
+        <div style="margin-bottom:12px;background:#fffde7;border:1px solid #ffe082;border-radius:6px;padding:10px;font-size:12px;color:#7c5e00;">
+            Worker bildirim emailinden gelen JSON verilerini yapıştırın <strong>veya</strong> manuel olarak doldurun.
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;">JSON Yapıştır (Worker bildiriminden)</label>
+            <textarea id="newAssessmentJson" rows="4" placeholder='{"email":"...","company_name":"...","sector":"...","scores":{"d1":50,...},"analysis":{...},"recommendations":[...]}' style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:12px;font-family:monospace;resize:vertical;"></textarea>
+            <button class="qbtn" style="margin-top:4px;" onclick="parseAssessmentJson()">JSON Ayrıştır</button>
+        </div>
+        <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="new_email" placeholder="info@firma.com">
+        </div>
+        <div class="form-group">
+            <label>Şirket Adı</label>
+            <input type="text" id="new_company_name" placeholder="Firma Adı">
+        </div>
+        <div class="form-group">
+            <label>Sektör</label>
+            <input type="text" id="new_sector" placeholder="Teknoloji, Finans, Üretim...">
+        </div>
+        <div class="form-group">
+            <label>Boyut Puanları</label>
+            ${dimInputs}
+        </div>
+        <div class="form-group">
+            <label>Genel Özet</label>
+            <textarea id="new_summary" rows="2" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit;"></textarea>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="submitNewAssessment(this)">Ekle</button>
+            <button class="btn btn-outline" onclick="this.closest('.email-detail-overlay').remove()">İptal</button>
+        </div>
+    </div>`;
+
+    document.body.appendChild(overlay);
+}
+
+function parseAssessmentJson() {
+    const raw = (document.getElementById('newAssessmentJson') || {}).value || '';
+    try {
+        const parsed = JSON.parse(raw);
+        if (parsed.email) document.getElementById('new_email').value = parsed.email;
+        if (parsed.company_name) document.getElementById('new_company_name').value = parsed.company_name;
+        if (parsed.sector) document.getElementById('new_sector').value = parsed.sector;
+        if (parsed.scores) {
+            ASSESSMENT_DIMENSIONS.forEach(d => {
+                const el = document.getElementById('new_score_' + d.key);
+                if (el && parsed.scores[d.key] !== undefined) el.value = parsed.scores[d.key];
+            });
+        }
+        if (parsed.analysis && parsed.analysis.summary) {
+            document.getElementById('new_summary').value = parsed.analysis.summary;
+        }
+        showToast('JSON ayrıştırıldı.', 'success');
+    } catch (e) {
+        showToast('Geçersiz JSON: ' + e.message, 'error');
+    }
+}
+
+async function submitNewAssessment(btn) {
+    const email = (document.getElementById('new_email') || {}).value.trim();
+    if (!email) { showToast('Email gerekli!', 'error'); return; }
+
+    const scores = {};
+    ASSESSMENT_DIMENSIONS.forEach(d => {
+        const el = document.getElementById('new_score_' + d.key);
+        scores[d.key] = el ? (parseInt(el.value, 10) || 0) : 0;
+    });
+
+    const newEntry = {
+        id: 'asmnt_' + Date.now(),
+        email,
+        company_name: (document.getElementById('new_company_name') || {}).value.trim() || '',
+        sector: (document.getElementById('new_sector') || {}).value.trim() || '',
+        scores,
+        analysis: {
+            summary: (document.getElementById('new_summary') || {}).value.trim() || ''
+        },
+        recommendations: [],
+        status: 'pending',
+        created_at: new Date().toISOString()
+    };
+
+    window.assessmentsData = window.assessmentsData || [];
+    window.assessmentsData.push(newEntry);
+
+    const origText = btn.textContent;
+    btn.textContent = 'Kaydediliyor...';
+    btn.disabled = true;
+
+    try {
+        await saveData();
+        renderAssessments();
+        btn.closest('.email-detail-overlay').remove();
+        showToast('Değerlendirme eklendi!', 'success');
+    } catch (e) {
+        showToast('Kayıt başarısız: ' + e.message, 'error');
+        btn.textContent = origText;
+        btn.disabled = false;
+    }
 }
 
 // ---- INIT ----
