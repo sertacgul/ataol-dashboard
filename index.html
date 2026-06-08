@@ -5034,6 +5034,18 @@ async function approveAndSendAssessment(id, btn) {
         renderAssessments();
         showToast('✓ ' + a.email + ' adresine gönderildi' + detail, 'success');
 
+        // Send admin copy (fire-and-forget)
+        fetch('https://api.ataolai.tech/assessment-send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ataol-trigger-2026' },
+            body: JSON.stringify({
+                to: 'sertacgul@ataolai.tech',
+                subject: '[Admin Kopya] ' + subject + ' — ' + (a.company_name || a.email),
+                html: html,
+                from_name: 'ATAOL AI Techs'
+            })
+        }).catch(() => {});
+
         // Update button in modal to show resend option
         btn.textContent = 'Tekrar Gönder';
         btn.disabled = false;
