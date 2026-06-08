@@ -4733,10 +4733,11 @@ function openAssessmentDetail(id) {
         </div>
 
         <div class="btn-group">
-            <button class="btn btn-success" onclick="approveAndSendAssessment('${id}', this)">Onayla ve Gönder</button>
+            <button class="btn btn-success" onclick="approveAndSendAssessment('${id}', this)">${a.status === 'sent' ? 'Tekrar Gönder' : 'Onayla ve Gönder'}</button>
             <button class="btn btn-outline" onclick="saveAssessmentEdits('${id}', this)">Kaydet</button>
             <button class="btn btn-outline" onclick="this.closest('.email-detail-overlay').remove()">Kapat</button>
         </div>
+        ${a.sent_at ? '<p style="margin:8px 0 0;font-size:11px;color:#888;">Son gönderim: ' + a.sent_at.replace('T',' ').slice(0,19) + '</p>' : ''}
     </div>`;
 
     document.body.appendChild(overlay);
@@ -5015,20 +5016,27 @@ async function approveAndSendAssessment(id, btn) {
             })
         });
 
+        const respBody = await sendResp.text();
         if (!sendResp.ok) {
-            const errText = await sendResp.text();
-            throw new Error('Email gönderilemedi: ' + errText.substring(0, 100));
+            throw new Error('Email gönderilemedi (' + sendResp.status + '): ' + respBody.substring(0, 150));
         }
+
+        // Parse response for delivery confirmation
+        let detail = '';
+        try {
+            const r = JSON.parse(respBody);
+            if (r.messageId || r.id) detail = ' (ID: ' + (r.messageId || r.id) + ')';
+        } catch(_) {}
 
         a.status = 'sent';
         a.sent_at = new Date().toISOString();
-        await saveData();
+        try { await saveData(); } catch(se) { console.warn('Save deferred:', se.message); }
         renderAssessments();
-        showToast('Değerlendirme emaili ' + a.email + ' adresine gönderildi!', 'success');
+        showToast('✓ ' + a.email + ' adresine gönderildi' + detail, 'success');
 
-        // Close modal
-        const overlay = btn.closest('.email-detail-overlay');
-        if (overlay) setTimeout(() => overlay.remove(), 1500);
+        // Update button in modal to show resend option
+        btn.textContent = 'Tekrar Gönder';
+        btn.disabled = false;
     } catch (e) {
         showToast('Hata: ' + e.message, 'error');
         btn.textContent = origText;
