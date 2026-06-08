@@ -2942,7 +2942,7 @@ function patchEmailFooters() {
         }
         if (e.body_html.includes(ITU_ADDRESS_LINE)) patched = true;
     });
-    if (patched) saveData();
+    // Don't auto-save — changes persist on next user action (approve/edit/send)
 }
 
 // ---- DATA ----
