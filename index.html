@@ -2911,7 +2911,7 @@ function repairLeadIds() {
             needsSave = true;
         }
     });
-    if (needsSave) saveData();
+    // Don't auto-save on load — repaired IDs persist on next user action
 }
 
 // ---- PATCH: inject ITU Technokent address into existing email footers ----
@@ -3051,6 +3051,11 @@ async function saveData() {
         })
     });
     if (!resp.ok) {
+        if (resp.status === 403 || resp.status === 429) {
+            const reset = resp.headers.get('x-ratelimit-reset');
+            const waitMin = reset ? Math.max(1, Math.ceil((Number(reset) * 1000 - Date.now()) / 60000)) : 5;
+            throw new Error(`GitHub API rate limit — ${waitMin} dk sonra tekrar dene.`);
+        }
         const errText = await resp.text().catch(() => '');
         throw new Error(`Gist save failed (${resp.status}): ${errText.substring(0, 150)}`);
     }
