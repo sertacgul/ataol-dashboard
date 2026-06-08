@@ -2914,6 +2914,37 @@ function repairLeadIds() {
     if (needsSave) saveData();
 }
 
+// ---- PATCH: inject ITU Technokent address into existing email footers ----
+const ITU_ADDRESS_LINE = 'Istanbul Technical University Technokent, Maslak, Istanbul T\u00dcRK\u0130YE';
+const ITU_ADDRESS_BLOCK = '<p style="margin:0 0 4px;font-size:11px;color:#888;">' + ITU_ADDRESS_LINE + '</p>'
+    + '<p style="margin:0 0 4px;font-size:11px;">'
+    + '<a href="https://maps.google.com/?q=ARI+Teknokent+Resitpasa+Mah+Katar+Cad+No+4+34467+Maslak+Istanbul" style="color:#4285F4;text-decoration:none;font-size:11px;">\ud83d\udccd Google Maps</a>'
+    + ' &nbsp;|&nbsp; '
+    + '<a href="https://maps.apple.com/?q=ARI+Teknokent+Resitpasa+Mah+Katar+Cad+No+4+34467+Maslak+Istanbul" style="color:#333;text-decoration:none;font-size:11px;">\ud83d\uddfa\ufe0f Apple Maps</a>'
+    + '</p>';
+
+function patchEmailFooters() {
+    let patched = false;
+    emailsData.forEach(e => {
+        if (!e.body_html || e.body_html.includes(ITU_ADDRESS_LINE)) return;
+        // Insert address block before the website links line in the footer
+        // Pattern: after phone number line, before ataolai.tech link
+        e.body_html = e.body_html.replace(
+            /(<p[^>]*>(?:\+90 532 201 3416|ATAOL AI Techs)<\/p>\s*)(<p[^>]*>\s*<a[^>]*>ataolai\.tech<\/a>)/,
+            '$1' + ITU_ADDRESS_BLOCK + '$2'
+        );
+        // Fallback: insert before the ataolai.tech|strategythrust|actledger links row
+        if (!e.body_html.includes(ITU_ADDRESS_LINE)) {
+            e.body_html = e.body_html.replace(
+                /(<p[^>]*>\s*<a[^>]*ataolai\.tech[^<]*<\/a>\s*(?:&nbsp;\|&nbsp;|[|])\s*<a[^>]*strategythrust)/,
+                ITU_ADDRESS_BLOCK + '$1'
+            );
+        }
+        if (e.body_html.includes(ITU_ADDRESS_LINE)) patched = true;
+    });
+    if (patched) saveData();
+}
+
 // ---- DATA ----
 async function loadData() {
     // Method 1: Direct raw URL (no auth needed, no truncation)
@@ -2940,6 +2971,7 @@ async function loadData() {
                 }
             } catch (ae) { /* assessments.json may not exist yet */ }
             repairLeadIds();
+            patchEmailFooters();
             renderAll();
             return;
         }
@@ -2984,6 +3016,7 @@ async function loadData() {
             }
         } catch (ae) { /* OK */ }
         repairLeadIds();
+        patchEmailFooters();
         renderAll();
     } catch (e2) {
         console.error('All load methods failed:', e2);
