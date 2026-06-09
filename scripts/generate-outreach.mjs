@@ -162,7 +162,7 @@ const EN_L10N = {
   eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
 };
 
-const LOGO_URL = 'https://sertacgul.github.io/ataol-dashboard/ataol-logo.png';
+const LOGO_URL = 'https://www.ataolai.tech/images/ataol-logo.png';
 const LINKEDIN_URL = 'https://www.linkedin.com/company/ataol-ai-techs';
 const LINKEDIN_ICON = 'https://cdn-icons-png.flaticon.com/512/174/174857.png';
 
