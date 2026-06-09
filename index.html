@@ -4833,9 +4833,26 @@ function buildAssessmentEmailHTML(a) {
             <p style="margin:0;font-size:42px;font-weight:800;color:#1f2937;">${overall}<span style="font-size:20px;color:#6b7280;">/100</span></p>
             <p style="margin:4px 0 0;font-size:16px;color:#0891b2;font-weight:600;">${escapeHtml(level)}</p>
             ${sector ? `<p style="margin:8px 0 0;font-size:12px;color:#9ca3af;">Sektör: ${escapeHtml(sector)}</p>` : ''}
-            <!-- Radar Chart -->
-            <div style="margin-top:20px;">${generateRadarChartSVG(a.scores || {})}</div>
         </div>
+
+        <!-- Dimension Score Summary (email-safe, no SVG) -->
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+            ${ASSESSMENT_DIMENSIONS.map((d, i) => {
+                const s = Math.round(((a.scores || {})[d.key] || 0) * 10) / 10;
+                const c = assessmentScoreColor(s);
+                const barW = Math.max(Math.round(s), 5);
+                const bg = i % 2 === 0 ? '#f8fafc' : '#ffffff';
+                return `<tr style="background:${bg};">
+                    <td style="padding:10px 14px;font-size:13px;font-weight:600;color:#1f2937;border-bottom:1px solid #f0f0f0;">${d.label}</td>
+                    <td style="padding:10px 14px;width:120px;border-bottom:1px solid #f0f0f0;">
+                        <div style="background:#e5e7eb;border-radius:4px;height:8px;width:100%;">
+                            <div style="background:${c};width:${barW}%;height:8px;border-radius:4px;"></div>
+                        </div>
+                    </td>
+                    <td style="padding:10px 14px;width:60px;text-align:right;font-size:15px;font-weight:700;color:${c};border-bottom:1px solid #f0f0f0;">${s}</td>
+                </tr>`;
+            }).join('')}
+        </table>
 
         <!-- Methodology Note -->
         <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px 16px;margin-bottom:24px;">
