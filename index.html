@@ -4458,6 +4458,7 @@ SPAM PREVENTION & POSTMASTER DELIVERY RULES:
 PRODUCT ROUTING & HERO VALUE PROPOSITION RULES (CRITICAL - EXACTLY ONE HERO SERVICE):
 - You MUST select EXACTLY ONE primary platform/service (the "hero") that best fits the company's researched pain points and needs (choose from: StrategyThrust, ActLedger, ATAOL AI Lab, or ATAOL AI Institute).
 - Do NOT pitch multiple platforms or services. Focus entirely on the selected hero.
+- The "intro" and "ataol_intro" fields must explicitly weave in the company's specific researched pain points and introduce the selected hero product/service as the ideal solution to those problems.
 - Crucially, you MUST leave the fields for all non-selected services completely empty or null in the JSON response:
   - If StrategyThrust is the hero: fill \`st_value_prop\` and \`st_solutions\`, and set \`al_value_prop\`, \`al_solutions\`, \`services_note\`, \`institute_note\` to empty values (empty strings or empty arrays).
   - If ActLedger is the hero: fill \`al_value_prop\` and \`al_solutions\`, and set \`st_value_prop\`, \`st_solutions\`, \`services_note\`, \`institute_note\` to empty values.
@@ -4491,8 +4492,8 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
     "subject": "Subject line - max 60 chars - IN ${hintLang}",
     "language": "${hintLangCode}",
     "greeting": "Formal greeting IN ${hintLang}",
-    "intro": "Company-specific opening. Max 60 words. IN ${hintLang}",
-    "ataol_intro": "ATAOL intro 1-2 sentences. Max 30 words. IN ${hintLang}",
+    "intro": "Opening paragraph weaving the company's specific researched pain points. Max 60 words. IN ${hintLang}",
+    "ataol_intro": "ATAOL intro introducing the chosen hero platform/service as the direct solution to their pain points. Max 30 words. IN ${hintLang}",
     "st_value_prop": "StrategyThrust value prop. Max 35 words. IN ${hintLang}",
     "st_solutions": ["Solution 1 IN ${hintLang}", "Solution 2"],
     "al_value_prop": "ActLedger value prop. Max 35 words. IN ${hintLang}",

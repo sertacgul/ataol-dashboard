@@ -357,7 +357,8 @@ async function generateEmail(lead, research, country, lang, emailType = 'initial
     emailSpecificInstructions = `
 EMAIL TYPE: INITIAL OUTREACH
 - Write a complete initial business development proposal.
-- Cover StrategyThrust and ActLedger sections, as well as digital services or institute notes (TR only).
+- Focus entirely on the selected hero product/service. Do NOT cover other products or services.
+- The "intro" and "ataol_intro" fields must explicitly weave in the company's specific researched pain points and introduce the selected hero product/service as the ideal solution to those problems.
 - Keep it highly customized to the research.
 - Subject line must be max 60 chars.
 `;
@@ -444,8 +445,8 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
   },
   "email": {
     "subject": "max 60 chars", "language": "${lang}",
-    "greeting": "...", "intro": "max 60 words",
-    "ataol_intro": "max 30 words", "st_value_prop": "max 35 words",
+    "greeting": "...", "intro": "opening paragraph weaving company pain points. max 60 words",
+    "ataol_intro": "ATAOL intro introducing the chosen hero platform as the solution. max 30 words", "st_value_prop": "max 35 words",
     "st_solutions": ["..."], "al_value_prop": "max 35 words",
     "al_solutions": ["..."], "innovation_highlights": ["...","...","..."],
     "services_note": "max 20 words", "institute_note": "TR only or empty",
