@@ -31,8 +31,8 @@ Piramit Platform ve Hizmetlerimiz:
 
 2. ActLedger - Operasyonel Mukemmellik Sistem Platformu:
 - 15 sektor, 576+ departman, 7800+ hazir KPI ile dunyanin en kapsamli sektor-spesifik performans olcum ve takip sistemidir.
-- Mobil-first: iOS native app + PWA. Saha operasyonlari, envanter, is akislari ve IoT entegrasyonu saglar.
-- Kampanya: 3 aylik lisans alanlara +1 ay ucretsiz | Yillik lisans alanlara %15 indirim.
+- Mobil-first: iOS + Android + PWA. Saha operasyonlari, envanter, is akislari ve IoT entegrasyonu saglar.
+- Kampanya: 3 aylik lisans alanlara +1 ay ucretsiz | Yillik lisans alanlara %10 indirim.
 
 3. ATAOL AI Lab - Yapay Zeka Entegrasyonu ve Dijital Donusum Hizmetleri:
 - Buyuk Dil Modelleri (LLM) ve uretken yapay zeka araclarinin sirketlerin is akislarina ve B2B yazilim sureclerine entegrasyonu.
@@ -65,7 +65,7 @@ const TEMPLATE_L10N = {
     al_label: 'Operasyonel M\u00fckemmellik Sistem Platformu',
     innov_label: '\u0130novasyon ve D\u00fcnya \u0130lkleri',
     svc_label: 'Otomasyon, Mobil & Web Uygulama, \u00d6zel Yaz\u0131l\u0131m \u00c7\u00f6z\u00fcmleri',
-    promo: '3 ayl\u0131k lisans alanlara +1 ay \u00fccretsiz kullan\u0131m | Y\u0131ll\u0131k lisans alanlara %15 indirim',
+    promo: '3 ayl\u0131k lisans alanlara +1 ay \u00fccretsiz kullan\u0131m | Y\u0131ll\u0131k lisans alanlara %10 indirim',
     unsub: 'Bu e-postay\u0131 almak istemiyorsan\u0131z, l\u00fctfen \'abonelikten \u00e7\u0131k\' yazarak yan\u0131t verin.',
     eng_note: ''
   },
@@ -74,7 +74,7 @@ const TEMPLATE_L10N = {
     al_label: 'Operationale Exzellenz Plattform',
     innov_label: 'Innovation und Weltpremieren',
     svc_label: 'Automatisierung, Mobile & Web Apps, individuelle Softwarel\u00f6sungen',
-    promo: '3-Monats-Lizenz: +1 Monat kostenlos | Jahreslizenz: 15% Rabatt',
+    promo: '3-Monats-Lizenz: +1 Monat kostenlos | Jahreslizenz: 10% Rabatt',
     unsub: 'Wenn Sie diese E-Mails nicht mehr erhalten m\u00f6chten, antworten Sie einfach mit \'abmelden\'.',
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -83,7 +83,7 @@ const TEMPLATE_L10N = {
     al_label: "Plateforme d'excellence op\u00e9rationnelle",
     innov_label: 'Innovation et premi\u00e8res mondiales',
     svc_label: 'Automatisation, applications mobiles & web, solutions logicielles sur mesure',
-    promo: 'Licence 3 mois : +1 mois offert | Licence annuelle : 15% de r\u00e9duction',
+    promo: 'Licence 3 mois : +1 mois offert | Licence annuelle : 10% de r\u00e9duction',
     unsub: "Si vous ne souhaitez plus recevoir ces e-mails, r\u00e9pondez simplement 'se d\u00e9sabonner'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -92,7 +92,7 @@ const TEMPLATE_L10N = {
     al_label: 'Plataforma de excelencia operacional',
     innov_label: 'Innovaci\u00f3n y primicias mundiales',
     svc_label: 'Automatizaci\u00f3n, apps m\u00f3viles & web, soluciones de software a medida',
-    promo: 'Licencia 3 meses: +1 mes gratis | Licencia anual: 15% de descuento',
+    promo: 'Licencia 3 meses: +1 mes gratis | Licencia anual: 10% de descuento',
     unsub: "Si no desea recibir estos correos, simplemente responda con 'cancelar suscripci\u00f3n'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -101,7 +101,7 @@ const TEMPLATE_L10N = {
     al_label: 'Piattaforma di eccellenza operativa',
     innov_label: 'Innovazione e primati mondiali',
     svc_label: 'Automazione, app mobile & web, soluzioni software personalizzate',
-    promo: 'Licenza 3 mesi: +1 mese gratuito | Licenza annuale: sconto del 15%',
+    promo: 'Licenza 3 mesi: +1 mese gratuito | Licenza annuale: sconto del 10%',
     unsub: "Se non desideri pi\u00f9 ricevere queste e-mail, rispondi semplicemente con 'annulla iscrizione'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -110,7 +110,7 @@ const TEMPLATE_L10N = {
     al_label: 'Plataforma de excel\u00eancia operacional',
     innov_label: 'Inova\u00e7\u00e3o e pioneirismo mundial',
     svc_label: 'Automa\u00e7\u00e3o, apps m\u00f3veis & web, solu\u00e7\u00f5es de software sob medida',
-    promo: 'Licen\u00e7a 3 meses: +1 m\u00eas gr\u00e1tis | Licen\u00e7a anual: 15% de desconto',
+    promo: 'Licen\u00e7a 3 meses: +1 m\u00eas gr\u00e1tis | Licen\u00e7a anual: 10% de desconto',
     unsub: "Se n\u00e3o deseja receber estes e-mails, basta responder com 'cancelar inscri\u00e7\u00e3o'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -119,7 +119,7 @@ const TEMPLATE_L10N = {
     al_label: 'Operationeel excellentie platform',
     innov_label: 'Innovatie en wereldprimeurs',
     svc_label: 'Automatisering, mobiele & webapps, maatwerkoplossingen',
-    promo: '3-maanden licentie: +1 maand gratis | Jaarlicentie: 15% korting',
+    promo: '3-maanden licentie: +1 maand gratis | Jaarlicentie: 10% korting',
     unsub: "Als u deze e-mails niet meer wilt ontvangen, antwoord dan met 'uitschrijven'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -128,7 +128,7 @@ const TEMPLATE_L10N = {
     al_label: '\u30aa\u30da\u30ec\u30fc\u30b7\u30e7\u30ca\u30eb\u30a8\u30af\u30bb\u30ec\u30f3\u30b9\u30d7\u30e9\u30c3\u30c8\u30d5\u30a9\u30fc\u30e0',
     innov_label: '\u30a4\u30ce\u30d9\u30fc\u30b7\u30e7\u30f3\u3068\u4e16\u754c\u521d',
     svc_label: '\u81ea\u52d5\u5316\u3001\u30e2\u30d0\u30a4\u30eb&\u30a6\u30a7\u30d6\u30a2\u30d7\u30ea\u3001\u30ab\u30b9\u30bf\u30e0\u30bd\u30d5\u30c8\u30a6\u30a7\u30a2\u30bd\u30ea\u30e5\u30fc\u30b7\u30e7\u30f3',
-    promo: '3\u30f6\u6708\u30e9\u30a4\u30bb\u30f3\u30b9\uff1a+1\u30f6\u6708\u7121\u6599 | \u5e74\u9593\u30e9\u30a4\u30bb\u30f3\u30b9\uff1a15%\u5272\u5f15',
+    promo: '3\u30f6\u6708\u30e9\u30a4\u30bb\u30f3\u30b9\uff1a+1\u30f6\u6708\u7121\u6599 | \u5e74\u9593\u30e9\u30a4\u30bb\u30f3\u30b9\uff1a10%\u5272\u5f15',
     unsub: '\u3053\u306e\u30e1\u30fc\u30eb\u306e\u914d\u4fe1\u505c\u6b62\u3092\u3054\u5e0c\u671b\u306e\u5834\u5408\u306f\u3001\u300c\u914d\u4fe1\u505c\u6b62\u300d\u3068\u3054\u8fd4\u4fe1\u304f\u3060\u3055\u3044\u3002',
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -137,7 +137,7 @@ const TEMPLATE_L10N = {
     al_label: '\uc6b4\uc601 \ud0c1\uc6d4\uc131 \ud50c\ub7ab\ud3fc',
     innov_label: '\ud601\uc2e0 \ubc0f \uc138\uacc4 \ucd5c\ucd08',
     svc_label: '\uc790\ub3d9\ud654, \ubaa8\ubc14\uc77c & \uc6f9 \uc571, \ub9de\ucda4\ud615 \uc18c\ud504\ud2b8\uc6e8\uc5b4 \uc194\ub8e8\uc158',
-    promo: '3\uac1c\uc6d4 \ub77c\uc774\uc120\uc2a4: +1\uac1c\uc6d4 \ubb34\ub8cc | \uc5f0\uac04 \ub77c\uc774\uc120\uc2a4: 15% \ud560\uc778',
+    promo: '3\uac1c\uc6d4 \ub77c\uc774\uc120\uc2a4: +1\uac1c\uc6d4 \ubb34\ub8cc | \uc5f0\uac04 \ub77c\uc774\uc120\uc2a4: 10% \ud560\uc778',
     unsub: '\uc774 \uc774\uba54\uc77c \uc218\uc2e0\uc744 \uc6d0\uce58 \uc54a\uc73c\uc2dc\uba74 \'cancelar suscripcion\'\ub85c \ud68c\uc2e0\ud574 \uc8fc\uc138\uc694.',
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -146,8 +146,8 @@ const TEMPLATE_L10N = {
     al_label: '\u0645\u0646\u0635\u0629 \u0627\u0644\u062a\u0645\u064a\u0632 \u0627\u0644\u062a\u0634\u063a\u064a\u0644\u064a',
     innov_label: '\u0627\u0644\u0627\u0628\u062a\u0643\u0627\u0631 \u0648\u0627\u0644\u0631\u064a\u0627\u062f\u0629 \u0627\u0644\u0639\u0627\u0644\u0645\u064a\u0629',
     svc_label: '\u0627\u0644\u0623\u062a\u0645\u062a\u0629\u060c \u062a\u0637\u0628\u064a\u0642\u0627\u062a \u0627\u0644\u0647\u0627\u062a\u0641 \u0648\u0627\u0644\u0648\u064a\u0628\u060c \u062d\u0644\u0648\u0644 \u0628\u0631\u0645\u062c\u064a\u0629 \u0645\u062e\u0635\u0635\u0629',
-    promo: '\u0631\u062e\u0635\u0629 3 \u0623\u0634\u0647\u0631: +1 \u0634\u0647\u0631 \u0645\u062c\u0627\u0646\u064b\u0627 | \u0631\u062e\u0635\u0629 \u0633\u0646\u0648\u064a\u0629: \u062e\u0635\u0645 15%',
-    unsub: '\u0625\u0630\u0627 \u0644\u0645 \u062a\u0631\u063a\u0628 \u0641\u064a \u062a\u0644\u0642\u064a \u0647\u0630\u0647 \u0627\u0644\u0631\u0633\u0627\u0626\u0644\u060c \u064a\u0631\u062c\u0649 \u0627\u0644\u0631\u062f \u0628\u0640 \'\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643\'.',
+    promo: '\u0631\u062e\u0635\u0629 3 \u0623\u0634\u0647\u0631: +1 \u0634\u0647\u0631 \u0645\u062c\u0627\u0646\u064b\u0627 | \u0631\u062e\u0635\u0629 \u0633\u0646\u0648\u064a\u0629: \u062e\u0635\u0645 10%',
+    unsub: '\u0625\u0630\u0627 \u0644\u0645 \u062a\u0631\u063a\u0628 \u0641\u064a \u062a\u0644\u0642\u064a \u0647\u0630\u0647 \u0627\u0644\u0631\u0633\u0627\u0626\u0644\u060c \u064a\u0631\u062c\u0649 \u0627\u0644\u0631\u062f \u0628\u0640 \'\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0633\'.',
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   }
 };
@@ -156,7 +156,7 @@ const EN_L10N = {
   al_label: 'Operational Excellence System Platform',
   innov_label: 'Innovation and World Firsts',
   svc_label: 'Automation, Mobile & Web Apps, Custom Software Solutions',
-  promo: '3-month license: +1 month free | Annual license: 15% discount',
+  promo: '3-month license: +1 month free | Annual license: 10% discount',
   unsub: "If you'd prefer not to receive these emails, simply reply with 'unsubscribe'.",
   eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
 };
@@ -194,6 +194,21 @@ async function writeGist(data) {
     body: JSON.stringify({ files: { 'emails.json': { content: JSON.stringify(data) } } })
   });
   if (!resp.ok) throw new Error(`Gist write failed: ${resp.status}`);
+}
+
+// ---- Helper: Normalize Email ----
+function normalizeEmail(email) {
+  if (!email) return email;
+  return email.toLowerCase().trim()
+    .replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .replace(/ı/g, 'i')
+    .replace(/ö/g, 'o')
+    .replace(/ş/g, 's')
+    .replace(/ü/g, 'u')
+    .replace(/â/g, 'a')
+    .replace(/î/g, 'i')
+    .replace(/û/g, 'u');
 }
 
 // ---- Retry wrapper for Gemini API (handles 429/503 rate limits) ----
@@ -390,7 +405,7 @@ LANGUAGE RULES:
 8. Em-dash/en-dash forbidden, use only short hyphen (-).
 9. McKinsey/BCG/Bain corporate tone.
 10. Shorter timeframe and 1/150 cost advantage: mention each ONLY ONCE total. Emphasize that our consulting output is delivered in a much shorter timeframe and at a much lower cost compared to traditional consulting.
-11. Campaign details ONLY in ActLedger section, NOT in closing.
+11. Campaign details (3 months +1 / annual 10%) ONLY in ActLedger section, NOT in closing.
 12. Include real facts from the research.
 
 SPAM PREVENTION & POSTMASTER DELIVERY RULES:
@@ -398,15 +413,16 @@ SPAM PREVENTION & POSTMASTER DELIVERY RULES:
 - Avoid using exclamation marks (!), ALL CAPS words, or emojis in the subject line or email body.
 - The subject line (for INITIAL outreach) must be highly professional and specific to their company/challenges (e.g. "Operational Excellence Proposal for [Company]" or "Strategic Efficiency Project for [Company]").
 
-PRODUCT ROUTING & SUBLIMINAL MESSAGE RULES (CRITICAL - NO GENERIC TEXT):
-- Do NOT use generic value propositions or template-like text for our platforms (ActLedger, StrategyThrust, ATAOL AI Institute, ATAOL AI Lab).
-- Customize each section (StrategyThrust, ActLedger, ATAOL AI Lab, ATAOL AI Institute) to directly address the company's specific researched pain points.
-- Map the company's problems to the respective platforms:
-  - If they face strategic, market positioning, or decision-making bottlenecks -> StrategyThrust is the hero. The StrategyThrust section should highlight how StrategyThrust solves their exact market/sector challenges.
-  - If they face operational inefficiency, KPI tracking gaps, saha (field) coordination issues, workflow tracking gaps -> ActLedger is the hero. Customize ActLedger value props and solutions to their exact department or operational metrics.
-  - If they lack digital transformation, B2B software integration, custom workflows, or AI tools -> ATAOL AI Lab is the hero. Mention custom B2B software and workflow automation under "services_note" as the custom AI Lab solution for their exact automation gap.
-  - If they need team training, AI literacy, or management upskilling -> ATAOL AI Institute is the hero. Customize the "institute_note" (TR only) to propose a tailored AI literacy or executive training program for their team.
-- Integrate these recommendations smoothly ("subliminal" / contextual routing) so that the transition from their problem to our specific platform/service feels natural, inevitable, and highly compelling.
+PRODUCT ROUTING & HERO VALUE PROPOSITION RULES (CRITICAL - EXACTLY ONE HERO SERVICE):
+- You MUST select EXACTLY ONE primary platform/service (the "hero") that best fits the company's researched pain points and needs (choose from: StrategyThrust, ActLedger, ATAOL AI Lab, or ATAOL AI Institute).
+- Do NOT pitch multiple platforms or services. Focus entirely on the selected hero.
+- Crucially, you MUST leave the fields for all non-selected services completely empty or null in the JSON response:
+  - If StrategyThrust is the hero: fill \`st_value_prop\` and \`st_solutions\`, and set \`al_value_prop\`, \`al_solutions\`, \`services_note\`, \`institute_note\` to empty values (empty strings or empty arrays).
+  - If ActLedger is the hero: fill \`al_value_prop\` and \`al_solutions\`, and set \`st_value_prop\`, \`st_solutions\`, \`services_note\`, \`institute_note\` to empty values.
+  - If ATAOL AI Lab is the hero (lack of custom software, automation, API integration): fill \`services_note\` (and optionally \`innovation_highlights\`), and set \`st_value_prop\`, \`st_solutions\`, \`al_value_prop\`, \`al_solutions\`, \`institute_note\` to empty values.
+  - If ATAOL AI Institute is the hero (TR companies only - training, AI literacy): fill \`institute_note\`, and set \`st_value_prop\`, \`st_solutions\`, \`al_value_prop\`, \`al_solutions\`, \`services_note\` to empty values.
+- If a platform is not selected as the hero, do NOT write any generic text or placeholder text for it. Keep it completely empty.
+- Keep the \`innovation_highlights\` field focused on the selected hero product or general company tech innovation highlights. If there are no specific highlights, leave it as an empty array.
 
 --- FIRMA BILGILERI ---
 Firma: ${name}
@@ -482,13 +498,49 @@ function buildEmailHtml(d, lang, emailType = 'initial') {
   const innov_items = (d.innovation_highlights || []).map(h => `<p style="margin:0 0 8px;font-size:13px;color:#e0e0e0;padding-left:8px;">&#9733; ${h}</p>`).join('');
   const booking = d._booking_url || 'mailto:sertacgul@ataolai.tech';
 
+  let st_block = '';
+  if (d.st_value_prop && d.st_value_prop.trim() !== '') {
+    st_block = `<div style="background:#f8f9fc;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #1976d2;">
+      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Strategy<span style="color:#1976d2;">Thrust</span></p>
+      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${l.st_label}</p>
+      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.st_value_prop || ''}</p>
+      ${st_items}
+    </div>`;
+  }
+
+  let al_block = '';
+  if (d.al_value_prop && d.al_value_prop.trim() !== '') {
+    al_block = `<div style="background:#f0fdf4;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #22d3ee;">
+      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Act<span style="color:#22d3ee;">Ledger</span></p>
+      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${l.al_label}</p>
+      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.al_value_prop || ''}</p>
+      ${al_items}
+      <div style="margin:14px 0 0;padding:10px 14px;background:linear-gradient(135deg,#e0f7fa,#e8f5e9);border-radius:6px;border:1px dashed #22d3ee;">
+        <p style="margin:0;font-size:12px;font-weight:600;color:#0e7490;">&#127381; ${l.promo}</p>
+      </div>
+    </div>`;
+  }
+
   let institute_block = '';
-  if (lang === 'tr' && d.institute_note) {
+  if (lang === 'tr' && d.institute_note && d.institute_note.trim() !== '') {
     institute_block = `<div style="background:#fef3c7;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #f59e0b;">
       <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; ATAOL AI <span style="color:#f59e0b;">Institute</span></p>
       <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Kurumsal Yapay Zeka Egitim Programlari</p>
       <p style="margin:8px 0 0;font-size:13px;color:#444;">${d.institute_note}</p>
     </div>`;
+  }
+
+  let innov_block = '';
+  if (d.innovation_highlights && Array.isArray(d.innovation_highlights) && d.innovation_highlights.length > 0) {
+    innov_block = `<div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:10px;padding:20px 24px;margin:20px 0;">
+      <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#4fc3f7;text-transform:uppercase;letter-spacing:1px;">${l.innov_label}</p>
+      ${innov_items}
+    </div>`;
+  }
+
+  let services_block = '';
+  if (d.services_note && d.services_note.trim() !== '') {
+    services_block = `<p style="margin:16px 0 8px;font-size:13px;color:#555;">${d.services_note}</p>`;
   }
 
   return `<div style="max-width:620px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2d2d2d;line-height:1.6;">
@@ -500,27 +552,11 @@ function buildEmailHtml(d, lang, emailType = 'initial') {
     <p style="margin:0 0 16px;font-size:15px;color:#1a1a2e;">${d.greeting || ''}</p>
     <p style="margin:0 0 14px;font-size:14px;color:#444;">${d.intro || ''}</p>
     <p style="margin:0 0 20px;font-size:14px;color:#555;font-style:italic;">${d.ataol_intro || ''}</p>
-    <div style="background:#f8f9fc;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #1976d2;">
-      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Strategy<span style="color:#1976d2;">Thrust</span></p>
-      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${l.st_label}</p>
-      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.st_value_prop || ''}</p>
-      ${st_items}
-    </div>
-    <div style="background:#f0fdf4;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #22d3ee;">
-      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Act<span style="color:#22d3ee;">Ledger</span></p>
-      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${l.al_label}</p>
-      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.al_value_prop || ''}</p>
-      ${al_items}
-      <div style="margin:14px 0 0;padding:10px 14px;background:linear-gradient(135deg,#e0f7fa,#e8f5e9);border-radius:6px;border:1px dashed #22d3ee;">
-        <p style="margin:0;font-size:12px;font-weight:600;color:#0e7490;">&#127381; ${l.promo}</p>
-      </div>
-    </div>
+    ${st_block}
+    ${al_block}
     ${institute_block}
-    <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:10px;padding:20px 24px;margin:20px 0;">
-      <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#4fc3f7;text-transform:uppercase;letter-spacing:1px;">${l.innov_label}</p>
-      ${innov_items}
-    </div>
-    <p style="margin:16px 0 8px;font-size:13px;color:#555;">${d.services_note || ''}</p>
+    ${innov_block}
+    ${services_block}
     <p style="margin:0 0 20px;font-size:12px;"><a href="https://www.ataolai.tech" style="color:#1976d2;text-decoration:none;font-weight:600;">www.ataolai.tech</a></p>
     <p style="margin:4px 0 12px;font-size:14px;color:#444;">${d.closing || ''}</p>
     ${l.eng_note}
@@ -564,7 +600,7 @@ function extractContactFromResearch(research, lead) {
   // Try DECISION_MAKER first: "Full Name | Title | email@domain.com"
   const dmMatch = research.match(/DECISION_MAKER:\s*([^|]+)\|\s*([^|]+)\|\s*(\S+@\S+)/i);
   if (dmMatch) {
-    const email = dmMatch[3].replace(/[.,;)>]+$/, '');
+    const email = normalizeEmail(dmMatch[3].replace(/[.,;)>]+$/, ''));
     const genericRe = /^(info|contact|hello|office|sales|business|press|legal|privacy|support|hcp|cs|memberservices|dataprotection|notifications)@/i;
     if (!genericRe.test(email)) {
       lead.contact_name = dmMatch[1].trim();
@@ -575,10 +611,10 @@ function extractContactFromResearch(research, lead) {
   }
   // Fallback to CONTACT_EMAIL
   const ceMatch = research.match(/CONTACT_EMAIL:\s*(\S+@\S+)/i);
-  if (ceMatch) return ceMatch[1].replace(/[.,;)>]+$/, '');
+  if (ceMatch) return normalizeEmail(ceMatch[1].replace(/[.,;)>]+$/, ''));
   // Last resort: any business email in the text
   const emailMatch = research.match(/(?:info|contact|hello|office|sales|business)@[\w.-]+\.\w{2,}/i);
-  return emailMatch ? emailMatch[0] : '';
+  return emailMatch ? normalizeEmail(emailMatch[0]) : '';
 }
 
 // ---- Find decision-maker via Gemini + Google Search ----
@@ -633,7 +669,7 @@ EMAIL RETRIEVAL STRATEGY:
   const emailMatch = text.match(/EMAIL:\s*(\S+@\S+)/i);
   const linkedinMatch = text.match(/LINKEDIN:\s*(https?:\/\/\S+)/i);
 
-  const email = emailMatch ? emailMatch[1].replace(/[.,;)>]+$/, '') : null;
+  const email = emailMatch ? normalizeEmail(emailMatch[1].replace(/[.,;)>]+$/, '')) : null;
   if (!email || email === 'NONE' || GENERIC_RE.test(email)) return null;
 
   return {
@@ -746,6 +782,7 @@ async function main() {
       if (emailType === 'initial') {
         let dm = null;
         if (lead.contact_email && lead.contact_email !== 'NONE') {
+          lead.contact_email = normalizeEmail(lead.contact_email);
           console.log(`  Reusing existing contact details: ${lead.contact_name} <${lead.contact_email}>`);
           dm = {
             name: lead.contact_name,
@@ -771,7 +808,7 @@ async function main() {
         if (!lead.contact_email || lead.contact_email === 'NONE') {
           console.log(`  Found: ${dm.name} (${dm.title}) <${dm.email}>`);
           lead.contact_name = dm.name;
-          lead.contact_email = dm.email;
+          lead.contact_email = normalizeEmail(dm.email);
           lead.contact_title = dm.title;
           if (dm.linkedin) lead.contact_linkedin = dm.linkedin;
           hasUpdates = true;
@@ -840,7 +877,7 @@ Service Match: ${lead.service_match || '[]'}`;
 
       const newEmail = {
         lead_id: lead.id,
-        to_email: lead.contact_email,
+        to_email: normalizeEmail(lead.contact_email),
         to_name: lead.contact_name,
         from_email: 'sertacgul@ataolai.tech',
         subject: ed.subject,
