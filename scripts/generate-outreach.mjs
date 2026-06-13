@@ -175,7 +175,7 @@ async function readGist() {
   const fileInfo = gist.files['emails.json'];
   let content;
   if (fileInfo.truncated && fileInfo.raw_url) {
-    const r2 = await fetch(fileInfo.raw_url);
+    const r2 = await fetch(`${fileInfo.raw_url}?t=${Date.now()}`);
     content = await r2.text();
   } else {
     content = fileInfo.content;
@@ -209,6 +209,59 @@ function normalizeEmail(email) {
     .replace(/â/g, 'a')
     .replace(/î/g, 'i')
     .replace(/û/g, 'u');
+}
+
+// ---- Helper: Resolve Contact Details ----
+function resolveContactDetails(lead, lastEmail) {
+  let email = lead.contact_email;
+  let name = lead.contact_name;
+  let title = lead.contact_title || '';
+  let linkedin = lead.contact_linkedin || '';
+
+  const isInvalid = (val) => !val || val === 'undefined' || val === 'NONE' || val.includes('undefined');
+
+  // Try to resolve email
+  if (isInvalid(email)) {
+    if (lead.decision_maker_email && !isInvalid(lead.decision_maker_email)) {
+      email = lead.decision_maker_email;
+    } else if (lead.email && !isInvalid(lead.email)) {
+      email = lead.email;
+    } else if (lastEmail && lastEmail.to_email && !isInvalid(lastEmail.to_email)) {
+      email = lastEmail.to_email;
+    } else if (lead.emails_found) {
+      try {
+        const parsed = JSON.parse(lead.emails_found);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const firstValid = parsed.find(e => !isInvalid(e));
+          if (firstValid) email = firstValid;
+        }
+      } catch (err) {}
+    }
+  }
+
+  // Try to resolve name
+  if (isInvalid(name)) {
+    if (lead.decision_maker && !isInvalid(lead.decision_maker)) {
+      name = lead.decision_maker;
+    } else if (lastEmail && lastEmail.to_name && !isInvalid(lastEmail.to_name)) {
+      name = lastEmail.to_name;
+    }
+  }
+
+  if (isInvalid(title) && lead.decision_maker_title && !isInvalid(lead.decision_maker_title)) {
+    title = lead.decision_maker_title;
+  }
+
+  if (isInvalid(linkedin) && lead.decision_maker_linkedin && !isInvalid(lead.decision_maker_linkedin)) {
+    linkedin = lead.decision_maker_linkedin;
+  }
+
+  return {
+    email: normalizeEmail(email),
+    name: name || '',
+    title: title || '',
+    linkedin: linkedin || ''
+  };
 }
 
 // ---- Retry wrapper for Gemini API (handles 429/503 rate limits) ----
@@ -270,7 +323,9 @@ IMPORTANT: If you can only find a generic email, still provide it as "CONTACT_EM
   );
 
   const data = await resp.json();
-  const parts = data.candidates[0].content.parts;
+  const candidate = data.candidates && data.candidates[0];
+  const parts = candidate && candidate.content && candidate.content.parts;
+  if (!parts) return '';
   return parts.filter(p => p.text).map(p => p.text).join('\n');
 }
 
@@ -662,7 +717,9 @@ EMAIL RETRIEVAL STRATEGY:
   );
 
   const data = await resp.json();
-  const parts = data.candidates[0].content.parts;
+  const candidate = data.candidates && data.candidates[0];
+  const parts = candidate && candidate.content && candidate.content.parts;
+  if (!parts) return null;
   const text = parts.filter(p => p.text).map(p => p.text).join('\n');
 
   const nameMatch = text.match(/NAME:\s*(.+)/i);
@@ -776,6 +833,38 @@ async function main() {
     const { lead, emailType, prevSubject } = item;
     try {
       console.log(`\n--- ${lead.company_name} (${emailType}) ---`);
+
+      // Find last generated email for fallback resolution
+      const leadEmails = emails.filter(e => e.lead_id === lead.id);
+      leadEmails.sort((a, b) => new Date(a.generated_at) - new Date(b.generated_at));
+      const lastEmail = leadEmails[leadEmails.length - 1];
+
+      // Resolve contact details with fallbacks
+      const resolved = resolveContactDetails(lead, lastEmail);
+      if (resolved.email && (!lead.contact_email || lead.contact_email !== resolved.email)) {
+        lead.contact_email = resolved.email;
+        hasUpdates = true;
+      }
+      if (resolved.name && (!lead.contact_name || lead.contact_name !== resolved.name)) {
+        lead.contact_name = resolved.name;
+        hasUpdates = true;
+      }
+      if (resolved.title && (!lead.contact_title || lead.contact_title !== resolved.title)) {
+        lead.contact_title = resolved.title;
+        hasUpdates = true;
+      }
+      if (resolved.linkedin && (!lead.contact_linkedin || lead.contact_linkedin !== resolved.linkedin)) {
+        lead.contact_linkedin = resolved.linkedin;
+        hasUpdates = true;
+      }
+
+      // Check if we have a valid contact email before proceeding
+      const isInvalidEmail = !lead.contact_email || lead.contact_email === 'undefined' || lead.contact_email === 'NONE' || lead.contact_email.includes('undefined');
+      if (emailType !== 'initial' && isInvalidEmail) {
+        console.log(`  SKIPPED: No valid contact email address could be resolved for follow-up.`);
+        skipped++;
+        continue;
+      }
 
       let research = '';
       let detectedCountry = lead.country || 'INT';
