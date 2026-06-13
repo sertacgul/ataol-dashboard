@@ -655,13 +655,25 @@ async function main() {
   console.log(`Current: ${leads.length} leads, ${emails.length} emails`);
 
   const emailLeadIds = new Set(emails.map(e => e.lead_id));
-  let unprocessed = leads.filter(l => !emailLeadIds.has(l.id));
+  let unprocessed = leads.filter(l => !emailLeadIds.has(l.id) && l.contact_email !== 'NONE');
   
   if (serviceFilter === 'institute') {
     const originalCount = unprocessed.length;
     unprocessed = unprocessed.filter(l => !l.country || l.country === 'TR');
     console.log(`Filter applied for service 'institute': kept ${unprocessed.length} of ${originalCount} leads (filtered out known non-TR countries)`);
   }
+
+  // Sort unprocessed leads:
+  // 1. Leads with a valid contact email first (so they are ready to generate outreach)
+  // 2. Newest leads first (higher ID)
+  unprocessed.sort((a, b) => {
+    const hasEmailA = a.contact_email && a.contact_email !== 'NONE' ? 1 : 0;
+    const hasEmailB = b.contact_email && b.contact_email !== 'NONE' ? 1 : 0;
+    if (hasEmailA !== hasEmailB) {
+      return hasEmailB - hasEmailA;
+    }
+    return b.id - a.id;
+  });
 
   // Identify leads needing follow-ups
   const followUpLeads = [];
@@ -733,23 +745,38 @@ async function main() {
       let detectedCountry = lead.country || 'INT';
 
       if (emailType === 'initial') {
-        // Step 1: Find decision-maker FIRST (1 Gemini call)
-        console.log('  Step 1: Finding decision-maker...');
-        const dm = await findDecisionMaker(lead.company_name, lead.website);
+        let dm = null;
+        if (lead.contact_email && lead.contact_email !== 'NONE') {
+          console.log(`  Reusing existing contact details: ${lead.contact_name} <${lead.contact_email}>`);
+          dm = {
+            name: lead.contact_name,
+            email: lead.contact_email,
+            title: lead.contact_title || '',
+            linkedin: lead.contact_linkedin || ''
+          };
+        } else {
+          // Step 1: Find decision-maker FIRST (1 Gemini call)
+          console.log('  Step 1: Finding decision-maker...');
+          dm = await findDecisionMaker(lead.company_name, lead.website);
+        }
 
         if (!dm) {
           console.log('  SKIPPED: No decision-maker email found. Saving tokens.');
+          lead.contact_email = 'NONE';
+          hasUpdates = true;
           skipped++;
           await new Promise(r => setTimeout(r, 5000));
           continue;
         }
 
-        console.log(`  Found: ${dm.name} (${dm.title}) <${dm.email}>`);
-        lead.contact_name = dm.name;
-        lead.contact_email = dm.email;
-        lead.contact_title = dm.title;
-        if (dm.linkedin) lead.contact_linkedin = dm.linkedin;
-        hasUpdates = true;
+        if (!lead.contact_email || lead.contact_email === 'NONE') {
+          console.log(`  Found: ${dm.name} (${dm.title}) <${dm.email}>`);
+          lead.contact_name = dm.name;
+          lead.contact_email = dm.email;
+          lead.contact_title = dm.title;
+          if (dm.linkedin) lead.contact_linkedin = dm.linkedin;
+          hasUpdates = true;
+        }
 
         // Step 2: Research company (1 Gemini call)
         console.log('  Step 2: Researching company...');
