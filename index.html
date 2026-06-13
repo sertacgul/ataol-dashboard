@@ -3998,7 +3998,7 @@ const ATAOL_INFO = `ATAOL AI Techs - teknoloji ve yazilim cozumleri sirketi:
 
 Piramit Platform ve Hizmetlerimiz:
 1. StrategyThrust - Stratejik Karar Destek Platformu:
-- 72 saat icinde geleneksel yonetim danismanliginin 3-6 aylik isini (sektor analizi, rekabet konumlandirmasi, pazar dinamikleri, stratejik projeksiyonlar) tamamlar.
+- Geleneksel yonetim danismanliginin aylar suren isini (sektor analizi, rekabet konumlandirmasi, pazar dinamikleri, stratejik projeksiyonlar) tamamlar.
 - Geleneksel yonetim danismanliginin yaklasik 150'de 1 fiyatina ayni kalitede cikti sunar.
 - Yonetim kurulunun karar alma sureclerini hizlandirir, stratejik riskleri minimize eder.
 
@@ -4018,7 +4018,7 @@ Kurucu: Sertac Gul | ataolai.tech | strategythrust.com | actledger.com`;
 
 const STRUCTURED_RULES = `Asagidaki JSON yapisinda yanit ver. HER alan hedef dilde yazilmali.
 ASLA "AI", "yapay zeka", "artificial intelligence" veya bunlara ait çevirileri (hedef dildeki karşılıklarını) kullanma.
-72 saat ve 1/150 fiyat avantaji toplamda SADECE BIRER KEZ gecsin.
+Çok daha kısa teslim süresi ve 1/150 fiyat avantajı toplamda SADECE BİRER KEZ geçsin.
 Em-dash/en-dash kullanma, sadece kisa tire (-).
 McKinsey/BCG/Bain kurumsal ciddiyetinde ton.
 Fiyat bilgisi verme (rakam belirtme), avantaj olarak sun.
@@ -4175,7 +4175,23 @@ const EN_L10N = {
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
 };
 
-function buildEmailHtml(d, lang) {
+function buildEmailHtml(d, lang, emailType = 'initial') {
+    if (emailType && emailType.startsWith('followup')) {
+        const l = TEMPLATE_L10N[lang] || EN_L10N;
+        const booking = d._booking_url || 'mailto:sertacgul@ataolai.tech';
+        return `<div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2d2d2d;line-height:1.6;padding:20px;background:#ffffff;border:1px solid #eee;border-radius:8px;">
+      <p style="margin:0 0 16px;font-size:15px;color:#1a1a2e;font-weight:600;">${d.greeting || ''}</p>
+      <p style="margin:0 0 16px;font-size:14px;color:#444;white-space:pre-line;">${d.intro || ''}</p>
+      <p style="margin:0 0 20px;font-size:14px;color:#444;white-space:pre-line;">${d.closing || ''}</p>
+      <div style="margin:24px 0;">
+        <a href="${booking}" style="display:inline-block;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;">${d.cta_text || 'Schedule a Call'}</a>
+      </div>
+      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
+      <p style="margin:0;font-size:13px;color:#333;font-weight:600;">Sertac Gul<br><span style="color:#888;font-size:12px;font-weight:normal;">Founder, ATAOL AI Techs</span></p>
+      <p style="margin:12px 0 0;font-size:10px;color:#aaa;font-style:italic;">${l.unsub}</p>
+    </div>`;
+    }
+
     const l = TEMPLATE_L10N[lang] || EN_L10N;
     const st_items = (d.st_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
     const al_items = (d.al_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
@@ -4351,7 +4367,7 @@ LANGUAGE RULES:
 7. NEVER use "AI", "yapay zeka", or "artificial intelligence" (or their translations in the target language) in the email text.
 8. Em-dash/en-dash forbidden, use only short hyphen (-).
 9. McKinsey/BCG/Bain corporate tone.
-10. 72 hours and 1/150 cost advantage: mention each ONLY ONCE total.
+10. Shorter timeframe and 1/150 cost advantage: mention each ONLY ONCE total. Emphasize that our consulting output is delivered in a much shorter timeframe and at a much lower cost compared to traditional consulting.
 11. Campaign details (3 months +1 / annual 15%) ONLY in ActLedger section, NOT in closing.
 12. Include real facts from the research.
 
@@ -4436,11 +4452,32 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
 
     const result = JSON.parse(jsonStr);
 
+    let contactName = '';
+    let contactEmail = email || '';
+    if (research) {
+        const dmMatch = research.match(/DECISION_MAKER:\s*([^|]+)\|\s*([^|]+)\|\s*(\S+@\S+)/i);
+        if (dmMatch) {
+            contactName = dmMatch[1].trim();
+            contactEmail = dmMatch[3].trim().replace(/[.,;)>]+$/, '');
+        }
+    }
+
     const ed = result.email;
     const finalCountry = result.lead.country || hintCountry;
     const lang = ed.language || COUNTRY_LANGCODE[finalCountry] || 'en';
     const tzOffset = COUNTRY_TZ[finalCountry] || 0;
-    ed._booking_url = `https://sertacgul.github.io/ataol-dashboard/book.html?company=${encodeURIComponent(companyName)}&tz=${tzOffset}&lang=${lang}`;
+    
+    const queryParams = new URLSearchParams({
+        company: companyName,
+        tz: tzOffset,
+        lang: lang,
+        summary: result.lead.company_summary || '',
+        pain_points: JSON.stringify(result.lead.pain_points || []),
+        services: JSON.stringify(result.lead.service_match || []),
+        name: contactName,
+        email: contactEmail
+    });
+    ed._booking_url = `https://sertacgul.github.io/ataol-dashboard/book.html?${queryParams.toString()}`;
     ed.body_html = buildEmailHtml(ed, lang);
     ed.body_text = ed.body_html.replace(/<[^>]*>/g, '');
 

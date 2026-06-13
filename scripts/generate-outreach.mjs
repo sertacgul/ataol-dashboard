@@ -25,7 +25,7 @@ const ATAOL_INFO = `ATAOL AI Techs - teknoloji ve yazilim cozumleri sirketi:
 
 Piramit Platform ve Hizmetlerimiz:
 1. StrategyThrust - Stratejik Karar Destek Platformu:
-- 72 saat icinde geleneksel yonetim danismanliginin 3-6 aylik isini (sektor analizi, rekabet konumlandirmasi, pazar dinamikleri, stratejik projeksiyonlar) tamamlar.
+- Geleneksel yonetim danismanliginin aylar suren isini (sektor analizi, rekabet konumlandirmasi, pazar dinamikleri, stratejik projeksiyonlar) cok daha kisa surede tamamlar.
 - Geleneksel yonetim danismanliginin yaklasik 150'de 1 fiyatina ayni kalitede cikti sunar.
 - Yonetim kurulunun karar alma sureclerini hizlandirir, stratejik riskleri minimize eder.
 
@@ -302,7 +302,7 @@ function detectCountryFromResearch(research) {
 }
 
 // ---- Gemini email generation ----
-async function generateEmail(lead, research, country, lang) {
+async function generateEmail(lead, research, country, lang, emailType = 'initial', prevSubject = '') {
   const name = lead.company_name;
   const email = lead.contact_email || lead.email || '';
   const contactName = lead.contact_name || '';
@@ -337,8 +337,43 @@ async function generateEmail(lead, research, country, lang) {
   };
   const langName = langNames[lang] || 'English';
 
+  let emailSpecificInstructions = '';
+  if (emailType === 'initial') {
+    emailSpecificInstructions = `
+EMAIL TYPE: INITIAL OUTREACH
+- Write a complete initial business development proposal.
+- Cover StrategyThrust and ActLedger sections, as well as digital services or institute notes (TR only).
+- Keep it highly customized to the research.
+- Subject line must be max 60 chars.
+`;
+  } else if (emailType === 'followup_1') {
+    emailSpecificInstructions = `
+EMAIL TYPE: FOLLOW-UP 1
+- You are writing a short, polite follow-up email (max 80 words) to our previous message.
+- Subject line MUST be "Re: ${prevSubject}".
+- Reference the previous outreach and ask if they had a chance to look at the customized platform solutions (StrategyThrust, ActLedger, ATAOL AI Lab/Institute) we sent.
+- Briefly highlight a different angle of how we solve their specific pain points.
+- Do NOT repeat the full initial proposal. Keep it very concise.
+- Set all other platform-specific solution values (st_value_prop, al_value_prop, st_solutions, al_solutions, innovation_highlights, services_note, institute_note, ataol_intro) to empty strings/arrays.
+- Put the entire follow-up message body in the "intro" field, and a short closing in "closing".
+`;
+  } else if (emailType === 'followup_2') {
+    emailSpecificInstructions = `
+EMAIL TYPE: FOLLOW-UP 2 (FINAL BUMP)
+- You are writing an extremely brief "bump" email (max 50 words).
+- Subject line MUST be "Re: ${prevSubject}".
+- Write a direct query (e.g. "Hi [Name], I know you're busy. Just wanted to check if you had a moment to review my previous note, or if there is a better person on your team to connect with regarding this?").
+- The tone should remain highly consultative and professional.
+- Do NOT include value propositions, just ask for a quick redirect or feedback.
+- Set all other platform-specific solution values (st_value_prop, al_value_prop, st_solutions, al_solutions, innovation_highlights, services_note, institute_note, ataol_intro) to empty strings/arrays.
+- Put the entire follow-up message body in the "intro" field, and a short closing in "closing".
+`;
+  }
+
   const prompt = `You write corporate business development emails for ATAOL AI Techs.
 ${ATAOL_INFO}
+
+${emailSpecificInstructions}
 
 LANGUAGE & COUNTRY REQUIREMENT (CRITICAL):
 The target company is located in "${country}" and the target language is "${langName}" (language code: "${lang}").
@@ -350,18 +385,18 @@ LANGUAGE RULES:
 3. Set the "language" field in the JSON to "${lang}".
 4. Use formal business register appropriate for "${langName}" corporate culture.
 5. GREETING: Use standard formal greeting in "${langName}". If contact name is known, address by name. NEVER use placeholder brackets like [Name].
-6. For Turkish companies (lang="tr"): fill "institute_note". For others: empty string "".
+6. For Turkish companies (lang="tr" and type="initial"): fill "institute_note". For others: empty string "".
 7. NEVER use "AI", "yapay zeka", or "artificial intelligence" (or their translations in the target language) in the email text.
 8. Em-dash/en-dash forbidden, use only short hyphen (-).
 9. McKinsey/BCG/Bain corporate tone.
-10. 72 hours and 1/150 cost advantage: mention each ONLY ONCE total.
+10. Shorter timeframe and 1/150 cost advantage: mention each ONLY ONCE total. Emphasize that our consulting output is delivered in a much shorter timeframe and at a much lower cost compared to traditional consulting.
 11. Campaign details ONLY in ActLedger section, NOT in closing.
 12. Include real facts from the research.
 
 SPAM PREVENTION & POSTMASTER DELIVERY RULES:
 - To prevent spam filter triggers, avoid overly promotional/sales-y words such as "free", "discount", "campaign", "no risk", "opportunity" in the subject and body. Keep the tone executive and advisory.
 - Avoid using exclamation marks (!), ALL CAPS words, or emojis in the subject line or email body.
-- The subject line must be highly professional and specific to their company/challenges (e.g. "Operational Excellence Proposal for [Company]" or "Strategic Efficiency Project for [Company]").
+- The subject line (for INITIAL outreach) must be highly professional and specific to their company/challenges (e.g. "Operational Excellence Proposal for [Company]" or "Strategic Efficiency Project for [Company]").
 
 PRODUCT ROUTING & SUBLIMINAL MESSAGE RULES (CRITICAL - NO GENERIC TEXT):
 - Do NOT use generic value propositions or template-like text for our platforms (ActLedger, StrategyThrust, ATAOL AI Institute, ATAOL AI Lab).
@@ -424,7 +459,23 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
 }
 
 // ---- Email HTML builder (matches dashboard template) ----
-function buildEmailHtml(d, lang) {
+function buildEmailHtml(d, lang, emailType = 'initial') {
+  if (emailType && emailType.startsWith('followup')) {
+    const l = TEMPLATE_L10N[lang] || EN_L10N;
+    const booking = d._booking_url || 'mailto:sertacgul@ataolai.tech';
+    return `<div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2d2d2d;line-height:1.6;padding:20px;background:#ffffff;border:1px solid #eee;border-radius:8px;">
+      <p style="margin:0 0 16px;font-size:15px;color:#1a1a2e;font-weight:600;">${d.greeting || ''}</p>
+      <p style="margin:0 0 16px;font-size:14px;color:#444;white-space:pre-line;">${d.intro || ''}</p>
+      <p style="margin:0 0 20px;font-size:14px;color:#444;white-space:pre-line;">${d.closing || ''}</p>
+      <div style="margin:24px 0;">
+        <a href="${booking}" style="display:inline-block;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;">${d.cta_text || 'Schedule a Call'}</a>
+      </div>
+      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
+      <p style="margin:0;font-size:13px;color:#333;font-weight:600;">Sertac Gul<br><span style="color:#888;font-size:12px;font-weight:normal;">Founder, ATAOL AI Techs</span></p>
+      <p style="margin:12px 0 0;font-size:10px;color:#aaa;font-style:italic;">${l.unsub}</p>
+    </div>`;
+  }
+
   const l = TEMPLATE_L10N[lang] || EN_L10N;
   const st_items = (d.st_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
   const al_items = (d.al_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
@@ -612,81 +663,153 @@ async function main() {
     console.log(`Filter applied for service 'institute': kept ${unprocessed.length} of ${originalCount} leads (filtered out known non-TR countries)`);
   }
 
-  console.log(`Unprocessed leads: ${unprocessed.length}`);
-
-  if (unprocessed.length === 0) {
-    console.log('No unprocessed leads remaining. Exiting.');
-    return;
+  // Identify leads needing follow-ups
+  const followUpLeads = [];
+  const now = new Date();
+  
+  for (const lead of leads) {
+    const leadEmails = emails.filter(e => e.lead_id === lead.id);
+    if (leadEmails.length === 0) continue; // Needs initial email, handled in unprocessed
+    
+    // Sort emails by generation date
+    leadEmails.sort((a, b) => new Date(a.generated_at) - new Date(b.generated_at));
+    const lastEmail = leadEmails[leadEmails.length - 1];
+    
+    // Only follow-up if the last email was sent, and has no pending follow-ups
+    if (lastEmail.status !== 'sent') continue;
+    
+    const daysSinceSent = (now - new Date(lastEmail.sent_at)) / (1000 * 60 * 60 * 24);
+    
+    // Follow-up interval: 4 days
+    if (daysSinceSent >= 4) {
+      if (lastEmail.email_type === 'initial') {
+        followUpLeads.push({ lead, emailType: 'followup_1', prevSubject: lastEmail.subject });
+      } else if (lastEmail.email_type === 'followup_1') {
+        followUpLeads.push({ lead, emailType: 'followup_2', prevSubject: lastEmail.subject });
+      }
+    }
   }
 
-  const batch = unprocessed.slice(0, BATCH_SIZE);
-  console.log(`Processing batch of ${batch.length}: ${batch.map(l => l.company_name).join(', ')}`);
+  console.log(`Leads needing follow-ups: ${followUpLeads.length}`);
+  console.log(`Unprocessed leads (initial): ${unprocessed.length}`);
+
+  // Build the batch (prioritize follow-ups first)
+  const batch = [];
+  
+  // 1. Add follow-up leads
+  for (const item of followUpLeads) {
+    if (batch.length >= BATCH_SIZE) break;
+    batch.push({
+      lead: item.lead,
+      emailType: item.emailType,
+      prevSubject: item.prevSubject
+    });
+  }
+  
+  // 2. Add unprocessed leads
+  if (batch.length < BATCH_SIZE) {
+    const remainingCount = BATCH_SIZE - batch.length;
+    const unprocessedBatch = unprocessed.slice(0, remainingCount);
+    for (const lead of unprocessedBatch) {
+      batch.push({
+        lead,
+        emailType: 'initial',
+        prevSubject: ''
+      });
+    }
+  }
+
+  console.log(`Processing batch of ${batch.length}: ${batch.map(item => `${item.lead.company_name} (${item.emailType})`).join(', ')}`);
 
   let generated = 0;
   let skipped = 0;
   let hasUpdates = false;
-  for (const lead of batch) {
+  for (const item of batch) {
+    const { lead, emailType, prevSubject } = item;
     try {
-      console.log(`\n--- ${lead.company_name} ---`);
+      console.log(`\n--- ${lead.company_name} (${emailType}) ---`);
 
-      // Step 1: Find decision-maker FIRST (1 Gemini call)
-      console.log('  Step 1: Finding decision-maker...');
-      const dm = await findDecisionMaker(lead.company_name, lead.website);
+      let research = '';
+      let detectedCountry = lead.country || 'INT';
 
-      if (!dm) {
-        console.log('  SKIPPED: No decision-maker email found. Saving tokens.');
-        skipped++;
-        await new Promise(r => setTimeout(r, 5000));
-        continue;
-      }
+      if (emailType === 'initial') {
+        // Step 1: Find decision-maker FIRST (1 Gemini call)
+        console.log('  Step 1: Finding decision-maker...');
+        const dm = await findDecisionMaker(lead.company_name, lead.website);
 
-      console.log(`  Found: ${dm.name} (${dm.title}) <${dm.email}>`);
-      lead.contact_name = dm.name;
-      lead.contact_email = dm.email;
-      lead.contact_title = dm.title;
-      if (dm.linkedin) lead.contact_linkedin = dm.linkedin;
-      hasUpdates = true;
+        if (!dm) {
+          console.log('  SKIPPED: No decision-maker email found. Saving tokens.');
+          skipped++;
+          await new Promise(r => setTimeout(r, 5000));
+          continue;
+        }
 
-      // Step 2: Research company (1 Gemini call)
-      console.log('  Step 2: Researching company...');
-      const research = await researchCompany(lead);
-      console.log('  Research complete.');
-
-      const detectedCountry = detectCountryFromResearch(research);
-      console.log(`  Detected Country: ${detectedCountry}`);
-
-      // If service is 'institute' and company is not in Turkey (TR), skip email generation
-      if (serviceFilter === 'institute' && detectedCountry !== 'TR') {
-        console.log(`  SKIPPED: Country is ${detectedCountry} (not TR) and service is 'institute'. Updating country and skipping email generation.`);
-        lead.country = detectedCountry;
+        console.log(`  Found: ${dm.name} (${dm.title}) <${dm.email}>`);
+        lead.contact_name = dm.name;
+        lead.contact_email = dm.email;
+        lead.contact_title = dm.title;
+        if (dm.linkedin) lead.contact_linkedin = dm.linkedin;
         hasUpdates = true;
-        skipped++;
-        await new Promise(r => setTimeout(r, 5000));
-        continue;
+
+        // Step 2: Research company (1 Gemini call)
+        console.log('  Step 2: Researching company...');
+        research = await researchCompany(lead);
+        console.log('  Research complete.');
+
+        detectedCountry = detectCountryFromResearch(research);
+        console.log(`  Detected Country: ${detectedCountry}`);
+
+        // If service is 'institute' and company is not in Turkey (TR), skip email generation
+        if (serviceFilter === 'institute' && detectedCountry !== 'TR') {
+          console.log(`  SKIPPED: Country is ${detectedCountry} (not TR) and service is 'institute'. Updating country and skipping email generation.`);
+          lead.country = detectedCountry;
+          hasUpdates = true;
+          skipped++;
+          await new Promise(r => setTimeout(r, 5000));
+          continue;
+        }
+      } else {
+        console.log(`  Reusing contact details: ${lead.contact_name} <${lead.contact_email}>`);
+        // Mini research text using lead database fields for followup context
+        research = `Company Summary: ${lead.company_summary || ''}
+Pain Points: ${lead.pain_points || '[]'}
+Service Match: ${lead.service_match || '[]'}`;
       }
 
       // Step 3: Generate email (1 Gemini call)
-      console.log('  Step 3: Generating email...');
+      console.log(`  Step 3: Generating email (${emailType})...`);
       const detectedLang = COUNTRY_LANGCODE[detectedCountry] || 'en';
-      const result = await generateEmail(lead, research, detectedCountry, detectedLang);
+      const result = await generateEmail(lead, research, detectedCountry, detectedLang, emailType, prevSubject);
       console.log('  Email generated.');
 
-      // Update lead with research data
-      const leadResult = result.lead;
-      lead.company_summary = leadResult.company_summary;
-      lead.industry = leadResult.industry || lead.industry;
-      lead.company_size = leadResult.company_size;
-      lead.country = leadResult.country || lead.country;
-      lead.pain_points = JSON.stringify(leadResult.pain_points || []);
-      lead.service_match = JSON.stringify(leadResult.service_match || []);
+      // Update lead details if it was an initial research
+      if (emailType === 'initial') {
+        const leadResult = result.lead;
+        lead.company_summary = leadResult.company_summary;
+        lead.industry = leadResult.industry || lead.industry;
+        lead.company_size = leadResult.company_size;
+        lead.country = leadResult.country || lead.country;
+        lead.pain_points = JSON.stringify(leadResult.pain_points || []);
+        lead.service_match = JSON.stringify(leadResult.service_match || []);
+      }
 
       // Build email HTML
       const ed = result.email;
-      const finalCountry = leadResult.country || detectCountryFromResearch(research);
+      const finalCountry = lead.country || detectCountryFromResearch(research);
       const lang = ed.language || COUNTRY_LANGCODE[finalCountry] || 'en';
       const tzOffset = COUNTRY_TZ[finalCountry] || 0;
-      ed._booking_url = `https://sertacgul.github.io/ataol-dashboard/book.html?company=${encodeURIComponent(lead.company_name)}&tz=${tzOffset}&lang=${lang}`;
-      ed.body_html = buildEmailHtml(ed, lang);
+      const queryParams = new URLSearchParams({
+        company: lead.company_name,
+        tz: tzOffset,
+        lang: lang,
+        summary: lead.company_summary || '',
+        pain_points: lead.pain_points || '[]',
+        services: lead.service_match || '[]',
+        name: lead.contact_name || '',
+        email: lead.contact_email || ''
+      });
+      ed._booking_url = `https://sertacgul.github.io/ataol-dashboard/book.html?${queryParams.toString()}`;
+      ed.body_html = buildEmailHtml(ed, lang, emailType);
       ed.body_text = ed.body_html.replace(/<[^>]*>/g, '');
 
       const newEmail = {
@@ -698,13 +821,13 @@ async function main() {
         body_html: ed.body_html,
         body_text: ed.body_text,
         language: ed.language || 'en',
-        email_type: 'initial',
+        email_type: emailType,
         status: 'pending_review',
         generated_at: new Date().toISOString()
       };
       emails.push(newEmail);
       generated++;
-      console.log(`  OK: "${ed.subject}" (${lang}) -> ${lead.contact_email}`);
+      console.log(`  OK (${emailType}): "${ed.subject}" (${lang}) -> ${lead.contact_email}`);
 
       // Rate limit: Gemini free tier = 15 RPM
       await new Promise(r => setTimeout(r, 5000));
