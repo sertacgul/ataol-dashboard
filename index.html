@@ -720,6 +720,47 @@ const WORKER_URL = 'https://api.ataolai.tech/run';
 const TRIGGER_SECRET = 'ataol-trigger-2026';
 const SVC_LABELS = { actledger: 'ActLedger', strategythrust: 'Strategy', institute: 'Institute', digital: 'Dijital' };
 
+// Auto-poll state
+let _pollInterval = null;
+let _pollCount = 0;
+const POLL_INTERVAL_MS = 20000;  // 20 seconds
+const POLL_MAX_CHECKS = 15;      // 15 x 20s = 5 minutes max
+
+function startAutoRefresh(serviceName) {
+    stopAutoRefresh();
+    _pollCount = 0;
+    const prevEmailCount = emailsData.length;
+    showToast(`${serviceName} calisiyor. Yeni mailler otomatik yuklenecek...`, 'info');
+
+    _pollInterval = setInterval(async () => {
+        _pollCount++;
+        try {
+            await loadData();
+            const newCount = emailsData.length - prevEmailCount;
+            if (newCount > 0) {
+                showToast(`${newCount} yeni email yuklendi! (Pending sekmesini kontrol edin)`, 'success');
+                showTab('pending');
+                stopAutoRefresh();
+                return;
+            }
+        } catch (e) {
+            console.warn('Auto-refresh poll error:', e);
+        }
+        if (_pollCount >= POLL_MAX_CHECKS) {
+            showToast('Otomatik yenileme tamamlandi. Hala bekliyorsaniz sayfayi yenileyin.', 'info');
+            stopAutoRefresh();
+        }
+    }, POLL_INTERVAL_MS);
+}
+
+function stopAutoRefresh() {
+    if (_pollInterval) {
+        clearInterval(_pollInterval);
+        _pollInterval = null;
+    }
+    _pollCount = 0;
+}
+
 async function triggerService(service, btn) {
     let confirmMsg = SVC_LABELS[service] + ' outreach tetiklensin mi?';
     if (service === 'institute') {
@@ -738,9 +779,13 @@ async function triggerService(service, btn) {
         });
 
         if (resp.ok) {
-            btn.textContent = 'OK';
+            btn.textContent = 'Calisiyor...';
             btn.style.borderColor = '#4caf50';
             btn.style.color = '#4caf50';
+
+            // Start auto-polling to pick up new emails from the worker
+            startAutoRefresh(SVC_LABELS[service] || service);
+
             setTimeout(function() {
                 btn.textContent = origText;
                 btn.classList.remove('running');
