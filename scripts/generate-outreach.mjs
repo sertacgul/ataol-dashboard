@@ -705,30 +705,29 @@ async function main() {
   console.log(`Leads needing follow-ups: ${followUpLeads.length}`);
   console.log(`Unprocessed leads (initial): ${unprocessed.length}`);
 
-  // Build the batch (prioritize follow-ups first)
+  // Build the batch: hybrid queue to prevent starvation (up to 15 unprocessed, then follow-ups)
   const batch = [];
   
-  // 1. Add follow-up leads
-  for (const item of followUpLeads) {
-    if (batch.length >= BATCH_SIZE) break;
+  // 1. Add up to 15 unprocessed/initial leads first
+  const maxUnprocessed = 15;
+  const unprocessedBatch = unprocessed.slice(0, maxUnprocessed);
+  for (const lead of unprocessedBatch) {
+    batch.push({
+      lead,
+      emailType: 'initial',
+      prevSubject: ''
+    });
+  }
+  
+  // 2. Fill remaining space (up to BATCH_SIZE) with follow-up leads
+  const remainingCount = BATCH_SIZE - batch.length;
+  const followUpBatch = followUpLeads.slice(0, remainingCount);
+  for (const item of followUpBatch) {
     batch.push({
       lead: item.lead,
       emailType: item.emailType,
       prevSubject: item.prevSubject
     });
-  }
-  
-  // 2. Add unprocessed leads
-  if (batch.length < BATCH_SIZE) {
-    const remainingCount = BATCH_SIZE - batch.length;
-    const unprocessedBatch = unprocessed.slice(0, remainingCount);
-    for (const lead of unprocessedBatch) {
-      batch.push({
-        lead,
-        emailType: 'initial',
-        prevSubject: ''
-      });
-    }
   }
 
   console.log(`Processing batch of ${batch.length}: ${batch.map(item => `${item.lead.company_name} (${item.emailType})`).join(', ')}`);
