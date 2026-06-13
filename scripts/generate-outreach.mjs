@@ -23,24 +23,23 @@ if (!GEMINI_KEY || !GIST_TOKEN) {
 // ---- ATAOL company info (same as dashboard) ----
 const ATAOL_INFO = `ATAOL AI Techs - teknoloji ve yazilim cozumleri sirketi:
 
-Kendi platformlarimiz:
+Piramit Platform ve Hizmetlerimiz:
 1. StrategyThrust - Stratejik Karar Destek Platformu:
-- 72 saat icinde geleneksel danismanligin 3-6 aylik isini tamamlar
-- Geleneksel yonetim danismanliginin yaklasik 150'de 1 fiyatina ayni kalitede cikti
-- Sektor analizi, rekabet konumlandirmasi, pazar dinamikleri ve stratejik projeksiyonlar
+- 72 saat icinde geleneksel yonetim danismanliginin 3-6 aylik isini (sektor analizi, rekabet konumlandirmasi, pazar dinamikleri, stratejik projeksiyonlar) tamamlar.
+- Geleneksel yonetim danismanliginin yaklasik 150'de 1 fiyatina ayni kalitede cikti sunar.
+- Yonetim kurulunun karar alma sureclerini hizlandirir, stratejik riskleri minimize eder.
 
 2. ActLedger - Operasyonel Mukemmellik Sistem Platformu:
-- 15 sektor, 576+ departman, 7800+ hazir KPI - dunyanin en kapsamli sektor-spesifik KPI kutuphanesi
-- 5 katmanli performans olcum cercevesi (Performance, Quality, Time, Risk, AI Insight)
-- Dakikalar icinde tam operasyonel cerceve kurulumu
-- Saha operasyonlari, envanter, is akislari, otomasyon, IoT entegrasyonu
-- Mobil-first: iOS native app + PWA
-- Kampanya: 3 aylik lisans alanlara +1 ay ucretsiz | Yillik lisans alanlara %15 indirim
+- 15 sektor, 576+ departman, 7800+ hazir KPI ile dunyanin en kapsamli sektor-spesifik performans olcum ve takip sistemidir.
+- Mobil-first: iOS native app + PWA. Saha operasyonlari, envanter, is akislari ve IoT entegrasyonu saglar.
+- Kampanya: 3 aylik lisans alanlara +1 ay ucretsiz | Yillik lisans alanlara %15 indirim.
 
-Kurumsal hizmetlerimiz:
-- Otomasyon cozumleri, mobil uygulama gelistirme (iOS/Android), web uygulama gelistirme
+3. ATAOL AI Lab - Yapay Zeka Entegrasyonu ve Dijital Donusum Hizmetleri:
+- Buyuk Dil Modelleri (LLM) ve uretken yapay zeka araclarinin sirketlerin is akislarina ve B2B yazilim sureclerine entegrasyonu.
+- Sirkete ozel yapay zeka cozumleri, otomasyon sistemleri, mobil ve web uygulamalari gelistirme.
 
-ATAOL AI Institute - Kurumsal egitim programlari
+4. ATAOL AI Institute - Kurumsal Yapay Zeka Egitimleri:
+- Sirketlerin yonetici ve calisan kadrolarina yonelik kurumsal yapay zeka egitimi, yapay zeka okuryazarligi ve dijital donusum adaptasyon programlari.
 
 Kurucu: Sertac Gul | ataolai.tech | strategythrust.com | actledger.com`;
 
@@ -263,6 +262,11 @@ IMPORTANT: If you can only find a generic email, still provide it as "CONTACT_EM
 // ---- Country detection ----
 function detectCountryFromResearch(research) {
   if (!research) return 'INT';
+  const hqMatch = research.match(/HEADQUARTERS:\s*([A-Z]{2})/i);
+  if (hqMatch) {
+    const code = hqMatch[1].toUpperCase();
+    if (COUNTRY_LANGCODE[code]) return code;
+  }
   const patterns = [
     [/t\u00fcrk|istanbul|ankara|izmir|antalya|t\u00fcrkiye|turkey/i, 'TR'],
     [/deutschland|m\u00fcnchen|berlin|hamburg|frankfurt|german/i, 'DE'],
@@ -298,7 +302,7 @@ function detectCountryFromResearch(research) {
 }
 
 // ---- Gemini email generation ----
-async function generateEmail(lead, research) {
+async function generateEmail(lead, research, country, lang) {
   const name = lead.company_name;
   const email = lead.contact_email || lead.email || '';
   const contactName = lead.contact_name || '';
@@ -306,37 +310,78 @@ async function generateEmail(lead, research) {
   const website = lead.website || '';
   const notes = lead.notes || '';
 
+  const langNames = {
+    tr: 'Turkish',
+    de: 'German',
+    fr: 'French',
+    es: 'Spanish',
+    it: 'Italian',
+    pt: 'Portuguese',
+    nl: 'Dutch',
+    sv: 'Swedish',
+    no: 'Norwegian',
+    da: 'Danish',
+    fi: 'Finnish',
+    pl: 'Polish',
+    cs: 'Czech',
+    ro: 'Romanian',
+    el: 'Greek',
+    ja: 'Japanese',
+    ko: 'Korean',
+    zh: 'Chinese',
+    id: 'Indonesian',
+    th: 'Thai',
+    vi: 'Vietnamese',
+    ar: 'Arabic',
+    en: 'English'
+  };
+  const langName = langNames[lang] || 'English';
+
   const prompt = `You write corporate business development emails for ATAOL AI Techs.
 ${ATAOL_INFO}
 
-LANGUAGE RULES - THIS IS THE MOST IMPORTANT RULE:
-1. First, determine the company's country from the research data below.
-2. Set "country" field to the 2-letter country code.
-3. Then write ALL email fields in that country's primary business language:
-   - TR -> Turkish ("tr"), DE/AT/CH -> German ("de"), FR/BE -> French ("fr")
-   - ES/MX/AR/CO/CL -> Spanish ("es"), IT -> Italian ("it"), PT/BR -> Portuguese ("pt")
-   - NL -> Dutch ("nl"), JP -> Japanese ("ja"), KR -> Korean ("ko")
-   - SA/EG -> Arabic ("ar"), All others -> English ("en")
-4. CRITICAL: ALL email fields must be in the determined language.
-5. Use formal business register appropriate for that language's corporate culture.
-6. GREETING: Use standard formal greeting. If contact name is known, address by name. NEVER use placeholder brackets.
-7. For Turkish companies: fill "institute_note". For others: empty string "".
-8. NEVER use "AI", "yapay zeka", or "artificial intelligence".
-9. Em-dash/en-dash forbidden, use only short hyphen (-).
-10. McKinsey/BCG/Bain corporate tone.
-11. 72 hours and 1/150 cost advantage: mention each ONLY ONCE.
-12. Campaign details ONLY in ActLedger section, NOT in closing.
-13. Include real facts from the research.
+LANGUAGE & COUNTRY REQUIREMENT (CRITICAL):
+The target company is located in "${country}" and the target language is "${langName}" (language code: "${lang}").
+You MUST write ALL email fields in "${langName}". Do NOT use English or Turkish unless "${langName}" is English or Turkish.
+
+LANGUAGE RULES:
+1. Write ALL email fields (subject, greeting, intro, etc.) in "${langName}".
+2. Set the "country" field in the JSON to "${country}".
+3. Set the "language" field in the JSON to "${lang}".
+4. Use formal business register appropriate for "${langName}" corporate culture.
+5. GREETING: Use standard formal greeting in "${langName}". If contact name is known, address by name. NEVER use placeholder brackets like [Name].
+6. For Turkish companies (lang="tr"): fill "institute_note". For others: empty string "".
+7. NEVER use "AI", "yapay zeka", or "artificial intelligence" (or their translations in the target language) in the email text.
+8. Em-dash/en-dash forbidden, use only short hyphen (-).
+9. McKinsey/BCG/Bain corporate tone.
+10. 72 hours and 1/150 cost advantage: mention each ONLY ONCE total.
+11. Campaign details ONLY in ActLedger section, NOT in closing.
+12. Include real facts from the research.
+
+SPAM PREVENTION & POSTMASTER DELIVERY RULES:
+- To prevent spam filter triggers, avoid overly promotional/sales-y words such as "free", "discount", "campaign", "no risk", "opportunity" in the subject and body. Keep the tone executive and advisory.
+- Avoid using exclamation marks (!), ALL CAPS words, or emojis in the subject line or email body.
+- The subject line must be highly professional and specific to their company/challenges (e.g. "Operational Excellence Proposal for [Company]" or "Strategic Efficiency Project for [Company]").
+
+PRODUCT ROUTING & SUBLIMINAL MESSAGE RULES (CRITICAL - NO GENERIC TEXT):
+- Do NOT use generic value propositions or template-like text for our platforms (ActLedger, StrategyThrust, ATAOL AI Institute, ATAOL AI Lab).
+- Customize each section (StrategyThrust, ActLedger, ATAOL AI Lab, ATAOL AI Institute) to directly address the company's specific researched pain points.
+- Map the company's problems to the respective platforms:
+  - If they face strategic, market positioning, or decision-making bottlenecks -> StrategyThrust is the hero. The StrategyThrust section should highlight how StrategyThrust solves their exact market/sector challenges.
+  - If they face operational inefficiency, KPI tracking gaps, saha (field) coordination issues, workflow tracking gaps -> ActLedger is the hero. Customize ActLedger value props and solutions to their exact department or operational metrics.
+  - If they lack digital transformation, B2B software integration, custom workflows, or AI tools -> ATAOL AI Lab is the hero. Mention custom B2B software and workflow automation under "services_note" as the custom AI Lab solution for their exact automation gap.
+  - If they need team training, AI literacy, or management upskilling -> ATAOL AI Institute is the hero. Customize the "institute_note" (TR only) to propose a tailored AI literacy or executive training program for their team.
+- Integrate these recommendations smoothly ("subliminal" / contextual routing) so that the transition from their problem to our specific platform/service feels natural, inevitable, and highly compelling.
 
 --- FIRMA BILGILERI ---
 Firma: ${name}
-${website ? 'Website: ' + website : ''}
-${email ? 'Iletisim email: ' + email : ''}
-${contactName ? 'Karar verici: ' + contactName + (contactTitle ? ' (' + contactTitle + ')' : '') : ''}
-${notes ? 'Ek bilgi: ' + notes : ''}
+\${website ? 'Website: ' + website : ''}
+\${email ? 'Iletisim email: ' + email : ''}
+\${contactName ? 'Karar verici: ' + contactName + (contactTitle ? ' (' + contactTitle + ')' : '') : ''}
+\${notes ? 'Ek bilgi: ' + notes : ''}
 
 --- COMPANY RESEARCH ---
-${research}
+\${research}
 --- END RESEARCH ---
 
 Respond ONLY in valid JSON (no markdown, no code blocks):
@@ -344,10 +389,10 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
   "lead": {
     "company_name": "...", "company_summary": "2-3 sentences",
     "industry": "...", "company_size": "small/medium/large",
-    "country": "XX", "pain_points": ["..."], "service_match": ["..."]
+    "country": "${country}", "pain_points": ["..."], "service_match": ["..."]
   },
   "email": {
-    "subject": "max 60 chars", "language": "xx",
+    "subject": "max 60 chars", "language": "${lang}",
     "greeting": "...", "intro": "max 60 words",
     "ataol_intro": "max 30 words", "st_value_prop": "max 35 words",
     "st_solutions": ["..."], "al_value_prop": "max 35 words",
@@ -486,20 +531,18 @@ function extractContactFromResearch(research, lead) {
 }
 
 // ---- Find decision-maker via Gemini + Google Search ----
-const GENERIC_RE = /^(info|contact|hello|office|sales|business|press|legal|privacy|support|hcp|cs|memberservices|dataprotection|notifications|ult|emko|kontakt)@/i;
+const GENERIC_RE = /^(info|contact|hello|office|sales|business|press|legal|privacy|support|hcp|cs|memberservices|dataprotection|notifications|ult|emko|kontakt|jobs|careers|hr|billing|finance|admin|marketing)@/i;
 
 async function findDecisionMaker(companyName, website) {
   const domain = website ? website.replace(/^https?:\/\//, '').replace(/\/.*$/, '') : '';
 
-  const prompt = `Find the CEO, founder, managing director, or CTO of "${companyName}"${domain ? ' (' + domain + ')' : ''}.
+  const prompt = `Research the C-level executives (CEO, Founder, General Manager, Board Members, Managing Director, CTO, COO, CFO) of the company "${companyName}"${domain ? ' (' + domain + ')' : ''}.
 
-I need their:
+We need to contact a decision-maker directly. Search LinkedIn, Google, Crunchbase, company about pages, and press releases to find:
 1. Full name
 2. Job title
-3. Professional email address (NOT info@, contact@, or generic addresses — their personal work email)
+3. Personal direct professional work email address (NOT a generic address like info@, hello@, contact@, sales@, etc.)
 4. LinkedIn profile URL
-
-Search LinkedIn, company website, Crunchbase, press releases, and news articles.
 
 IMPORTANT: Respond in this exact format, one field per line:
 NAME: <full name>
@@ -507,9 +550,11 @@ TITLE: <job title>
 EMAIL: <personal work email>
 LINKEDIN: <linkedin url>
 
-If you cannot find a personal email, try the common pattern: firstname@${domain || 'company.com'} or firstname.lastname@${domain || 'company.com'}.
-If you truly cannot determine any email, write EMAIL: NONE.
-Do NOT return info@, contact@, hello@, support@, or any generic address.`;
+EMAIL RETRIEVAL STRATEGY:
+- Try to find the exact direct work email of the person (e.g., name@domain.com, name.surname@domain.com).
+- If you cannot find their email directly but found their name, guess the email pattern for the domain "${domain || 'company.com'}" (e.g., first.last@domain, first@domain, etc.) and perform a web search to verify it.
+- If you cannot find a personal direct email, do NOT return a generic address under "EMAIL:". Write EMAIL: NONE.
+- Do NOT return generic/department addresses starting with: info@, contact@, sales@, hello@, support@, office@, careers@, hr@, marketing@, jobs@, billing@.`;
 
   const resp = await fetchWithRetry(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
@@ -518,7 +563,7 @@ Do NOT return info@, contact@, hello@, support@, or any generic address.`;
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: 'You find real decision-makers at companies using web search. Return verified information only. Never fabricate emails — if unsure, say NONE.' }]
+          parts: [{ text: 'You are a professional B2B lead generation specialist. You search the web to find direct, personal corporate email addresses of C-level executives (Founders, Board Members, CEOs, General Managers, CTOs, COOs). You never return generic or department emails, and you write NONE if a direct email cannot be verified.' }]
         },
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         tools: [{ google_search: {} }],
@@ -550,7 +595,8 @@ Do NOT return info@, contact@, hello@, support@, or any generic address.`;
 
 // ---- Main ----
 async function main() {
-  console.log(`[${new Date().toISOString()}] Starting daily outreach generation (batch: ${BATCH_SIZE})`);
+  const serviceFilter = process.env.SERVICE || process.argv.find(arg => arg.startsWith('--service='))?.split('=')[1] || '';
+  console.log(`[${new Date().toISOString()}] Starting outreach generation (batch: ${BATCH_SIZE}, service: ${serviceFilter || 'all'})`);
 
   const data = await readGist();
   const leads = data.leads || [];
@@ -558,7 +604,14 @@ async function main() {
   console.log(`Current: ${leads.length} leads, ${emails.length} emails`);
 
   const emailLeadIds = new Set(emails.map(e => e.lead_id));
-  const unprocessed = leads.filter(l => !emailLeadIds.has(l.id));
+  let unprocessed = leads.filter(l => !emailLeadIds.has(l.id));
+  
+  if (serviceFilter === 'institute') {
+    const originalCount = unprocessed.length;
+    unprocessed = unprocessed.filter(l => !l.country || l.country === 'TR');
+    console.log(`Filter applied for service 'institute': kept ${unprocessed.length} of ${originalCount} leads (filtered out known non-TR countries)`);
+  }
+
   console.log(`Unprocessed leads: ${unprocessed.length}`);
 
   if (unprocessed.length === 0) {
@@ -571,6 +624,7 @@ async function main() {
 
   let generated = 0;
   let skipped = 0;
+  let hasUpdates = false;
   for (const lead of batch) {
     try {
       console.log(`\n--- ${lead.company_name} ---`);
@@ -591,15 +645,30 @@ async function main() {
       lead.contact_email = dm.email;
       lead.contact_title = dm.title;
       if (dm.linkedin) lead.contact_linkedin = dm.linkedin;
+      hasUpdates = true;
 
       // Step 2: Research company (1 Gemini call)
       console.log('  Step 2: Researching company...');
       const research = await researchCompany(lead);
       console.log('  Research complete.');
 
+      const detectedCountry = detectCountryFromResearch(research);
+      console.log(`  Detected Country: ${detectedCountry}`);
+
+      // If service is 'institute' and company is not in Turkey (TR), skip email generation
+      if (serviceFilter === 'institute' && detectedCountry !== 'TR') {
+        console.log(`  SKIPPED: Country is ${detectedCountry} (not TR) and service is 'institute'. Updating country and skipping email generation.`);
+        lead.country = detectedCountry;
+        hasUpdates = true;
+        skipped++;
+        await new Promise(r => setTimeout(r, 5000));
+        continue;
+      }
+
       // Step 3: Generate email (1 Gemini call)
       console.log('  Step 3: Generating email...');
-      const result = await generateEmail(lead, research);
+      const detectedLang = COUNTRY_LANGCODE[detectedCountry] || 'en';
+      const result = await generateEmail(lead, research, detectedCountry, detectedLang);
       console.log('  Email generated.');
 
       // Update lead with research data
@@ -644,12 +713,12 @@ async function main() {
     }
   }
 
-  if (generated > 0) {
+  if (generated > 0 || hasUpdates) {
     data.leads = leads;
     data.emails = emails;
     data.updated_at = new Date().toISOString();
     await writeGist(data);
-    console.log(`\nWrote ${generated} new emails to Gist.`);
+    console.log(`\nWrote ${generated} new emails and updated lead info in Gist.`);
   }
 
   console.log(`\nDone. Generated: ${generated}, Skipped (no contact): ${skipped}, Failed: ${batch.length - generated - skipped}. Remaining queue: ${unprocessed.length - batch.length}`);

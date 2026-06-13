@@ -721,7 +721,11 @@ const TRIGGER_SECRET = 'ataol-trigger-2026';
 const SVC_LABELS = { actledger: 'ActLedger', strategythrust: 'Strategy', institute: 'Institute', digital: 'Dijital' };
 
 async function triggerService(service, btn) {
-    if (!confirm(SVC_LABELS[service] + ' outreach tetiklensin mi?')) return;
+    let confirmMsg = SVC_LABELS[service] + ' outreach tetiklensin mi?';
+    if (service === 'institute') {
+        confirmMsg = 'ATAOL AI Institute outreach tetiklensin mi? (Sadece Türkiye\'deki firmalara gönderilecektir)';
+    }
+    if (!confirm(confirmMsg)) return;
 
     const origText = btn.textContent;
     btn.textContent = '...';
@@ -3327,12 +3331,18 @@ function renderGmaps() {
         const hasEmail = emailsData.some(e => e.lead_id === lead.id);
         const emailInfo = hasEmail ? emailsData.find(e => e.lead_id === lead.id) : null;
         const genBtnStyle = 'padding:2px 6px;border:1px solid #ddd;border-radius:3px;cursor:pointer;font-size:10px;margin:1px;';
+        
+        const isTrOnly = !lead.country || lead.country === 'TR';
+        const instBtnHtml = isTrOnly 
+            ? '<button onclick="generateForLead(' + lead.id + ',\'institute\',this)" style="' + genBtnStyle + 'background:#f3e5f5;color:#4a148c;" title="Institute">IN</button>'
+            : '';
+
         const serviceButtons = hasEmail
             ? '<span style="font-size:11px;color:#4caf50;">\u2713 ' + (emailInfo.status || '') + '</span>'
             : '<div style="display:flex;flex-wrap:wrap;gap:2px;" id="gmaps-gen-' + lead.id + '">'
               + '<button onclick="generateForLead(' + lead.id + ',\'actledger\',this)" style="' + genBtnStyle + 'background:#e0f7fa;color:#006064;" title="ActLedger">AL</button>'
               + '<button onclick="generateForLead(' + lead.id + ',\'strategythrust\',this)" style="' + genBtnStyle + 'background:#fce4ec;color:#880e4f;" title="StrategyThrust">ST</button>'
-              + '<button onclick="generateForLead(' + lead.id + ',\'institute\',this)" style="' + genBtnStyle + 'background:#f3e5f5;color:#4a148c;" title="Institute">IN</button>'
+              + instBtnHtml
               + '<button onclick="generateForLead(' + lead.id + ',\'digital\',this)" style="' + genBtnStyle + 'background:#e8f5e9;color:#1b5e20;" title="Digital">DG</button>'
               + '</div>';
 
@@ -3406,6 +3416,11 @@ function renderGmaps() {
 }
 
 async function generateForLead(leadId, service, btn) {
+    const lead = leadsData.find(l => l.id === leadId);
+    if (service === 'institute' && lead && lead.country && lead.country !== 'TR') {
+        alert('ATAOL AI Institute mailleri sadece Türkiye\'deki firmalara gönderilebilir.');
+        return;
+    }
     const container = btn.parentElement;
     const origHtml = container.innerHTML;
     container.innerHTML = '<span style="font-size:11px;color:#ff9800;">Generating...</span>';
@@ -3950,11 +3965,13 @@ Find the following information:
 4. HEADQUARTERS COUNTRY: Which country is the company headquartered in? (give the 2-letter country code: TR, DE, FR, US, GB, JP, etc.)
 5. Challenges the company faces, operational issues
 6. Digital transformation status, operational efficiency
-7. Management team (CEO, CTO, etc. names and roles)
+7. KEY DECISION-MAKER: Find the CEO, founder, managing director, board member, or General Manager. Search LinkedIn, Crunchbase, company about page, and press releases. Provide their full name, title, and personal work email (NOT info@, contact@, or generic addresses).
 8. Recent news or developments
 
 Provide real and current information. If unknown, say so - do not fabricate.
-IMPORTANT: Start your response with "HEADQUARTERS: XX" where XX is the 2-letter country code.`;
+IMPORTANT: Start your response with "HEADQUARTERS: XX" where XX is the 2-letter country code.
+IMPORTANT: Include the decision-maker as "DECISION_MAKER: Full Name | Title | email@domain.com" on a separate line.
+IMPORTANT: If you can only find a generic email, still provide it as "CONTACT_EMAIL: xxx@yyy.com" but try harder to find a personal email first.`;
 
     const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
         method: 'POST',
@@ -3979,35 +3996,48 @@ IMPORTANT: Start your response with "HEADQUARTERS: XX" where XX is the 2-letter 
 
 const ATAOL_INFO = `ATAOL AI Techs - teknoloji ve yazilim cozumleri sirketi:
 
-Kendi platformlarimiz:
+Piramit Platform ve Hizmetlerimiz:
 1. StrategyThrust - Stratejik Karar Destek Platformu:
-- 72 saat icinde geleneksel danismanligin 3-6 aylik isini tamamlar
-- Geleneksel yonetim danismanliginin yaklasik 150'de 1 fiyatina ayni kalitede cikti
-- Sektor analizi, rekabet konumlandirmasi, pazar dinamikleri ve stratejik projeksiyonlar
+- 72 saat icinde geleneksel yonetim danismanliginin 3-6 aylik isini (sektor analizi, rekabet konumlandirmasi, pazar dinamikleri, stratejik projeksiyonlar) tamamlar.
+- Geleneksel yonetim danismanliginin yaklasik 150'de 1 fiyatina ayni kalitede cikti sunar.
+- Yonetim kurulunun karar alma sureclerini hizlandirir, stratejik riskleri minimize eder.
 
 2. ActLedger - Operasyonel Mukemmellik Sistem Platformu:
-- 15 sektor, 576+ departman, 7800+ hazir KPI - dunyanin en kapsamli sektor-spesifik KPI kutuphanesi
-- 5 katmanli performans olcum cercevesi (Performance, Quality, Time, Risk, AI Insight)
-- Dakikalar icinde tam operasyonel cerceve kurulumu
-- Saha operasyonlari, envanter, is akislari, otomasyon, IoT entegrasyonu
-- Mobil-first: iOS + Android + PWA
-- Kampanya: 3 aylik lisans alanlara +1 ay ucretsiz | Yillik lisans alanlara %15 indirim
+- 15 sektor, 576+ departman, 7800+ hazir KPI ile dunyanin en kapsamli sektor-spesifik performans olcum ve takip sistemidir.
+- Mobil-first: iOS + Android + PWA. Saha operasyonlari, envanter, is akislari ve IoT entegrasyonu saglar.
+- Kampanya: 3 aylik lisans alanlara +1 ay ucretsiz | Yillik lisans alanlara %15 indirim.
 
-Kurumsal hizmetlerimiz:
-- Otomasyon cozumleri, mobil uygulama gelistirme (iOS/Android), web uygulama gelistirme
+3. ATAOL AI Lab - Yapay Zeka Entegrasyonu ve Dijital Donusum Hizmetleri:
+- Buyuk Dil Modelleri (LLM) ve uretken yapay zeka araclarinin sirketlerin is akislarina ve B2B yazilim sureclerine entegrasyonu.
+- Sirkete ozel yapay zeka cozumleri, otomasyon sistemleri, mobil ve web uygulamalari gelistirme.
 
-ATAOL AI Institute - Kurumsal egitim programlari
+4. ATAOL AI Institute - Kurumsal Yapay Zeka Egitimleri:
+- Sirketlerin yonetici ve calisan kadrolarina yonelik kurumsal yapay zeka egitimi, yapay zeka okuryazarligi ve dijital donusum adaptasyon programlari.
 
 Kurucu: Sertac Gul | ataolai.tech | strategythrust.com | actledger.com`;
 
 const STRUCTURED_RULES = `Asagidaki JSON yapisinda yanit ver. HER alan hedef dilde yazilmali.
-ASLA "AI", "yapay zeka", "artificial intelligence" kullanma.
+ASLA "AI", "yapay zeka", "artificial intelligence" veya bunlara ait çevirileri (hedef dildeki karşılıklarını) kullanma.
 72 saat ve 1/150 fiyat avantaji toplamda SADECE BIRER KEZ gecsin.
 Em-dash/en-dash kullanma, sadece kisa tire (-).
 McKinsey/BCG/Bain kurumsal ciddiyetinde ton.
 Fiyat bilgisi verme (rakam belirtme), avantaj olarak sun.
 Kampanya detaylarini SADECE ActLedger bolumunde bahset, closing'de KULLANMA.
 Arastirmada bulunan gercek bilgileri (yonetici isimleri, projeler, haberler) emaile dahil et.
+
+SPAM ENGELEME & POSTA KUTUSU GUVENLIGI KURALLARI:
+- E-postanın spam kutusuna düşmesini önlemek için "ücretsiz", "kampanya", "indirim", "risk yok", "satın al", "fırsat" gibi satış odaklı/agresif kelimeleri e-posta konusu veya gövdesinde sıkça kullanma. Tanıtım dilini son derece profesyonel ve kurumsal tut.
+- Konu satırında veya e-posta metninde ünlem işareti (!), emoji veya TAMAMI BÜYÜK harfle yazılmış kelimeler kullanma.
+- Konu satırı tamamen kurumsal, odaklanmış ve profesyonel olmalı (ör: "[Firma Adı] için Operasyonel Verimlilik Çalışması").
+
+PLATFORM YONLENDIRME VE OZEL MESAJ KURALLARI (JENERIK OLMAMALI):
+- StrategyThrust ve ActLedger kısımlarında jenerik/şablon cümleler kullanma. Firmanın araştırmadaki gerçek sorunlarını doğrudan hedef al.
+- Firmanın sorunlarını platformlarımıza şu şekilde eşleştir ve yönlendir:
+  - Stratejik planlama, pazar analizi, büyüme veya karar alma tıkanıklıkları varsa -> StrategyThrust'ı öne çıkar. st_value_prop ve st_solutions alanlarında bunu firmanın sektörel zorluklarına bağla.
+  - Saha operasyonlari, envanter, KPI takibi, departman performansı veya koordinasyon sıkıntıları varsa -> ActLedger'ı öne çıkar. al_value_prop ve al_solutions alanlarında firmanın departmanlarına özel çözümler sun.
+  - LLM/Yapay Zeka entegrasyonu, iş süreçleri otomasyonu veya B2B özel yazılım ihtiyaçları varsa -> ATAOL AI Lab'i öne çıkar. services_note alanında bu özel B2B yazılım ve otomasyon çözümünü firmanın ihtiyacına yönelik olarak sun.
+  - Yönetici eğitimi, yapay zeka okuryazarlığı veya ekip yetkinliği artırma ihtiyacı varsa -> ATAOL AI Institute'ü öne çıkar. institute_note (sadece TR için) alanında bunu firmanın ekiplerine özel bir eğitim önerisi olarak kurgula.
+- Bu yönlendirmeleri e-postaya o kadar doğal ve sübliminal yerleştir ki, firma kendi operasyonel açıklarını kapatmak için bu platformların kaçınılmaz bir çözüm olduğunu hissetsin.
 
 JSON yapisi (markdown yok, kod blogu yok):
 {
@@ -4259,6 +4289,11 @@ const COUNTRY_TZ = {
 
 function detectCountryFromResearch(research) {
     if (!research) return 'INT';
+    const hqMatch = research.match(/HEADQUARTERS:\s*([A-Z]{2})/i);
+    if (hqMatch) {
+        const code = hqMatch[1].toUpperCase();
+        if (COUNTRY_LANGCODE[code]) return code;
+    }
     const r = research.toLowerCase();
     const patterns = [
         [/türk|istanbul|ankara|izmir|antalya|türkiye|turkey/i, 'TR'],
@@ -4295,46 +4330,45 @@ function detectCountryFromResearch(research) {
 }
 
 async function callGeminiAPI(companyName, email, website, notes, research) {
-    // Pre-detect country from research for hint, but Gemini decides final country in JSON
     const hintCountry = detectCountryFromResearch(research);
     const hintLang = COUNTRY_LANG[hintCountry] || 'English';
+    const hintLangCode = COUNTRY_LANGCODE[hintCountry] || 'en';
 
     const prompt = `You write corporate business development emails for ATAOL AI Techs.
 ${ATAOL_INFO}
 
-LANGUAGE RULES - THIS IS THE MOST IMPORTANT RULE:
-1. First, determine the company's country from the research data below.
-2. Set "country" field to the 2-letter country code (TR, DE, FR, ES, IT, PT, NL, SE, NO, DK, FI, PL, CZ, RO, GR, JP, KR, CN, BR, AR, MX, CO, CL, SA, AE, US, GB, AU, IN, etc.)
-3. Then write ALL email fields in that country's primary business language:
-   - TR -> Turkish (set "language" to "tr")
-   - DE, AT, CH -> German (set "language" to "de")
-   - FR, BE -> French (set "language" to "fr")
-   - ES, MX, AR, CO, CL -> Spanish (set "language" to "es")
-   - IT -> Italian (set "language" to "it")
-   - PT, BR -> Portuguese (set "language" to "pt")
-   - NL -> Dutch (set "language" to "nl")
-   - SE -> Swedish (set "language" to "sv")
-   - NO -> Norwegian (set "language" to "no")
-   - DK -> Danish (set "language" to "da")
-   - FI -> Finnish (set "language" to "fi")
-   - PL -> Polish (set "language" to "pl")
-   - CZ -> Czech (set "language" to "cs")
-   - RO -> Romanian (set "language" to "ro")
-   - GR -> Greek (set "language" to "el")
-   - JP -> Japanese (set "language" to "ja")
-   - KR -> Korean (set "language" to "ko")
-   - SA, EG -> Arabic (set "language" to "ar")
-   - All others (US, GB, AU, IN, SG, AE, etc.) -> English (set "language" to "en")
-4. CRITICAL: subject, greeting, intro, ataol_intro, st_value_prop, st_solutions, al_value_prop, al_solutions, innovation_highlights, services_note, closing, cta_text - ALL must be in the determined language. Not English, not Turkish - the COMPANY'S language.
-5. Use formal business register appropriate for that language's corporate culture.
-6. GREETING: Use the standard formal greeting in that language. If contact name is known, address by name. NEVER use placeholder brackets like [Name].
-7. For Turkish companies: fill "institute_note" field. For all others: leave it empty string "".
-8. NEVER use "AI", "yapay zeka", or "artificial intelligence" in the email text.
-9. Em-dash/en-dash forbidden, use only short hyphen (-).
-10. McKinsey/BCG/Bain corporate tone.
-11. 72 hours and 1/150 cost advantage: mention each ONLY ONCE total.
-12. Campaign details (3 months +1 / annual 15%) ONLY in ActLedger section, NOT in closing.
-13. Include real facts from the research (executive names, projects, news).
+LANGUAGE & COUNTRY REQUIREMENT (CRITICAL):
+The target company is located in "${hintCountry}" and the target language is "${hintLang}" (language code: "${hintLangCode}").
+You MUST write ALL email fields in "${hintLang}". Do NOT use English or Turkish unless "${hintLang}" is English or Turkish.
+
+LANGUAGE RULES:
+1. Write ALL email fields (subject, greeting, intro, etc.) in "${hintLang}".
+2. Set the "country" field in the JSON to "${hintCountry}".
+3. Set the "language" field in the JSON to "${hintLangCode}".
+4. Use formal business register appropriate for "${hintLang}" corporate culture.
+5. GREETING: Use the standard formal greeting in "${hintLang}". If contact name is known, address by name. NEVER use placeholder brackets like [Name].
+6. For Turkish companies (lang="tr"): fill "institute_note" field. For all others: leave it empty string "".
+7. NEVER use "AI", "yapay zeka", or "artificial intelligence" (or their translations in the target language) in the email text.
+8. Em-dash/en-dash forbidden, use only short hyphen (-).
+9. McKinsey/BCG/Bain corporate tone.
+10. 72 hours and 1/150 cost advantage: mention each ONLY ONCE total.
+11. Campaign details (3 months +1 / annual 15%) ONLY in ActLedger section, NOT in closing.
+12. Include real facts from the research.
+
+SPAM PREVENTION & POSTMASTER DELIVERY RULES:
+- To prevent spam filter triggers, avoid overly promotional/sales-y words such as "free", "discount", "campaign", "no risk", "opportunity" in the subject and body. Keep the tone executive and advisory.
+- Avoid using exclamation marks (!), ALL CAPS words, or emojis in the subject line or email body.
+- The subject line must be highly professional and specific to their company/challenges (e.g. "Operational Excellence Proposal for [Company]" or "Strategic Efficiency Project for [Company]").
+
+PRODUCT ROUTING & SUBLIMINAL MESSAGE RULES (CRITICAL - NO GENERIC TEXT):
+- Do NOT use generic value propositions or template-like text for our platforms (ActLedger, StrategyThrust, ATAOL AI Institute, ATAOL AI Lab).
+- Customize each section (StrategyThrust, ActLedger, ATAOL AI Lab, ATAOL AI Institute) to directly address the company's specific researched pain points.
+- Map the company's problems to the respective platforms:
+  - If they face strategic, market positioning, or decision-making bottlenecks -> StrategyThrust is the hero. The StrategyThrust section should highlight how StrategyThrust solves their exact market/sector challenges.
+  - If they face operational inefficiency, KPI tracking gaps, saha (field) coordination issues, workflow tracking gaps -> ActLedger is the hero. Customize ActLedger value props and solutions to their exact department or operational metrics.
+  - If they lack digital transformation, B2B software integration, custom workflows, or AI tools -> ATAOL AI Lab is the hero. Mention custom B2B software and workflow automation under "services_note" as the custom AI Lab solution for their exact automation gap.
+  - If they need team training, AI literacy, or management upskilling -> ATAOL AI Institute is the hero. Customize the "institute_note" (TR only) to propose a tailored AI literacy or executive training program for their team.
+- Integrate these recommendations smoothly ("subliminal" / contextual routing) so that the transition from their problem to our specific platform/service feels natural, inevitable, and highly compelling.
 
 --- FIRMA BILGILERI ---
 Firma: ${companyName}
@@ -4342,7 +4376,7 @@ ${website ? 'Website: ' + website : ''}
 ${email ? 'Iletisim email: ' + email : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
 
---- COMPANY RESEARCH (in English - DO NOT use the research language for the email, use the COMPANY'S country language) ---
+--- COMPANY RESEARCH ---
 ${research}
 --- END RESEARCH ---
 
@@ -4353,25 +4387,25 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
     "company_summary": "2-3 sentence summary from research",
     "industry": "Industry sector",
     "company_size": "small/medium/large or known employee count",
-    "country": "2-letter country code",
+    "country": "${hintCountry}",
     "pain_points": ["Real challenge 1", "Challenge 2", "Challenge 3"],
     "service_match": ["ATAOL service match 1", "Match 2"]
   },
   "email": {
-    "subject": "Subject line - max 60 chars - IN THE COMPANY'S LANGUAGE",
-    "language": "2-letter language code (tr/de/fr/es/it/pt/nl/sv/no/da/fi/pl/cs/ro/el/ja/ko/ar/en)",
-    "greeting": "Formal greeting IN THE COMPANY'S LANGUAGE",
-    "intro": "Company-specific opening. Max 60 words. IN THE COMPANY'S LANGUAGE",
-    "ataol_intro": "ATAOL intro 1-2 sentences. Max 30 words. IN THE COMPANY'S LANGUAGE",
-    "st_value_prop": "StrategyThrust value prop. Max 35 words. IN THE COMPANY'S LANGUAGE",
-    "st_solutions": ["Solution 1 IN THE COMPANY'S LANGUAGE", "Solution 2"],
-    "al_value_prop": "ActLedger value prop. Max 35 words. IN THE COMPANY'S LANGUAGE",
-    "al_solutions": ["Solution 1 IN THE COMPANY'S LANGUAGE", "Solution 2"],
+    "subject": "Subject line - max 60 chars - IN ${hintLang}",
+    "language": "${hintLangCode}",
+    "greeting": "Formal greeting IN ${hintLang}",
+    "intro": "Company-specific opening. Max 60 words. IN ${hintLang}",
+    "ataol_intro": "ATAOL intro 1-2 sentences. Max 30 words. IN ${hintLang}",
+    "st_value_prop": "StrategyThrust value prop. Max 35 words. IN ${hintLang}",
+    "st_solutions": ["Solution 1 IN ${hintLang}", "Solution 2"],
+    "al_value_prop": "ActLedger value prop. Max 35 words. IN ${hintLang}",
+    "al_solutions": ["Solution 1 IN ${hintLang}", "Solution 2"],
     "innovation_highlights": ["Innovation 1", "Innovation 2", "Innovation 3"],
-    "services_note": "Other services note. Max 20 words. IN THE COMPANY'S LANGUAGE",
+    "services_note": "Other services note. Max 20 words. IN ${hintLang}",
     "institute_note": "Training proposal for TR companies only. Empty string for others.",
-    "closing": "Closing with meeting proposal. No campaign/discount. IN THE COMPANY'S LANGUAGE",
-    "cta_text": "Schedule a Call IN THE COMPANY'S LANGUAGE"
+    "closing": "Closing with meeting proposal. No campaign/discount. IN ${hintLang}",
+    "cta_text": "Schedule a Call IN ${hintLang}"
   }
 }`;
 
@@ -4402,7 +4436,6 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
 
     const result = JSON.parse(jsonStr);
 
-    // Build full HTML from structured data - use Gemini's own country/language determination
     const ed = result.email;
     const finalCountry = result.lead.country || hintCountry;
     const lang = ed.language || COUNTRY_LANGCODE[finalCountry] || 'en';
