@@ -4566,7 +4566,7 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
 
     const result = JSON.parse(jsonStr);
 
-    let contactName = '';
+    contactName = '';
     let contactEmail = normalizeEmail(email) || '';
     if (research) {
         const dmMatch = research.match(/DECISION_MAKER:\s*([^|]+)\|\s*([^|]+)\|\s*(\S+@\S+)/i);
