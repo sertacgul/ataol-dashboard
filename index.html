@@ -3012,7 +3012,8 @@ async function loadData() {
         const rawResp = await fetch(rawUrl);
         if (rawResp.ok) {
             const text = await rawResp.text();
-            const data = JSON.parse(text);
+            const cleanText = text.replace(/^\uFEFF/, '');
+            const data = JSON.parse(cleanText);
             emailsData = data.emails || [];
             leadsData = data.leads || [];
             newslettersData = data.newsletters || [];
@@ -3023,7 +3024,8 @@ async function loadData() {
                 var asmtUrl = 'https://gist.githubusercontent.com/' + REPO_OWNER + '/' + GIST_ID + '/raw/assessments.json?t=' + Date.now();
                 var asmtResp = await fetch(asmtUrl);
                 if (asmtResp.ok) {
-                    var asmtData = JSON.parse(await asmtResp.text());
+                    var asmtRaw = await asmtResp.text();
+                    var asmtData = JSON.parse(asmtRaw.replace(/^\uFEFF/, ''));
                     if (Array.isArray(asmtData) && asmtData.length > 0) {
                         window.assessmentsData = asmtData;
                     }
@@ -3055,9 +3057,9 @@ async function loadData() {
         if (fileInfo.truncated && fileInfo.raw_url) {
             const r2 = await fetch(fileInfo.raw_url);
             const text = await r2.text();
-            data = JSON.parse(text);
+            data = JSON.parse(text.replace(/^\uFEFF/, ''));
         } else {
-            data = JSON.parse(fileInfo.content);
+            data = JSON.parse(fileInfo.content.replace(/^\uFEFF/, ''));
         }
         emailsData = data.emails || [];
         leadsData = data.leads || [];
@@ -3073,7 +3075,8 @@ async function loadData() {
                     var ar = await fetch(asmtFile.raw_url);
                     asmtContent = await ar.text();
                 }
-                var asmtArr = JSON.parse(asmtContent || '[]');
+                var cleanAsmt = (asmtContent || '').replace(/^\uFEFF/, '');
+                var asmtArr = JSON.parse(cleanAsmt || '[]');
                 if (Array.isArray(asmtArr) && asmtArr.length > 0) {
                     window.assessmentsData = asmtArr;
                 }
