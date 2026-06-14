@@ -4429,6 +4429,12 @@ async function callGeminiAPI(companyName, email, website, notes, research) {
     const hintLang = COUNTRY_LANG[hintCountry] || 'English';
     const hintLangCode = COUNTRY_LANGCODE[hintCountry] || 'en';
 
+    let contactName = '';
+    const dmMatch = research.match(/DECISION_MAKER:\s*([^|\n\r]+)/i);
+    if (dmMatch) {
+        contactName = dmMatch[1].trim();
+    }
+
     const prompt = `You write corporate business development emails for ATAOL AI Techs.
 ${ATAOL_INFO}
 
@@ -4441,7 +4447,7 @@ LANGUAGE RULES:
 2. Set the "country" field in the JSON to "${hintCountry}".
 3. Set the "language" field in the JSON to "${hintLangCode}".
 4. Use formal business register appropriate for "${hintLang}" corporate culture.
-5. GREETING: Use the standard formal greeting in "${hintLang}". If contact name is known, address by name. NEVER use placeholder brackets like [Name].
+5. GREETING: Use standard formal greeting in "${hintLang}". If the contact name is known (e.g. "${contactName || 'none'}"), you MUST address them by name (e.g., "Sayın Levent Çakıroğlu," or "Dear Mr. Smith,"). NEVER use placeholder brackets, generic texts like "[Buraya Ad Soyad yazılacak]", "[Name]", or "[İsim]". If the contact name is not known or is none, use a clean generic formal greeting (e.g., "Sayın Yetkili," for Turkish, "Sehr geehrte Damen und Herren," for German, "Dear Sir/Madam," for English).
 6. For Turkish companies (lang="tr"): fill "institute_note" field. For all others: leave it empty string "".
 7. NEVER use "AI", "yapay zeka", or "artificial intelligence" (or their translations in the target language) in the email text.
 8. Em-dash/en-dash forbidden, use only short hyphen (-).
@@ -4471,6 +4477,7 @@ PRODUCT ROUTING & HERO VALUE PROPOSITION RULES (CRITICAL - EXACTLY ONE HERO SERV
 Firma: ${companyName}
 ${website ? 'Website: ' + website : ''}
 ${email ? 'Iletisim email: ' + email : ''}
+${contactName ? 'Karar Verici: ' + contactName : ''}
 ${notes ? 'Ek bilgi: ' + notes : ''}
 
 --- COMPANY RESEARCH ---

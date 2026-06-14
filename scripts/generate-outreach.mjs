@@ -455,7 +455,7 @@ LANGUAGE RULES:
 2. Set the "country" field in the JSON to "${country}".
 3. Set the "language" field in the JSON to "${lang}".
 4. Use formal business register appropriate for "${langName}" corporate culture.
-5. GREETING: Use standard formal greeting in "${langName}". If contact name is known, address by name. NEVER use placeholder brackets like [Name].
+5. GREETING: Use standard formal greeting in "${langName}". If the contact name is known (e.g. "${contactName || 'none'}"), you MUST address them by name (e.g., "Sayın Levent Çakıroğlu," or "Dear Mr. Smith,"). NEVER use placeholder brackets, generic texts like "[Buraya Ad Soyad yazılacak]", "[Name]", or "[İsim]". If the contact name is not known or is none, use a clean generic formal greeting (e.g., "Sayın Yetkili," for Turkish, "Sehr geehrte Damen und Herren," for German, "Dear Sir/Madam," for English).
 6. For Turkish companies (lang="tr" and type="initial"): fill "institute_note". For others: empty string "".
 7. NEVER use "AI", "yapay zeka", or "artificial intelligence" (or their translations in the target language) in the email text.
 8. Em-dash/en-dash forbidden, use only short hyphen (-).
