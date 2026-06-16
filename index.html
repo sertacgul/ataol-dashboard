@@ -3810,6 +3810,10 @@ function openEmail(idx) {
         editHtml = `
         <div id="editForm-${idx}" class="hidden" style="margin-top:16px;">
             <div style="margin-bottom:12px;">
+                <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Recipient Email</label>
+                <input type="email" id="editToEmail-${idx}" value="${e.to_email || ''}" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+            </div>
+            <div style="margin-bottom:12px;">
                 <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Subject</label>
                 <input type="text" id="editSubject-${idx}" value="${e.subject.replace(/"/g,'&quot;')}" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
             </div>
@@ -3870,10 +3874,12 @@ function toggleEdit(idx) {
 
 async function saveEdit(idx) {
     const subject = document.getElementById(`editSubject-${idx}`).value;
+    const toEmail = document.getElementById(`editToEmail-${idx}`).value.trim();
     const bodyHtml = document.getElementById(`editBody-${idx}`).value
         .replace(/&lt;/g,'<').replace(/&gt;/g,'>');
-    const backup = { subject: emailsData[idx].subject, body_html: emailsData[idx].body_html, body_text: emailsData[idx].body_text, status: emailsData[idx].status };
+    const backup = { subject: emailsData[idx].subject, to_email: emailsData[idx].to_email, body_html: emailsData[idx].body_html, body_text: emailsData[idx].body_text, status: emailsData[idx].status };
     emailsData[idx].subject = subject;
+    emailsData[idx].to_email = toEmail;
     emailsData[idx].body_html = bodyHtml;
     emailsData[idx].body_text = bodyHtml.replace(/<[^>]*>/g, '');
     emailsData[idx].status = 'approved';
@@ -3892,10 +3898,12 @@ async function saveEdit(idx) {
 
 async function saveEditOnly(idx) {
     const subject = document.getElementById(`editSubject-${idx}`).value;
+    const toEmail = document.getElementById(`editToEmail-${idx}`).value.trim();
     const bodyHtml = document.getElementById(`editBody-${idx}`).value
         .replace(/&lt;/g,'<').replace(/&gt;/g,'>');
-    const backup = { subject: emailsData[idx].subject, body_html: emailsData[idx].body_html, body_text: emailsData[idx].body_text };
+    const backup = { subject: emailsData[idx].subject, to_email: emailsData[idx].to_email, body_html: emailsData[idx].body_html, body_text: emailsData[idx].body_text };
     emailsData[idx].subject = subject;
+    emailsData[idx].to_email = toEmail;
     emailsData[idx].body_html = bodyHtml;
     emailsData[idx].body_text = bodyHtml.replace(/<[^>]*>/g, '');
     try {
