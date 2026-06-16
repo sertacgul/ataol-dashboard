@@ -382,6 +382,7 @@
         <a class="logo">ATAOL <span>AI Techs</span></a>
         <nav>
             <a onclick="showTab('overview')" id="tab-overview" class="active">Dashboard</a>
+            <a onclick="showTab('outbox')" id="tab-outbox" style="color:#ef6c00;font-weight:600;">Giden Mailler</a>
             <a onclick="showTab('pending')" id="tab-pending">Pending</a>
             <a onclick="showTab('approved')" id="tab-approved">Approved</a>
             <a onclick="showTab('sent')" id="tab-sent">Sent</a>
@@ -595,6 +596,12 @@
         <div id="view-overview">
             <div class="stats-row" id="statsRow"></div>
             <div class="card"><h3 style="margin-bottom:12px;">Recent Emails</h3><div id="recentList"></div></div>
+        </div>
+        <div id="view-outbox" class="hidden">
+            <div class="card">
+                <h3 style="margin-bottom:12px;">Giden Mailler (Sadeleştirilmiş)</h3>
+                <div id="outboxList"></div>
+            </div>
         </div>
         <div id="view-pending" class="hidden"><div id="pendingList"></div></div>
         <div id="view-approved" class="hidden"><div id="approvedList"></div></div>
@@ -3140,6 +3147,7 @@ async function saveData() {
 // ---- RENDER ----
 function renderAll() {
     renderStats();
+    renderEmailList('outboxList', emailsData.filter(e => e.status === 'pending_review'), 'No emails to send');
     renderEmailList('pendingList', emailsData.filter(e => e.status === 'pending_review'), 'No pending emails');
     renderEmailList('approvedList', emailsData.filter(e => e.status === 'approved'), 'No approved emails');
     renderEmailList('sentList', emailsData.filter(e => e.status === 'sent'), 'No sent emails');
@@ -3153,9 +3161,11 @@ function renderAll() {
     const pendingCount = emailsData.filter(e => e.status === 'pending_review').length;
     const sentCount = emailsData.filter(e => e.status === 'sent').length;
     const tabPending = document.getElementById('tab-pending');
+    const tabOutbox = document.getElementById('tab-outbox');
     const tabSentlog = document.getElementById('tab-sentlog');
     const tabApprovedlog = document.getElementById('tab-approvedlog');
     if (tabPending) tabPending.textContent = `Pending (${pendingCount})`;
+    if (tabOutbox) tabOutbox.textContent = `Giden Mailler (${pendingCount})`;
     if (tabSentlog) tabSentlog.textContent = `Sent Log (${sentCount})`;
     if (tabApprovedlog) tabApprovedlog.textContent = `Outreach Log (${emailsData.length})`;
 }
@@ -3710,7 +3720,8 @@ function renderEmailList(containerId, emails, emptyMsg) {
 
 // ---- TABS ----
 function showTab(tab) {
-    ['overview','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','newoutreach'].forEach(t => {
+    window.currentActiveTab = tab;
+    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','newoutreach'].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const tabEl = document.getElementById(`tab-${t}`);
         if (view) view.classList.toggle('hidden', t !== tab);
@@ -3776,6 +3787,10 @@ function transformScaleText(bodyHtml, lead) {
 function openEmail(idx) {
     const e = emailsData[idx];
     const lead = leadsData.find(l => l.id === e.lead_id) || {};
+    let displayBodyHtml = e.body_html;
+    if (window.currentActiveTab === 'outbox') {
+        displayBodyHtml = simplifyHtmlEmail(e.body_html, e.language);
+    }
     let painPoints = [];
     try { painPoints = JSON.parse(lead.pain_points || '[]'); } catch(x) {}
     let serviceMatch = [];
@@ -3800,7 +3815,7 @@ function openEmail(idx) {
             </div>
             <div style="margin-bottom:12px;">
                 <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Email Body (HTML)</label>
-                <textarea id="editBody-${idx}" rows="10" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:monospace;">${(e.body_html || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+                <textarea id="editBody-${idx}" rows="10" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:monospace;">${(displayBodyHtml || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
             </div>
             <div class="btn-group">
                 <button class="btn btn-success" onclick="saveEdit(${idx})">Save & Approve</button>
@@ -3836,7 +3851,7 @@ function openEmail(idx) {
         <div class="field"><strong>From:</strong> ${e.from_email}</div>
         <div class="field"><strong>Subject:</strong> ${e.subject}</div>
         <div class="field"><strong>Status:</strong> <span class="badge badge-${badgeClass}">${e.status.replace('pending_review','pending')}</span></div>
-        <div class="email-preview">${transformScaleText(e.body_html, lead) || '<em>No email body available</em>'}</div>
+        <div class="email-preview">${transformScaleText(displayBodyHtml, lead) || '<em>No email body available</em>'}</div>
         ${actionsHtml}
         ${editHtml}
         ${analysisHtml}
@@ -3909,6 +3924,10 @@ async function approveEmail(idx) {
     const prevStatus = emailsData[idx].status;
     emailsData[idx].status = 'approved';
     emailsData[idx].approved_at = new Date().toISOString();
+    if (window.currentActiveTab === 'outbox') {
+        emailsData[idx].body_html = simplifyHtmlEmail(emailsData[idx].body_html, emailsData[idx].language);
+        emailsData[idx].body_text = emailsData[idx].body_html.replace(/<[^>]*>/g, '');
+    }
     try {
         await saveData();
         closeModal();
@@ -4245,6 +4264,95 @@ const EN_L10N = {
     unsub: "If you'd prefer not to receive these emails, simply reply with 'unsubscribe'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
 };
+
+
+function simplifyHtmlEmail(html, lang) {
+    if (!html) return '';
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Check if the HTML is structured in our standard div template
+    const container = doc.body.firstElementChild;
+    if (!container || !html.includes('max-width:620px')) {
+        let cleanText = doc.body.innerText.trim();
+        return cleanText.split('\n').map(p => {
+            if (!p.trim()) return '<br>';
+            return `<p style="margin:0 0 10px; font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">${p}</p>`;
+        }).join('');
+    }
+    
+    let text = "";
+    
+    // 1. Greeting
+    const greetingEl = doc.querySelector('p[style*="margin:0 0 16px"]');
+    if (greetingEl) text += greetingEl.innerText + "\n\n";
+    
+    // 2. Intro
+    const introEl = doc.querySelector('p[style*="margin:0 0 14px"]');
+    if (introEl) text += introEl.innerText + "\n\n";
+    
+    // 3. Ataol Intro
+    const ataolIntroEl = doc.querySelector('p[style*="margin:0 0 20px;font-size:14px;color:#555;font-style:italic"]');
+    if (ataolIntroEl) text += ataolIntroEl.innerText + "\n\n";
+    
+    // 4. StrategyThrust and ActLedger sections
+    const blocks = doc.querySelectorAll('div[style*="border-left:4px solid"]');
+    blocks.forEach(block => {
+        const titleEl = block.querySelector('p[style*="font-weight:700"]');
+        const descEl = block.querySelector('p[style*="margin:8px 0 12px"]');
+        if (titleEl) text += "■ " + titleEl.innerText + "\n";
+        if (descEl) text += descEl.innerText + "\n";
+        
+        const bulletPoints = block.querySelectorAll('p[style*="padding-left"]');
+        bulletPoints.forEach(bp => {
+            text += "  • " + bp.innerText.replace('✔', '').trim() + "\n";
+        });
+        text += "\n";
+    });
+    
+    // 5. Institute block (if present)
+    const instBlock = doc.querySelector('div[style*="border-left:4px solid #f59e0b"]');
+    if (instBlock) {
+        const titleEl = instBlock.querySelector('p[style*="font-weight:700"]');
+        const descEl = instBlock.querySelector('p[style*="margin:8px 0 0"]');
+        if (titleEl) text += "■ " + titleEl.innerText + "\n";
+        if (descEl) text += descEl.innerText + "\n\n";
+    }
+    
+    // 6. Services note
+    const servicesNoteEl = doc.querySelector('p[style*="margin:16px 0 8px"]');
+    if (servicesNoteEl) text += servicesNoteEl.innerText + "\n\n";
+    
+    // 7. Closing
+    const closingEl = doc.querySelector('p[style*="margin:4px 0 12px"]');
+    if (closingEl) text += closingEl.innerText + "\n\n";
+    
+    // 8. Booking CTA
+    const bookingBtn = doc.querySelector('a[style*="padding:14px 32px"]');
+    if (bookingBtn) {
+        const url = bookingBtn.getAttribute('href');
+        const label = bookingBtn.innerText;
+        text += `${label}: ${url}\n\n`;
+    }
+    
+    // 9. Simple Signature
+    const isTR = lang === 'tr';
+    if (isTR) {
+        text += "Saygılarımla,\n\n";
+    } else {
+        text += "Best regards,\n\n";
+    }
+    text += "Sertaç Gül\n";
+    text += "Founder, ATAOL AI Techs\n";
+    text += "www.ataolai.tech | +90 532 201 3416\n";
+    
+    // Convert newlines to HTML paragraphs for the simple HTML view
+    return text.split('\n').map(p => {
+        if (!p.trim()) return '<br>';
+        return `<p style="margin:0 0 10px; font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">${p}</p>`;
+    }).join('');
+}
+
 
 function buildEmailHtml(d, lang, emailType = 'initial') {
     if (emailType && emailType.startsWith('followup')) {
