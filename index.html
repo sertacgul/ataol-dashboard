@@ -391,6 +391,7 @@
             <a onclick="showTab('approvedlog')" id="tab-approvedlog">Outreach Log</a>
             <a onclick="showTab('gmaps')" id="tab-gmaps" style="color:#34a853;">&#128205; Maps</a>
             <a onclick="showTab('assessments')" id="tab-assessments" style="color:#a855f7;">Assessments</a>
+            <a onclick="showTab('oee')" id="tab-oee" style="color:#06b6d4;">Verimlilik Analizi</a>
             <a onclick="showTab('newoutreach')" id="tab-newoutreach" style="color:#4fc3f7;font-weight:600;">+ New</a>
         </nav>
         <span class="trigger-group">
@@ -622,6 +623,16 @@
             </div>
         </div>
 
+        <div id="view-oee" class="hidden">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h3>Verimlilik Analizi Değerlendirmeleri</h3>
+                </div>
+                <div id="oeeStats" style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;"></div>
+                <div id="oeeList"></div>
+            </div>
+        </div>
+
         <div id="view-newoutreach" class="hidden">
             <div class="card">
                 <h3 style="margin-bottom:4px;">New Outreach</h3>
@@ -700,6 +711,7 @@ async function verifyToken(token) {
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('dashboard').classList.remove('hidden');
         loadData();
+    fetchOeeReports();
         return;
     }
     try {
@@ -712,6 +724,7 @@ async function verifyToken(token) {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
             loadData();
+    fetchOeeReports();
         } else {
             showLoginError('Access denied. Only @sertacgul can access.');
         }
@@ -753,6 +766,7 @@ function startAutoRefresh(serviceName) {
         _pollCount++;
         try {
             await loadData();
+    fetchOeeReports();
             const newCount = emailsData.length - prevEmailCount;
             if (newCount > 0) {
                 showToast(`${newCount} yeni email yuklendi! (Pending sekmesini kontrol edin)`, 'success');
@@ -3513,7 +3527,8 @@ async function generateForLead(leadId, service, btn) {
         const data = await resp.json();
         if (data.success) {
             container.innerHTML = '<span style="font-size:11px;color:#4caf50;">\u2713 ' + data.email.status + ' (' + service + ')</span>';
-            setTimeout(() => { loadData(); }, 1000);
+            setTimeout(() => { loadData();
+    fetchOeeReports(); }, 1000);
         } else {
             container.innerHTML = '<span style="font-size:11px;color:#f44336;">\u2717 ' + (data.error || 'Failed').substring(0, 40) + '</span>';
             setTimeout(() => { container.innerHTML = origHtml; }, 4000);
@@ -3557,6 +3572,7 @@ async function discoverGmaps() {
             }
             status.innerHTML = msg;
             await loadData();
+    fetchOeeReports();
             renderGmaps();
         }
     } catch (e) {
@@ -3721,13 +3737,14 @@ function renderEmailList(containerId, emails, emptyMsg) {
 // ---- TABS ----
 function showTab(tab) {
     window.currentActiveTab = tab;
-    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','newoutreach'].forEach(t => {
+    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach'].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const tabEl = document.getElementById(`tab-${t}`);
         if (view) view.classList.toggle('hidden', t !== tab);
         if (tabEl) tabEl.classList.toggle('active', t === tab);
     });
     if (tab === 'assessments') renderAssessments();
+    if (tab === 'oee') fetchOeeReports().then(() => renderOeeReports());
 }
 
 // ---- SCALE TRANSFORM ----
@@ -5500,6 +5517,346 @@ async function submitNewAssessment(btn) {
     }
 }
 
+// ---- OEE VERİMLİLİK ANALİZİ ----
+window.oeeReportsData = [];
+
+function oeeScoreColor(score) {
+    const s = parseFloat(score);
+    if (s < 65) return '#ef4444'; // critical red
+    if (s < 85) return '#ca8a04'; // warning yellow
+    return '#0891b2'; // success cyan
+}
+
+function oeeScoreLevel(score, lang) {
+    const s = parseFloat(score);
+    const isEn = lang === 'en';
+    if (s < 65) return isEn ? 'Critical' : 'Kritik';
+    if (s < 85) return isEn ? 'Improvable' : 'Gelişebilir';
+    return isEn ? 'World Class' : 'Dünya Sınıfı';
+}
+
+async function fetchOeeReports() {
+    try {
+        const resp = await fetch('https://api.actledger.com/api/v1/contact/oee-report');
+        if (resp.ok) {
+            window.oeeReportsData = await resp.json();
+        } else {
+            console.error('Failed to fetch OEE reports:', resp.statusText);
+        }
+    } catch (err) {
+        console.error('Error fetching OEE reports:', err);
+    }
+}
+
+function renderOeeReports() {
+    const stats = document.getElementById('oeeStats');
+    const list = document.getElementById('oeeList');
+    if (!stats || !list) return;
+
+    const data = window.oeeReportsData || [];
+    const pending = data.filter(a => a.status === 'pending').length;
+    const sent = data.filter(a => a.status === 'sent').length;
+
+    stats.innerHTML = `
+        <div style="background:#fff3e0;padding:10px 16px;border-radius:8px;min-width:100px;">
+            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Bekliyor</div>
+            <div style="font-size:22px;font-weight:700;color:#d97706;">${pending}</div>
+        </div>
+        <div style="background:#ecfdf5;padding:10px 16px;border-radius:8px;min-width:100px;">
+            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Gönderildi</div>
+            <div style="font-size:22px;font-weight:700;color:#059669;">${sent}</div>
+        </div>
+    `;
+
+    if (!data.length) {
+        list.innerHTML = '<div class="empty">Verimlilik analizi bulunamadı.</div>';
+        return;
+    }
+
+    list.innerHTML = data.map(a => {
+        const lead = a.leadData || {};
+        const metrics = a.oeeMetrics || {};
+        const overall = parseFloat(metrics.oee || 0);
+        const color = oeeScoreColor(overall);
+        const statusBadgeMap = { pending: 'badge-pending', sent: 'badge-sent' };
+        const statusLabelMap = { pending: 'Bekliyor', sent: 'Gönderildi' };
+        const badgeCls = statusBadgeMap[a.status] || 'badge-pending';
+        const badgeLabel = statusLabelMap[a.status] || a.status;
+        const dateStr = a.createdAt ? a.createdAt.slice(0, 10) : '-';
+        return `<div class="email-item" style="cursor:default;border-left-color:${color}">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div class="company">${escapeHtml(lead.company || lead.email)}</div>
+                    <div class="meta">${escapeHtml(lead.email)} · ${escapeHtml(lead.sectorName || lead.sector || '')} · ${dateStr}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:20px;font-weight:800;color:${color};">${overall}%</span>
+                    <span class="badge ${badgeCls}">${badgeLabel}</span>
+                    <button class="qbtn" onclick="openOeeDetail('${a.id}')">Görüntüle</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function openOeeDetail(id) {
+    const a = (window.oeeReportsData || []).find(x => x.id === id);
+    if (!a) return;
+
+    const lead = a.leadData || {};
+    const metrics = a.oeeMetrics || {};
+    const overall = parseFloat(metrics.oee || 0);
+    const color = oeeScoreColor(overall);
+    const level = oeeScoreLevel(overall, a.lang);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'email-detail-overlay';
+    overlay.style.zIndex = '500';
+    overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+
+    overlay.innerHTML = `<div class="email-detail-box" style="width:760px;max-height:90vh;overflow-y:auto;">
+        <div class="header">
+            <h3 style="margin:0;font-size:16px;">${escapeHtml(lead.company || lead.email)} — Verimlilik Analizi Raporu</h3>
+            <span class="close-btn" onclick="this.closest('.email-detail-overlay').remove()">&times;</span>
+        </div>
+
+        <div style="background:#f8fafc;padding:16px;border-radius:10px;margin-bottom:16px;border:1px solid #e2e8f0;">
+            <h4 style="margin:0 0 12px;font-size:13px;text-transform:uppercase;color:#475569;letter-spacing:0.5px;">Firma & İletişim Bilgileri</h4>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;">
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">İletişim Adı</label>
+                    <input type="text" id="oee_lead_name_${id}" value="${escapeHtml(lead.name || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">Firma Adı</label>
+                    <input type="text" id="oee_lead_company_${id}" value="${escapeHtml(lead.company || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">E-posta Adresi</label>
+                    <input type="text" id="oee_lead_email_${id}" value="${escapeHtml(lead.email || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">Telefon</label>
+                    <input type="text" id="oee_lead_phone_${id}" value="${escapeHtml(lead.phone || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">Sektör</label>
+                    <input type="text" id="oee_lead_sector_${id}" value="${escapeHtml(lead.sectorName || lead.sector || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">Dil</label>
+                    <select id="oee_lang_${id}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                        <option value="tr" ${a.lang === 'tr' ? 'selected' : ''}>Türkçe</option>
+                        <option value="en" ${a.lang === 'en' ? 'selected' : ''}>İngilizce</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div style="background:#f8fafc;padding:16px;border-radius:10px;margin-bottom:16px;border:1px solid #e2e8f0;">
+            <h4 style="margin:0 0 12px;font-size:13px;text-transform:uppercase;color:#475569;letter-spacing:0.5px;">OEE Metrikleri & Finansal Hesaplamalar</h4>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:12px;">
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">Availability (%)</label>
+                    <input type="text" id="oee_avail_${id}" value="${escapeHtml(metrics.avail || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">Performance (%)</label>
+                    <input type="text" id="oee_perf_${id}" value="${escapeHtml(metrics.perf || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">Quality (%)</label>
+                    <input type="text" id="oee_qual_${id}" value="${escapeHtml(metrics.qual || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">OEE (%)</label>
+                    <input type="text" id="oee_oee_${id}" value="${escapeHtml(metrics.oee || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">Aylık Kayıp</label>
+                    <input type="text" id="oee_monthly_loss_${id}" value="${escapeHtml(metrics.monthlyLoss || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">Yıllık Kayıp</label>
+                    <input type="text" id="oee_annual_loss_${id}" value="${escapeHtml(metrics.annualLoss || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+                <div class="form-group" style="margin:0;grid-column: span 2;">
+                    <label style="font-size:11px;color:#64748b;font-weight:600;display:block;margin-bottom:4px;">ActLedger Tasarrufu</label>
+                    <input type="text" id="oee_savings_${id}" value="${escapeHtml(metrics.savings || '')}" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label style="font-weight:700;color:#0891b2;">OperIQ Saha Analiz Raporu (düzenlenebilir)</label>
+            <textarea id="oee_ai_report_${id}" rows="15" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;min-height:250px;">${escapeHtml(a.aiReport || '')}</textarea>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="approveAndSendOee('${id}', this)">${a.status === 'sent' ? 'Tekrar Gönder' : 'Onayla ve Gönder'}</button>
+            <button class="btn btn-outline" onclick="saveOeeEdits('${id}', this)">Kaydet</button>
+            <button class="btn btn-outline" onclick="deleteOeeReport('${id}', this)" style="color:#ef4444;border-color:rgba(239, 68, 68, 0.3);">Sil</button>
+            <button class="btn btn-outline" onclick="this.closest('.email-detail-overlay').remove()">Kapat</button>
+        </div>
+        ${a.createdAt ? '<p style="margin:8px 0 0;font-size:11px;color:#888;">Talebin oluşturulduğu tarih: ' + a.createdAt.replace('T',' ').slice(0,19) + '</p>' : ''}
+    </div>`;
+
+    document.body.appendChild(overlay);
+}
+
+async function saveOeeEdits(id, btn, isSilent) {
+    const a = (window.oeeReportsData || []).find(x => x.id === id);
+    if (!a) return;
+
+    const leadName = document.getElementById(`oee_lead_name_${id}`).value.trim();
+    const leadCompany = document.getElementById(`oee_lead_company_${id}`).value.trim();
+    const leadEmail = document.getElementById(`oee_lead_email_${id}`).value.trim();
+    const leadPhone = document.getElementById(`oee_lead_phone_${id}`).value.trim();
+    const leadSector = document.getElementById(`oee_lead_sector_${id}`).value.trim();
+    const lang = document.getElementById(`oee_lang_${id}`).value;
+
+    const avail = document.getElementById(`oee_avail_${id}`).value.trim();
+    const perf = document.getElementById(`oee_perf_${id}`).value.trim();
+    const qual = document.getElementById(`oee_qual_${id}`).value.trim();
+    const oee = document.getElementById(`oee_oee_${id}`).value.trim();
+    const monthlyLoss = document.getElementById(`oee_monthly_loss_${id}`).value.trim();
+    const annualLoss = document.getElementById(`oee_annual_loss_${id}`).value.trim();
+    const savings = document.getElementById(`oee_savings_${id}`).value.trim();
+
+    const aiReport = document.getElementById(`oee_ai_report_${id}`).value;
+
+    a.leadData = {
+        name: leadName,
+        company: leadCompany,
+        email: leadEmail,
+        phone: leadPhone,
+        sectorName: leadSector
+    };
+    a.oeeMetrics = {
+        avail,
+        perf,
+        qual,
+        oee,
+        monthlyLoss,
+        annualLoss,
+        savings
+    };
+    a.aiReport = aiReport;
+    a.lang = lang;
+
+    if (!isSilent) {
+        btn.textContent = 'Kaydediliyor...';
+        btn.disabled = true;
+    }
+
+    try {
+        const resp = await fetch(`https://api.actledger.com/api/v1/contact/oee-report/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                leadData: a.leadData,
+                oeeMetrics: a.oeeMetrics,
+                aiReport: a.aiReport,
+                lang: a.lang
+            })
+        });
+
+        if (!resp.ok) {
+            throw new Error(`Failed to save edits to server: ${resp.statusText}`);
+        }
+
+        const rData = await resp.json();
+        if (rData.report) {
+            a.leadData = rData.report.leadData;
+            a.oeeMetrics = rData.report.oeeMetrics;
+            a.aiReport = rData.report.aiReport;
+            a.lang = rData.report.lang;
+        }
+
+        renderOeeReports();
+        if (!isSilent) {
+            showToast('Değişiklikler kaydedildi.', 'success');
+        }
+    } catch (err) {
+        console.error('Error saving OEE report edits:', err);
+        if (!isSilent) {
+            showToast('Hata: ' + err.message, 'error');
+        } else {
+            throw err;
+        }
+    } finally {
+        if (!isSilent) {
+            btn.textContent = 'Kaydet';
+            btn.disabled = false;
+        }
+    }
+}
+
+async function approveAndSendOee(id, btn) {
+    const a = (window.oeeReportsData || []).find(x => x.id === id);
+    if (!a) return;
+
+    const origText = btn.textContent;
+    btn.textContent = 'Gönderiliyor...';
+    btn.disabled = true;
+
+    try {
+        await saveOeeEdits(id, btn, true);
+
+        const resp = await fetch('https://api.actledger.com/api/v1/contact/oee-report/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+        });
+
+        const rBody = await resp.json();
+        if (!resp.ok || !rBody.success) {
+            throw new Error(rBody.message || 'Gönderim başarısız.');
+        }
+
+        a.status = 'sent';
+        renderOeeReports();
+        showToast('Analiz raporu başarıyla gönderildi.', 'success');
+        btn.textContent = 'Tekrar Gönder';
+    } catch (err) {
+        console.error('Error sending OEE report email:', err);
+        showToast('Hata: ' + err.message, 'error');
+        btn.textContent = origText;
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function deleteOeeReport(id, btn) {
+    if (!confirm('Bu raporu silmek istediğinize emin misiniz?')) return;
+
+    const origText = btn.textContent;
+    btn.textContent = 'Siliniyor...';
+    btn.disabled = true;
+
+    try {
+        const resp = await fetch(`https://api.actledger.com/api/v1/contact/oee-report/${id}`, {
+            method: 'DELETE'
+        });
+
+        const rBody = await resp.json();
+        if (!resp.ok || !rBody.success) {
+            throw new Error(rBody.message || 'Silme işlemi başarısız.');
+        }
+
+        window.oeeReportsData = window.oeeReportsData.filter(x => x.id !== id);
+        renderOeeReports();
+        showToast('Rapor silindi.', 'success');
+        btn.closest('.email-detail-overlay').remove();
+    } catch (err) {
+        console.error('Error deleting OEE report:', err);
+        showToast('Hata: ' + err.message, 'error');
+        btn.textContent = origText;
+        btn.disabled = false;
+    }
+}
+
+
 // ---- INIT ----
 (function init() {
     const defaultToken = 'ghp_' + 'DE4NfxSxKwsRZncNqLT4HjnPGVvu9n3zar4j';
@@ -5524,6 +5881,7 @@ async function submitNewAssessment(btn) {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
     loadData();
+    fetchOeeReports();
     
     const tokenInput = document.getElementById('tokenInput');
     if (tokenInput) {
