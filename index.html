@@ -4291,212 +4291,213 @@ const EN_L10N = {
 };
 
 
+const ITU_AFFILIATION = {
+    tr: "ATAOL AI Techs, İstanbul Teknik Üniversitesi iştirakidir.",
+    en: "ATAOL AI Techs is an affiliate of Istanbul Technical University.",
+    de: "ATAOL AI Techs ist eine Tochtergesellschaft der Technischen Universität Istanbul.",
+    fr: "ATAOL AI Techs est une filiale de l'Université Technique d'Istanbul.",
+    es: "ATAOL AI Techs es una filial de la Universidad Técnica de Estambul.",
+    it: "ATAOL AI Techs è una filiale dell'Università Tecnica di Istanbul.",
+    pt: "ATAOL AI Techs é uma afiliada da Universidade Técnica de Istambul.",
+    nl: "ATAOL AI Techs is een dochteronderneming van de Technische Universiteit Istanbul.",
+    ja: "ATAOL AI Techsは、イスタンブール工科大学の関連会社です。",
+    ko: "ATAOL AI Techs는 이스탄불 기술 대학교의 계열사입니다.",
+    ar: "ATAOL AI Techs هي شركة تابعة لجامعة إسطنبول التقنية.",
+    zh: "ATAOL AI Techs 是伊斯坦布尔理工大学的附属机构。"
+};
+
+const UNSUBSCRIBE_TEXTS = {
+    tr: "Bu e-postayı almak istemiyorsanız, lütfen 'abonelikten çık' yazarak yanıt verin.",
+    en: "If you'd prefer not to receive these emails, simply reply with 'unsubscribe'.",
+    de: "Wenn Sie diese E-Mails nicht mehr erhalten möchten, antworten Sie einfach mit 'abmelden'.",
+    fr: "Si vous ne souhaitez plus recevoir ces e-mails, répondez simplement 'se désabonner'.",
+    es: "Si no desea recibir estos correos, simplemente responda con 'cancelar suscripción'.",
+    it: "Se non desideri più ricevere queste e-mail, rispondi semplicemente con 'annulla iscrizione'.",
+    pt: "Se não deseja receber estes e-mails, basta responder com 'cancelar inscrição'.",
+    nl: "Als u deze e-mails niet meer wilt ontvangen, antwoord dan met 'uitschrijven'.",
+    ja: "このメールの配信停止をご希望の場合は、「配信停止」とご返信ください。",
+    ko: "이 이메일 수신을 원치 않으시면 '수신 거부'라고 회신해 주세요.",
+    ar: "إذا لم ترغب في تلقي هذه الرسائل، يرجى الرد بـ 'إلغاء الاشتراك'."
+};
+
 function simplifyHtmlEmail(html, lang) {
     if (!html) return '';
+    if (!html.includes('max-width:620px')) {
+        return html; // Already simplified or plain text HTML, keep it exactly as is
+    }
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    
-    // Check if the HTML is structured in our standard div template
     const container = doc.body.firstElementChild;
-    if (!container || !html.includes('max-width:620px')) {
-        let cleanText = doc.body.innerText.trim();
-        return cleanText.split('\n').map(p => {
-            if (!p.trim()) return '<br>';
-            return `<p style="margin:0 0 10px; font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">${p}</p>`;
-        }).join('');
-    }
+    if (!container) return html;
+
+    const l_unsub = UNSUBSCRIBE_TEXTS[lang] || UNSUBSCRIBE_TEXTS['en'];
+    const l_itu = ITU_AFFILIATION[lang] || ITU_AFFILIATION['en'];
+    const isTR = lang === 'tr';
     
     let text = "";
     
-    // 1. Greeting
     const greetingEl = doc.querySelector('p[style*="margin:0 0 16px"]');
-    if (greetingEl) text += greetingEl.innerText + "\n\n";
+    if (greetingEl) text += greetingEl.innerText + "
+
+";
     
-    // 2. Intro
     const introEl = doc.querySelector('p[style*="margin:0 0 14px"]');
-    if (introEl) text += introEl.innerText + "\n\n";
+    if (introEl) text += introEl.innerText + "
+
+";
     
-    // 3. Ataol Intro
     const ataolIntroEl = doc.querySelector('p[style*="margin:0 0 20px;font-size:14px;color:#555;font-style:italic"]');
-    if (ataolIntroEl) text += ataolIntroEl.innerText + "\n\n";
+    if (ataolIntroEl) text += ataolIntroEl.innerText + "
+
+";
     
-    // 4. StrategyThrust and ActLedger sections
     const blocks = doc.querySelectorAll('div[style*="border-left:4px solid"]');
     blocks.forEach(block => {
         const titleEl = block.querySelector('p[style*="font-weight:700"]');
         const descEl = block.querySelector('p[style*="margin:8px 0 12px"]');
-        if (titleEl) text += "■ " + titleEl.innerText + "\n";
-        if (descEl) text += descEl.innerText + "\n";
+        if (titleEl) text += "■ " + titleEl.innerText + "
+";
+        if (descEl) text += descEl.innerText + "
+";
         
         const bulletPoints = block.querySelectorAll('p[style*="padding-left"]');
         bulletPoints.forEach(bp => {
-            text += "  • " + bp.innerText.replace('✔', '').trim() + "\n";
+            text += "  • " + bp.innerText.replace('✔', '').trim() + "
+";
         });
-        text += "\n";
+        text += "
+";
     });
     
-    // 5. Institute block (if present)
     const instBlock = doc.querySelector('div[style*="border-left:4px solid #f59e0b"]');
     if (instBlock) {
         const titleEl = instBlock.querySelector('p[style*="font-weight:700"]');
         const descEl = instBlock.querySelector('p[style*="margin:8px 0 0"]');
-        if (titleEl) text += "■ " + titleEl.innerText + "\n";
-        if (descEl) text += descEl.innerText + "\n\n";
+        if (titleEl) text += "■ " + titleEl.innerText + "
+";
+        if (descEl) text += descEl.innerText + "
+
+";
     }
     
-    // 6. Services note
     const servicesNoteEl = doc.querySelector('p[style*="margin:16px 0 8px"]');
-    if (servicesNoteEl) text += servicesNoteEl.innerText + "\n\n";
+    if (servicesNoteEl) text += servicesNoteEl.innerText + "
+
+";
     
-    // 7. Closing
     const closingEl = doc.querySelector('p[style*="margin:4px 0 12px"]');
-    if (closingEl) text += closingEl.innerText + "\n\n";
+    if (closingEl) text += closingEl.innerText + "
+
+";
     
-    // 8. Booking CTA
     const bookingBtn = doc.querySelector('a[style*="padding:14px 32px"]');
+    let bookingUrl = 'mailto:sertacgul@ataolai.tech';
+    let bookingLabel = isTR ? 'Görüşme Planla' : 'Schedule a Call';
     if (bookingBtn) {
-        const url = bookingBtn.getAttribute('href');
-        const label = bookingBtn.innerText;
-        text += `${label}: ${url}\n\n`;
+        bookingUrl = bookingBtn.getAttribute('href') || bookingUrl;
+        bookingLabel = bookingBtn.innerText || bookingLabel;
     }
     
-    // 9. Simple Signature
-    const isTR = lang === 'tr';
-    if (isTR) {
-        text += "Saygılarımla,\n\n";
-    } else {
-        text += "Best regards,\n\n";
-    }
-    text += "Sertaç Gül\n";
-    text += "Founder, ATAOL AI Techs\n";
-    text += "www.ataolai.tech | +90 532 201 3416\n";
-    
-    // Convert newlines to HTML paragraphs for the simple HTML view
-    return text.split('\n').map(p => {
+    let bodyTextHtml = text.split('\n').map(p => {
         if (!p.trim()) return '<br>';
         return `<p style="margin:0 0 10px; font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">${p}</p>`;
     }).join('');
+    
+    bodyTextHtml += `<div style="margin:24px 0;"><a href="${bookingUrl}" style="display:inline-block;background:#1a1a2e;color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-family:sans-serif;font-size:14px;font-weight:600;">${bookingLabel}</a></div>`;
+    
+    bodyTextHtml += `<p style="margin:24px 0 0;font-family:sans-serif;font-size:14px;line-height:1.5;color:#555;">`;
+    bodyTextHtml += `${isTR ? 'Saygılarımla' : 'Best regards'},<br><br>`;
+    bodyTextHtml += `<strong>Sertaç Gül</strong><br>`;
+    bodyTextHtml += `Founder, ATAOL AI Techs<br>`;
+    bodyTextHtml += `<a href="https://www.ataolai.tech" style="color:#1976d2;text-decoration:none;">www.ataolai.tech</a> | +90 532 201 3416`;
+    bodyTextHtml += `</p>`;
+    
+    let finalHtml = `<div style="max-width:600px;margin:0 auto;font-family:sans-serif;color:#333;line-height:1.5;padding:20px;background:#ffffff;font-size:14px;">`;
+    finalHtml += bodyTextHtml;
+    finalHtml += `<hr style="border:none;border-top:1px solid #eee;margin:24px 0 16px;" />`;
+    finalHtml += `<p style="margin:0;font-size:12px;color:#888;font-style:italic;">${l_itu}</p>`;
+    finalHtml += `<p style="margin:12px 0 0;font-size:10px;color:#aaa;font-style:italic;">${l_unsub}</p>`;
+    finalHtml += `</div>`;
+    
+    return finalHtml;
 }
 
-
 function buildEmailHtml(d, lang, emailType = 'initial') {
-    if (emailType && emailType.startsWith('followup')) {
-        const l = TEMPLATE_L10N[lang] || EN_L10N;
-        const booking = d._booking_url || 'mailto:sertacgul@ataolai.tech';
-        return `<div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2d2d2d;line-height:1.6;padding:20px;background:#ffffff;border:1px solid #eee;border-radius:8px;">
-      <p style="margin:0 0 16px;font-size:15px;color:#1a1a2e;font-weight:600;">${d.greeting || ''}</p>
-      <p style="margin:0 0 16px;font-size:14px;color:#444;white-space:pre-line;">${d.intro || ''}</p>
-      <p style="margin:0 0 20px;font-size:14px;color:#444;white-space:pre-line;">${d.closing || ''}</p>
-      <div style="margin:24px 0;">
-        <a href="${booking}" style="display:inline-block;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;">${d.cta_text || 'Schedule a Call'}</a>
-      </div>
-      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
-      <p style="margin:0;font-size:13px;color:#333;font-weight:600;">Sertac Gul<br><span style="color:#888;font-size:12px;font-weight:normal;">Founder, ATAOL AI Techs</span></p>
-      <p style="margin:12px 0 0;font-size:10px;color:#aaa;font-style:italic;">${l.unsub}</p>
-    </div>`;
-    }
-
-    const l = TEMPLATE_L10N[lang] || EN_L10N;
-    const st_items = (d.st_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
-    const al_items = (d.al_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
-    const innov_items = (d.innovation_highlights || []).map(h => `<p style="margin:0 0 8px;font-size:13px;color:#e0e0e0;padding-left:8px;">&#9733; ${h}</p>`).join('');
+    const l_unsub = UNSUBSCRIBE_TEXTS[lang] || UNSUBSCRIBE_TEXTS['en'];
+    const l_itu = ITU_AFFILIATION[lang] || ITU_AFFILIATION['en'];
     const booking = d._booking_url || 'mailto:sertacgul@ataolai.tech';
-
-    let institute_block = '';
-    if (lang === 'tr' && d.institute_note && d.institute_note.trim() !== '') {
-        institute_block = `<div style="background:#fef3c7;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #f59e0b;">
-      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; ATAOL AI <span style="color:#f59e0b;">Institute</span></p>
-      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Kurumsal Yapay Zeka Egitim Programlari</p>
-      <p style="margin:8px 0 0;font-size:13px;color:#444;">${d.institute_note}</p>
-    </div>`;
+    
+    let html = `<div style="max-width:600px;margin:0 auto;font-family:sans-serif;color:#333;line-height:1.5;padding:20px;background:#ffffff;font-size:14px;">`;
+    html += `<p style="margin:0 0 16px;font-weight:600;">${d.greeting || ''}</p>`;
+    html += `<p style="margin:0 0 16px;">${d.intro || ''}</p>`;
+    
+    if (d.ataol_intro) {
+        html += `<p style="margin:0 0 16px;font-style:italic;color:#555;">${d.ataol_intro}</p>`;
     }
-
-    let st_block = '';
-    if (d.st_value_prop && d.st_value_prop.trim() !== '') {
-        st_block = `<div style="background:#f8f9fc;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #1976d2;">
-      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Strategy<span style="color:#1976d2;">Thrust</span></p>
-      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${l.st_label}</p>
-      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.st_value_prop || ''}</p>
-      ${st_items}
-    </div>`;
+    
+    if (emailType && emailType.startsWith('followup')) {
+        html += `<p style="margin:0 0 20px;">${d.closing || ''}</p>`;
+    } else {
+        if (d.st_value_prop || (d.st_solutions && d.st_solutions.length)) {
+            html += `<p style="margin:20px 0 8px;font-weight:700;color:#111;">■ StrategyThrust: ${lang === 'tr' ? 'Stratejik Karar Destek Platformu' : 'Strategic Decision Support Platform'}</p>`;
+            if (d.st_value_prop) {
+                html += `<p style="margin:0 0 8px;color:#444;">${d.st_value_prop}</p>`;
+            }
+            if (d.st_solutions && d.st_solutions.length) {
+                d.st_solutions.forEach(s => {
+                    html += `<p style="margin:0 0 4px;padding-left:12px;">• ${s}</p>`;
+                });
+            }
+        }
+        
+        if (d.al_value_prop || (d.al_solutions && d.al_solutions.length)) {
+            html += `<p style="margin:20px 0 8px;font-weight:700;color:#111;">■ ActLedger: ${lang === 'tr' ? 'Operasyonel Mükemmellik Sistem Platformu' : 'Operational Excellence System Platform'}</p>`;
+            if (d.al_value_prop) {
+                html += `<p style="margin:0 0 8px;color:#444;">${d.al_value_prop}</p>`;
+            }
+            if (d.al_solutions && d.al_solutions.length) {
+                d.al_solutions.forEach(s => {
+                    html += `<p style="margin:0 0 4px;padding-left:12px;">• ${s}</p>`;
+                });
+            }
+        }
+        
+        if (lang === 'tr' && d.institute_note && d.institute_note.trim() !== '') {
+            html += `<p style="margin:20px 0 8px;font-weight:700;color:#111;">■ ATAOL AI Institute: Kurumsal Yapay Zeka Eğitim Programları</p>`;
+            html += `<p style="margin:0 0 8px;">${d.institute_note}</p>`;
+        }
+        
+        if (d.innovation_highlights && d.innovation_highlights.length) {
+            html += `<p style="margin:20px 0 8px;font-weight:700;color:#111;">★ ${lang === 'tr' ? 'İnovasyon ve Dünya İlkleri' : 'Innovation and World Firsts'}</p>`;
+            d.innovation_highlights.forEach(h => {
+                html += `<p style="margin:0 0 4px;padding-left:12px;">★ ${h}</p>`;
+            });
+        }
+        
+        if (d.services_note) {
+            html += `<p style="margin:16px 0 16px;">${d.services_note}</p>`;
+        }
+        
+        html += `<p style="margin:0 0 20px;">${d.closing || ''}</p>`;
     }
-
-    let al_block = '';
-    if (d.al_value_prop && d.al_value_prop.trim() !== '') {
-        al_block = `<div style="background:#f0fdf4;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #22d3ee;">
-      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Act<span style="color:#22d3ee;">Ledger</span></p>
-      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${l.al_label}</p>
-      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.al_value_prop || ''}</p>
-      ${al_items}
-      <div style="margin:14px 0 0;padding:10px 14px;background:linear-gradient(135deg,#e0f7fa,#e8f5e9);border-radius:6px;border:1px dashed #22d3ee;">
-        <p style="margin:0;font-size:12px;font-weight:600;color:#0e7490;">&#127381; ${l.promo}</p>
-      </div>
-    </div>`;
-    }
-
-    let innov_block = '';
-    if (d.innovation_highlights && Array.isArray(d.innovation_highlights) && d.innovation_highlights.length > 0) {
-        innov_block = `<div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:10px;padding:20px 24px;margin:20px 0;">
-      <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#4fc3f7;text-transform:uppercase;letter-spacing:1px;">${l.innov_label}</p>
-      ${innov_items}
-    </div>`;
-    }
-
-    let services_block = '';
-    if (d.services_note && d.services_note.trim() !== '') {
-        services_block = `<p style="margin:16px 0 8px;font-size:13px;color:#555;">${d.services_note}</p>`;
-    }
-
-    return `<div style="max-width:620px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2d2d2d;line-height:1.6;">
-  <div style="background:linear-gradient(135deg,#0a0a1a 0%,#1a1a3e 50%,#0f2460 100%);padding:24px 30px 20px;border-radius:12px 12px 0 0;">
-    <img src="${LOGO_URL}" alt="ATAOL AI Techs" style="height:48px;" />
-    <div style="margin-top:12px;height:3px;background:linear-gradient(90deg,#4fc3f7,#22d3ee,#1976d2,transparent);border-radius:2px;"></div>
-  </div>
-  <div style="background:#ffffff;padding:30px;border-left:1px solid #e8e8e8;border-right:1px solid #e8e8e8;">
-    <p style="margin:0 0 16px;font-size:15px;color:#1a1a2e;">${d.greeting || ''}</p>
-    <p style="margin:0 0 14px;font-size:14px;color:#444;">${d.intro || ''}</p>
-    <p style="margin:0 0 20px;font-size:14px;color:#555;font-style:italic;">${d.ataol_intro || ''}</p>
-    ${st_block}
-    ${al_block}
-    ${institute_block}
-    ${innov_block}
-    ${services_block}
-    <p style="margin:0 0 20px;font-size:12px;"><a href="https://www.ataolai.tech" style="color:#1976d2;text-decoration:none;font-weight:600;">www.ataolai.tech</a></p>
-    <p style="margin:4px 0 12px;font-size:14px;color:#444;">${d.closing || ''}</p>
-    ${l.eng_note}
-    <div style="text-align:center;margin:24px 0;">
-      <a href="${booking}" style="display:inline-block;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">${d.cta_text || 'Schedule a Call'}</a>
-    </div>
-    <p style="margin:0;font-size:13px;color:#333;">Sertac Gul<br><span style="color:#888;font-size:12px;">Founder, ATAOL AI Techs</span></p>
-  </div>
-  <div style="background:#f8f9fa;padding:20px 30px;border-radius:0 0 12px 12px;border:1px solid #e8e8e8;border-top:none;">
-    <table style="width:100%;" cellpadding="0" cellspacing="0"><tr>
-      <td style="vertical-align:middle;">
-        <p style="margin:0 0 2px;font-size:12px;color:#666;font-weight:600;">ATAOL AI Techs</p>
-        <p style="margin:0 0 2px;font-size:11px;color:#888;">${l.svc_label}</p>
-        <p style="margin:0 0 2px;font-size:12px;color:#666;">+90 532 201 3416</p>
-        <p style="margin:0 0 4px;font-size:11px;color:#888;">Istanbul Technical University Technokent, Maslak, Istanbul TÜRKİYE</p>
-        <p style="margin:0 0 4px;font-size:11px;">
-          <a href="https://maps.google.com/?q=ARI+Teknokent+Resitpasa+Mah+Katar+Cad+No+4+34467+Maslak+Istanbul" style="color:#4285F4;text-decoration:none;font-size:11px;">📍 Google Maps</a>
-          &nbsp;|&nbsp;
-          <a href="https://maps.apple.com/?q=ARI+Teknokent+Resitpasa+Mah+Katar+Cad+No+4+34467+Maslak+Istanbul" style="color:#333;text-decoration:none;font-size:11px;">🗺️ Apple Maps</a>
-        </p>
-        <p style="margin:0;font-size:12px;">
-          <a href="https://www.ataolai.tech" style="color:#1a1a2e;text-decoration:none;font-weight:600;">ataolai.tech</a>
-          &nbsp;|&nbsp;<a href="https://strategythrust.com" style="color:#1976d2;text-decoration:none;">strategythrust.com</a>
-          &nbsp;|&nbsp;<a href="https://actledger.com" style="color:#22d3ee;text-decoration:none;">actledger.com</a>
-        </p>
-      </td>
-      <td style="vertical-align:middle;text-align:right;">
-        <a href="${LINKEDIN_URL}" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
-          <img src="${LINKEDIN_ICON}" alt="LinkedIn" style="height:16px;width:16px;" />
-          <span style="color:#0a66c2;font-size:11px;">Follow us</span>
-        </a>
-      </td>
-    </tr></table>
-    <p style="margin:12px 0 0;font-size:10px;color:#aaa;font-style:italic;">${l.unsub}</p>
-  </div>
-</div>`;
+    
+    html += `<div style="margin:24px 0;">`;
+    html += `<a href="${booking}" style="display:inline-block;background:#1a1a2e;color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;">${d.cta_text || 'Schedule a Call'}</a>`;
+    html += `</div>`;
+    
+    html += `<p style="margin:24px 0 0;color:#555;">`;
+    html += `${lang === 'tr' ? 'Saygılarımla' : 'Best regards'},<br><br>`;
+    html += `<strong>Sertaç Gül</strong><br>`;
+    html += `Founder, ATAOL AI Techs<br>`;
+    html += `<a href="https://www.ataolai.tech" style="color:#1976d2;text-decoration:none;">www.ataolai.tech</a> | +90 532 201 3416`;
+    html += `</p>`;
+    
+    html += `<hr style="border:none;border-top:1px solid #eee;margin:24px 0 16px;" />`;
+    html += `<p style="margin:0;font-size:12px;color:#888;font-style:italic;">${l_itu}</p>`;
+    html += `<p style="margin:12px 0 0;font-size:10px;color:#aaa;font-style:italic;">${l_unsub}</p>`;
+    html += `</div>`;
+    
+    return html;
 }
 
 const COUNTRY_LANG = {
