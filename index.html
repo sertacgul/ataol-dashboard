@@ -361,6 +361,252 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.15); flex-shrink: 0;
         }
         .nl-poster-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* --- BUSINESS MODEL CANVAS & FINANCIAL SIMULATOR --- */
+        .bmc-container {
+            display: flex;
+            gap: 20px;
+            flex-direction: column;
+            width: 100%;
+            margin-bottom: 30px;
+            box-sizing: border-box;
+        }
+        @media (min-width: 1200px) {
+            .bmc-container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .bmc-left {
+                flex: 7;
+            }
+            .bmc-right {
+                flex: 3.5;
+                position: sticky;
+                top: 80px;
+            }
+        }
+        
+        /* BMC Grid Layout */
+        .bmc-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(140px, 1fr));
+            grid-template-rows: repeat(2, minmax(180px, auto)) minmax(150px, auto);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 1100px) {
+            .bmc-grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: auto;
+            }
+        }
+        @media (max-width: 600px) {
+            .bmc-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .bmc-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
+        }
+        .bmc-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        /* Grid placements */
+        @media (min-width: 1101px) {
+            .bmc-partners { grid-column: 1 / 2; grid-row: 1 / 3; border-top: 4px solid #38bdf8; }
+            .bmc-activities { grid-column: 2 / 3; grid-row: 1 / 2; border-top: 4px solid #0ea5e9; }
+            .bmc-resources { grid-column: 2 / 3; grid-row: 2 / 3; border-top: 4px solid #0284c7; }
+            .bmc-value { grid-column: 3 / 4; grid-row: 1 / 3; border-top: 4px solid #a855f7; }
+            .bmc-relationship { grid-column: 4 / 5; grid-row: 1 / 2; border-top: 4px solid #ec4899; }
+            .bmc-channels { grid-column: 4 / 5; grid-row: 2 / 3; border-top: 4px solid #f43f5e; }
+            .bmc-segments { grid-column: 5 / 6; grid-row: 1 / 3; border-top: 4px solid #10b981; }
+            .bmc-costs { grid-column: 1 / 3; grid-row: 3 / 4; border-top: 4px solid #f97316; }
+            .bmc-revenues { grid-column: 3 / 6; grid-row: 3 / 4; border-top: 4px solid #6366f1; }
+        }
+        @media (max-width: 1100px) {
+            .bmc-card { border-top: 4px solid #e2e8f0 !important; }
+        }
+        
+        .bmc-header {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 6px;
+        }
+        .bmc-header span {
+            font-size: 14px;
+        }
+        
+        .bmc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 12px;
+            color: #334155;
+            line-height: 1.4;
+        }
+        .bmc-list li {
+            position: relative;
+            padding-left: 14px;
+        }
+        .bmc-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #94a3b8;
+            font-weight: bold;
+        }
+        
+        /* Dynamic financial highlighting in lists */
+        .bmc-list li .cost-val {
+            color: #ea580c;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+        .bmc-list li .rev-val {
+            color: #4f46e5;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+        
+        /* Calculator & Panel Styles */
+        .simulator-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+        
+        .simulator-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #475569;
+            margin: 16px 0 10px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sim-input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .sim-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .sim-group label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .sim-group input {
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 11px;
+            background: #f8fafc;
+            width: 100%;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .sim-group input:focus {
+            border-color: #3b82f6;
+            background: #fff;
+        }
+        
+        /* Metric Cards */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .metric-card {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            box-sizing: border-box;
+            background: #f8fafc;
+        }
+        .metric-card.profit {
+            grid-column: 1 / 3;
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+        .metric-card.profit.negative {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+        .metric-title {
+            font-size: 9px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+        .metric-val {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .metric-card.profit .metric-val {
+            font-size: 18px;
+            color: #166534;
+        }
+        .metric-card.profit.negative .metric-val {
+            color: #991b1b;
+        }
+        .metric-sub {
+            font-size: 9px;
+            color: #64748b;
+        }
+        
+        .break-even-card {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 11px;
+            color: #475569;
+            border: 1px dashed #cbd5e1;
+            line-height: 1.5;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -394,6 +640,7 @@
             <a onclick="showTab('oee')" id="tab-oee" style="color:#06b6d4;">Verimlilik Analizi</a>
             <a onclick="showTab('avmoutreach')" id="tab-avmoutreach" style="color:#e91e63;font-weight:600;">🏢 AVM & İş Yeri</a>
             <a onclick="showTab('newoutreach')" id="tab-newoutreach" style="color:#4fc3f7;font-weight:600;">+ New</a>
+            <a onclick="showTab('bmc')" id="tab-bmc" style="color:#f43f5e;font-weight:600;">📊 Kanvas & Finans</a>
         </nav>
         <span class="trigger-group">
             <span class="trigger-btn" data-svc="actledger" onclick="triggerService('actledger',this)">ActLedger</span>
@@ -712,6 +959,310 @@
                                onchange="localStorage.setItem('gemini_key', this.value)">
                     </div>
                     <p style="font-size:11px;color:#999;">Gemini 2.5 Flash ile firma ara\u015ft\u0131rmas\u0131 + ki\u015fisel email olu\u015fturma. Key sadece taray\u0131c\u0131da saklan\u0131r.</p>
+                </div>
+            </div>
+        </div>
+        <div id="view-bmc" class="hidden">
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <h3 style="margin:0; font-size:18px; color:#1e293b;">ATAOL AI Techs</h3>
+                        <p style="margin:4px 0 0 0; font-size:12px; color:#64748b;">Gelişmiş Finansal İş Modeli Kanvası (Advanced Financial BMC)</p>
+                    </div>
+                    <span style="background: rgba(244,63,94,0.1); color: #f43f5e; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; text-transform: uppercase;">
+                        Çatı Şirket Yapısı
+                    </span>
+                </div>
+            </div>
+            
+            <div class="bmc-container">
+                <!-- BMC Grid on the left -->
+                <div class="bmc-left">
+                    <div class="bmc-grid">
+                        
+                        <!-- 1. Key Partners -->
+                        <div class="bmc-card bmc-partners">
+                            <div class="bmc-header">
+                                <span>🤝</span> Temel Ortaklar
+                            </div>
+                            <ul class="bmc-list">
+                                <li>İTÜ Çekirdek / Arı Teknokent</li>
+                                <li>Yönetim Danışmanlığı Partnerleri</li>
+                                <li>Kurumsal Eğitim Kurumları</li>
+                                <li>Üniversiteler</li>
+                                <li>Teknoloji / Cloud Sağlayıcıları</li>
+                                <li>Sektörel Dernekler & Odalar</li>
+                                <li>Veri ve Araştırma Kaynakları</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 2. Key Activities -->
+                        <div class="bmc-card bmc-activities">
+                            <div class="bmc-header">
+                                <span>⚡</span> Temel Faaliyetler
+                            </div>
+                            <ul class="bmc-list">
+                                <li>AI Ürün ve Platform Geliştirme</li>
+                                <li>Stratejik Analiz ve Raporlama</li>
+                                <li>KPI ve Performans Modelleme</li>
+                                <li>Kurumsal AI Eğitimleri & Atölyeler</li>
+                                <li>AI Lab ile Özel Çözüm Geliştirme</li>
+                                <li>B2B Satış & İş Ortaklıkları</li>
+                                <li>Otorite İnşası / İçerik Paylaşımı</li>
+                                <li>Müşterilere düzenli teknik destek</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 3. Key Resources -->
+                        <div class="bmc-card bmc-resources">
+                            <div class="bmc-header">
+                                <span>💎</span> Temel Kaynaklar
+                            </div>
+                            <ul class="bmc-list">
+                                <li>StrategyThrust Platformu</li>
+                                <li>ActLedger Platformu</li>
+                                <li>7800+ KPI Kütüphanesi</li>
+                                <li>Danışmanlık Metodolojileri</li>
+                                <li>Yazılım, Satış & İş Geliştirme Ekipleri</li>
+                                <li>Fikri Mülkiyet Hakkı (IP)</li>
+                                <li>Sermaye</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 4. Value Propositions -->
+                        <div class="bmc-card bmc-value">
+                            <div class="bmc-header">
+                                <span>🎯</span> Değer Önerileri
+                            </div>
+                            <ul class="bmc-list">
+                                <li>Erişilebilir Danışmanlık Hizmeti</li>
+                                <li>72 Saatte McKinsey, BCG, Bain Kalitesinde Rapor Çıktısı</li>
+                                <li>Strateji ve Operasyon Tek Çatıda</li>
+                                <li>Grounded & Guided AI Güvenilir Karar Destek Sistemi</li>
+                                <li>Uçtan Uca Uygulanabilir AI Dönüşümü</li>
+                                <li>KPI Tabanlı Ölçülebilir Performans</li>
+                                <li>Eğitimden Yazılıma Uçtan Uca Çözüm</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 5. Customer Relationships -->
+                        <div class="bmc-card bmc-relationship">
+                            <div class="bmc-header">
+                                <span>❤️</span> Müşteri İlişkileri
+                            </div>
+                            <ul class="bmc-list">
+                                <li>B2B Doğrudan Satış & İlişki Yönetimi</li>
+                                <li>İhtiyaç Analizi ve Özel Demo Gösterimleri</li>
+                                <li>Pilot Uygulama Süreçleri</li>
+                                <li>Onboarding ve Müşteri Eğitimi</li>
+                                <li>Üst Yönetim Sunumları & Raporlama</li>
+                                <li>Uzun Vadeli Stratejik Partnerlik</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 6. Channels -->
+                        <div class="bmc-card bmc-channels">
+                            <div class="bmc-header">
+                                <span>📢</span> Kanallar
+                            </div>
+                            <ul class="bmc-list">
+                                <li>LinkedIn & ATAOL AI Insights</li>
+                                <li>Resmi Web Sitemiz</li>
+                                <li>E-Mail ve Yüz Yüze Outreach</li>
+                                <li>İTÜ Çekirdek Ağı & Network</li>
+                                <li>LinkedIn Webinar Serileri</li>
+                                <li>Stratejik İş Ortaklıkları (White-label)</li>
+                                <li>Müşteri Referansları</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 7. Customer Segments -->
+                        <div class="bmc-card bmc-segments">
+                            <div class="bmc-header">
+                                <span>👥</span> Müşteri Segmentleri
+                            </div>
+                            <ul class="bmc-list">
+                                <li>Orta-Büyük Ölçekli Şirketler</li>
+                                <li>Büyüme Odaklı KOBİ'ler</li>
+                                <li>Teknoloji Odaklı Start-Up'lar</li>
+                                <li>Üst Yönetim (C-Suite) Ekipleri</li>
+                                <li>Strateji, İş Geliştirme & Operasyon Ekipleri</li>
+                                <li>AI Dönüşümü Hedefleyen Şirketler</li>
+                                <li>Kamu Kurumları</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 8. Cost Structure -->
+                        <div class="bmc-card bmc-costs">
+                            <div class="bmc-header">
+                                <span>💸</span> Maliyet Yapısı (Yıllık Simülasyon)
+                            </div>
+                            <ul class="bmc-list">
+                                <li>Altyapı (Bulut, Sunucu vb.): <span class="cost-val" id="disp_cost_infra">$0</span></li>
+                                <li>Data Abonelikleri (StrategyThrust): <span class="cost-val" id="disp_cost_data">$0</span></li>
+                                <li>API Token Giderleri (Gemini vb.): <span class="cost-val" id="disp_cost_token">$0</span></li>
+                                <li>Satış & Pazarlama (Outreach vb.): <span class="cost-val" id="disp_cost_marketing">$0</span></li>
+                                <li>Hukuk, Muhasebe & Şirket Giderleri: <span class="cost-val" id="disp_cost_legal">$0</span></li>
+                                <li>Personel Giderleri: <span class="cost-val" id="disp_cost_staff">$0</span></li>
+                                <li style="border-top: 1px solid #f1f5f9; padding-top: 6px; font-weight: bold; color: #1e293b;">
+                                    Toplam Yıllık Gider: <span class="cost-val" id="disp_cost_total" style="font-size:13px;">$0</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 9. Revenue Streams -->
+                        <div class="bmc-card bmc-revenues">
+                            <div class="bmc-header">
+                                <span>💰</span> Gelir Akışları (Yıllık Simülasyon)
+                            </div>
+                            <ul class="bmc-list">
+                                <li>StrategyThrust Proje Gelirleri: <span class="rev-val" id="disp_rev_st">$0</span></li>
+                                <li>ActLedger SaaS Abonelikleri: <span class="rev-val" id="disp_rev_al">$0</span></li>
+                                <li>Kurumsal AI Eğitim Gelirleri: <span class="rev-val" id="disp_rev_inst">$0</span></li>
+                                <li>AI Lab Özel Proje Gelirleri: <span class="rev-val" id="disp_rev_lab">$0</span></li>
+                                <li>İş Ortaklığı (White-label) Gelirleri: <span class="rev-val" id="disp_rev_wl">$0</span></li>
+                                <li style="border-top: 1px solid #f1f5f9; padding-top: 6px; font-weight: bold; color: #1e293b;">
+                                    Toplam Yıllık Gelir: <span class="rev-val" id="disp_rev_total" style="font-size:13px;">$0</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+                <!-- Financial Simulator Panel on the right -->
+                <div class="bmc-right">
+                    <div class="simulator-card">
+                        <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 14px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                            📊 Finansal Simülatör & KPI Paneli
+                        </h3>
+                        
+                        <!-- KPIs Grid -->
+                        <div class="metric-grid">
+                            <div class="metric-card">
+                                <span class="metric-title">Yıllık Toplam Gelir</span>
+                                <span class="metric-val" id="val_annual_revenue">$0</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-title">Yıllık Toplam Gider</span>
+                                <span class="metric-val" id="val_annual_cost">$0</span>
+                            </div>
+                            <div class="metric-card profit" id="profit_card">
+                                <span class="metric-title">Yıllık Net Kâr (EBITDA)</span>
+                                <span class="metric-val" id="val_annual_profit">$0</span>
+                                <span class="metric-sub" id="val_profit_margin">EBITDA Marjı: %0</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Gelir Kalemleri -->
+                        <div class="simulator-section-title">
+                            <span>💵 Gelir Sürücüleri</span>
+                            <span style="font-size: 9px; color: #94a3b8; text-transform: none;">Yıllık / Aylık adet ve birim fiyatlar</span>
+                        </div>
+                        
+                        <div class="sim-input-grid">
+                            <div class="sim-group">
+                                <label>ST Proje Sayısı (Yıl)</label>
+                                <input type="number" id="inp_st_count" value="5" oninput="calculateBmcFinance()">
+                            </div>
+                            <div class="sim-group">
+                                <label>ST Ortalama Fiyat ($)</label>
+                                <input type="number" id="inp_st_price" value="15000" oninput="calculateBmcFinance()">
+                            </div>
+                        </div>
+                        
+                        <div class="sim-input-grid">
+                            <div class="sim-group">
+                                <label>ActLedger Üye (SaaS)</label>
+                                <input type="number" id="inp_al_count" value="50" oninput="calculateBmcFinance()">
+                            </div>
+                            <div class="sim-group">
+                                <label>ActLedger Aylık ($)</label>
+                                <input type="number" id="inp_al_price" value="200" oninput="calculateBmcFinance()">
+                            </div>
+                        </div>
+                        
+                        <div class="sim-input-grid">
+                            <div class="sim-group">
+                                <label>Eğitim Sınıf Sayısı</label>
+                                <input type="number" id="inp_inst_count" value="10" oninput="calculateBmcFinance()">
+                            </div>
+                            <div class="sim-group">
+                                <label>Sınıf Ücreti ($)</label>
+                                <input type="number" id="inp_inst_price" value="4000" oninput="calculateBmcFinance()">
+                            </div>
+                        </div>
+                        
+                        <div class="sim-input-grid">
+                            <div class="sim-group">
+                                <label>Lab Proje Sayısı (Yıl)</label>
+                                <input type="number" id="inp_lab_count" value="3" oninput="calculateBmcFinance()">
+                            </div>
+                            <div class="sim-group">
+                                <label>Lab Ortalama Fiyat ($)</label>
+                                <input type="number" id="inp_lab_price" value="25000" oninput="calculateBmcFinance()">
+                            </div>
+                        </div>
+                        
+                        <div class="sim-input-grid">
+                            <div class="sim-group" style="grid-column: 1 / -1;">
+                                <label>White-Label Yıllık Gelir ($)</label>
+                                <input type="number" id="inp_wl_revenue" value="30000" oninput="calculateBmcFinance()">
+                            </div>
+                        </div>
+                        
+                        <!-- Gider Kalemleri -->
+                        <div class="simulator-section-title">
+                            <span>💸 Aylık Maliyet Sürücüleri</span>
+                            <span style="font-size: 9px; color: #94a3b8; text-transform: none;">Aylık sabit giderler</span>
+                        </div>
+                        
+                        <div class="sim-input-grid">
+                            <div class="sim-group">
+                                <label>Altyapı/Sunucu ($)</label>
+                                <input type="number" id="inp_cost_infra" value="500" oninput="calculateBmcFinance()">
+                            </div>
+                            <div class="sim-group">
+                                <label>Veri Kaynakları ($)</label>
+                                <input type="number" id="inp_cost_data" value="200" oninput="calculateBmcFinance()">
+                            </div>
+                        </div>
+                        
+                        <div class="sim-input-grid">
+                            <div class="sim-group">
+                                <label>Gemini API Token ($)</label>
+                                <input type="number" id="inp_cost_token" value="300" oninput="calculateBmcFinance()">
+                            </div>
+                            <div class="sim-group">
+                                <label>Satış & Pazarlama ($)</label>
+                                <input type="number" id="inp_cost_marketing" value="1000" oninput="calculateBmcFinance()">
+                            </div>
+                        </div>
+                        
+                        <div class="sim-input-grid">
+                            <div class="sim-group" style="grid-column: 1 / -1;">
+                                <label>Hukuk & Muhasebe ($)</label>
+                                <input type="number" id="inp_cost_legal" value="300" oninput="calculateBmcFinance()">
+                            </div>
+                        </div>
+                        
+                        <div class="sim-input-grid">
+                            <div class="sim-group">
+                                <label>Çalışan Sayısı</label>
+                                <input type="number" id="inp_staff_count" value="3" oninput="calculateBmcFinance()">
+                            </div>
+                            <div class="sim-group">
+                                <label>Ort. Aylık Maaş ($)</label>
+                                <input type="number" id="inp_staff_salary" value="1500" oninput="calculateBmcFinance()">
+                            </div>
+                        </div>
+                        
+                        <!-- Break-Even Panel -->
+                        <div class="break-even-card" id="break_even_result" style="margin-top: 14px;">
+                            Başabaş Noktası Analizi hesaplanıyor...
+                        </div>
+                        
+                    </div>
                 </div>
             </div>
         </div>
@@ -3776,7 +4327,7 @@ function renderEmailList(containerId, emails, emptyMsg) {
 // ---- TABS ----
 function showTab(tab) {
     window.currentActiveTab = tab;
-    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach','avmoutreach'].forEach(t => {
+    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach','avmoutreach','bmc'].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const tabEl = document.getElementById(`tab-${t}`);
         if (view) view.classList.toggle('hidden', t !== tab);
@@ -3784,6 +4335,129 @@ function showTab(tab) {
     });
     if (tab === 'assessments') renderAssessments();
     if (tab === 'oee') fetchOeeReports().then(() => renderOeeReports());
+    if (tab === 'bmc') calculateBmcFinance();
+}
+
+function calculateBmcFinance() {
+    const fields = [
+        'st_count', 'st_price', 'al_count', 'al_price', 
+        'inst_count', 'inst_price', 'lab_count', 'lab_price', 'wl_revenue',
+        'cost_infra', 'cost_data', 'cost_token', 'cost_marketing', 'cost_legal',
+        'staff_count', 'staff_salary'
+    ];
+    
+    if (!window.bmcFinanceInitialized) {
+        fields.forEach(f => {
+            const saved = localStorage.getItem('bmc_' + f);
+            if (saved !== null) {
+                const el = document.getElementById('inp_' + f);
+                if (el) el.value = saved;
+            }
+        });
+        window.bmcFinanceInitialized = true;
+    }
+    
+    const getVal = (id) => {
+        const el = document.getElementById(id);
+        return el ? parseFloat(el.value) || 0 : 0;
+    };
+    
+    const st_count = getVal('inp_st_count');
+    const st_price = getVal('inp_st_price');
+    const al_count = getVal('inp_al_count');
+    const al_price = getVal('inp_al_price');
+    const inst_count = getVal('inp_inst_count');
+    const inst_price = getVal('inp_inst_price');
+    const lab_count = getVal('inp_lab_count');
+    const lab_price = getVal('inp_lab_price');
+    const wl_revenue = getVal('inp_wl_revenue');
+    
+    const cost_infra = getVal('inp_cost_infra');
+    const cost_data = getVal('inp_cost_data');
+    const cost_token = getVal('inp_cost_token');
+    const cost_marketing = getVal('inp_cost_marketing');
+    const cost_legal = getVal('inp_cost_legal');
+    const staff_count = getVal('inp_staff_count');
+    const staff_salary = getVal('inp_staff_salary');
+    
+    fields.forEach(f => {
+        const el = document.getElementById('inp_' + f);
+        if (el) localStorage.setItem('bmc_' + f, el.value);
+    });
+    
+    const rev_st = st_count * st_price;
+    const rev_al = al_count * al_price * 12;
+    const rev_inst = inst_count * inst_price;
+    const rev_lab = lab_count * lab_price;
+    const rev_wl = wl_revenue;
+    const rev_total = rev_st + rev_al + rev_inst + rev_lab + rev_wl;
+    
+    const monthly_staff = staff_count * staff_salary;
+    const monthly_total = cost_infra + cost_data + cost_token + cost_marketing + cost_legal + monthly_staff;
+    const cost_total = monthly_total * 12;
+    
+    const profit = rev_total - cost_total;
+    const ebitda_margin = rev_total > 0 ? (profit / rev_total) * 100 : 0;
+    
+    const formatCurrency = (val) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+    };
+    
+    document.getElementById('disp_cost_infra').innerText = formatCurrency(cost_infra * 12) + ' (' + formatCurrency(cost_infra) + '/ay)';
+    document.getElementById('disp_cost_data').innerText = formatCurrency(cost_data * 12) + ' (' + formatCurrency(cost_data) + '/ay)';
+    document.getElementById('disp_cost_token').innerText = formatCurrency(cost_token * 12) + ' (' + formatCurrency(cost_token) + '/ay)';
+    document.getElementById('disp_cost_marketing').innerText = formatCurrency(cost_marketing * 12) + ' (' + formatCurrency(cost_marketing) + '/ay)';
+    document.getElementById('disp_cost_legal').innerText = formatCurrency(cost_legal * 12) + ' (' + formatCurrency(cost_legal) + '/ay)';
+    document.getElementById('disp_cost_staff').innerText = formatCurrency(monthly_staff * 12) + ' (' + formatCurrency(monthly_staff) + '/ay)';
+    document.getElementById('disp_cost_total').innerText = formatCurrency(cost_total);
+    
+    document.getElementById('disp_rev_st').innerText = formatCurrency(rev_st) + ' (' + st_count + ' Proje)';
+    document.getElementById('disp_rev_al').innerText = formatCurrency(rev_al) + ' (' + al_count + ' Abone)';
+    document.getElementById('disp_rev_inst').innerText = formatCurrency(rev_inst) + ' (' + inst_count + ' Sınıf)';
+    document.getElementById('disp_rev_lab').innerText = formatCurrency(rev_lab) + ' (' + lab_count + ' Proje)';
+    document.getElementById('disp_rev_wl').innerText = formatCurrency(rev_wl);
+    document.getElementById('disp_rev_total').innerText = formatCurrency(rev_total);
+    
+    document.getElementById('val_annual_revenue').innerText = formatCurrency(rev_total);
+    document.getElementById('val_annual_cost').innerText = formatCurrency(cost_total);
+    
+    const profitEl = document.getElementById('val_annual_profit');
+    const profitCard = document.getElementById('profit_card');
+    const marginEl = document.getElementById('val_profit_margin');
+    
+    profitEl.innerText = formatCurrency(profit);
+    marginEl.innerText = 'EBITDA Marjı: %' + ebitda_margin.toFixed(1);
+    
+    if (profit >= 0) {
+        profitCard.classList.remove('negative');
+        profitCard.style.color = '#166534';
+    } else {
+        profitCard.classList.add('negative');
+        profitCard.style.color = '#991b1b';
+    }
+    
+    const other_rev = rev_st + rev_inst + rev_lab + rev_wl;
+    const break_even_el = document.getElementById('break_even_result');
+    
+    if (cost_total <= other_rev) {
+        break_even_el.innerHTML = '<strong>📈 Başabaş Durumu:</strong> Diğer gelirleriniz (StrategyThrust, Eğitim vb.) yıllık giderlerinizi fazlasıyla karşılıyor. ActLedger abonesi olmasa dahi <strong>kârdasınız!</strong>';
+    } else {
+        const needed_al_rev = cost_total - other_rev;
+        const needed_al_subs = Math.ceil(needed_al_rev / (al_price * 12));
+        
+        const needed_st_rev = cost_total - (rev_al + rev_inst + rev_lab + rev_wl);
+        const needed_st_projects = needed_st_rev > 0 ? Math.ceil(needed_st_rev / st_price) : 0;
+        
+        let breakEvenHtml = '<strong>📉 Başabaş Analizi:</strong><br>';
+        breakEvenHtml += 'Mevcut giderleri karşılamak için (diğer gelirler sabitken) minimum:<br>';
+        if (al_price > 0) {
+            breakEvenHtml += '• <strong>' + needed_al_subs + ' adet</strong> aktif ActLedger abonesine ($' + al_price + '/ay)<br>';
+        }
+        if (st_price > 0 && needed_st_projects > 0) {
+            breakEvenHtml += '• VEYA <strong>' + needed_st_projects + ' adet</strong> StrategyThrust projesine ($' + st_price + '/proje)';
+        }
+        break_even_el.innerHTML = breakEvenHtml;
+    }
 }
 
 // ---- SCALE TRANSFORM ----
