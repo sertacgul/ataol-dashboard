@@ -6220,10 +6220,6 @@ async function deleteOeeReport(id, btn) {
     let savedGemini = null;
     try {
         savedGemini = localStorage.getItem('gemini_key');
-        if (!savedGemini || savedGemini.trim() === '') {
-            savedGemini = 'AIzaSyDxZ0sNfXrzayOBAQPbBmnfZgGpZGbO6rE';
-            localStorage.setItem('gemini_key', savedGemini);
-        }
     } catch (e) {}
     if (savedGemini) {
         GEMINI_KEY = savedGemini;
