@@ -392,6 +392,7 @@
             <a onclick="showTab('gmaps')" id="tab-gmaps" style="color:#34a853;">&#128205; Maps</a>
             <a onclick="showTab('assessments')" id="tab-assessments" style="color:#a855f7;">Assessments</a>
             <a onclick="showTab('oee')" id="tab-oee" style="color:#06b6d4;">Verimlilik Analizi</a>
+            <a onclick="showTab('avmoutreach')" id="tab-avmoutreach" style="color:#e91e63;font-weight:600;">🏢 AVM & İş Yeri</a>
             <a onclick="showTab('newoutreach')" id="tab-newoutreach" style="color:#4fc3f7;font-weight:600;">+ New</a>
         </nav>
         <span class="trigger-group">
@@ -630,6 +631,41 @@
                 </div>
                 <div id="oeeStats" style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;"></div>
                 <div id="oeeList"></div>
+        <div id="view-avmoutreach" class="hidden">
+            <div class="card">
+                <h3 style="margin-bottom:4px;">🏢 AVM, İş Yeri & B2B Arama ve Outreach</h3>
+                <p style="color:#888;font-size:13px;margin-bottom:20px;">Türkiye genelinde (özellikle İstanbul) orta ölçekli AVM'leri, iş yerlerini veya perakende/ev dekorasyon firmalarını bulun, analiz edin ve B2B mail metinlerini hazırlayın.</p>
+
+                <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                    <div class="form-group" style="flex:1;min-width:200px;">
+                        <label>Şehir</label>
+                        <select id="avmCity" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;background:#fff;">
+                            <option value="İstanbul">İstanbul</option>
+                            <option value="Ankara">Ankara</option>
+                            <option value="İzmir">İzmir</option>
+                            <option value="Bursa">Bursa</option>
+                            <option value="Kocaeli">Kocaeli</option>
+                            <option value="Antalya">Antalya</option>
+                            <option value="Diğer (Türkiye)">Diğer (Türkiye)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;min-width:200px;">
+                        <label>Firma / Sektör Türü</label>
+                        <select id="avmType" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;background:#fff;">
+                            <option value="Orta Ölçekli AVM (Alışveriş Merkezi)">Orta Ölçekli AVM (Alışveriş Merkezi)</option>
+                            <option value="İş Yeri, Plaza veya Ticari Ofis Yönetimi">İş Yeri, Plaza veya Ticari Ofis Yönetimi</option>
+                            <option value="Perakende Ev Tekstili, Züccaciye, Ev Dekoru Mağazaları (Bereketli Home benzeri)">Ev Dekoru / Perakende Mağazaları (Bereketli Home vb.)</option>
+                            <option value="Yerel Üretici / Ticarethane">Yerel Üretici / Ticarethane</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-success" id="btnAvmSearch" onclick="searchAvmCompanies()" style="width:100%;font-weight:600;">
+                    🔍 Firmaları Bul & Listele
+                </button>
+
+                <div id="avmSearchResults" class="hidden" style="margin-top:24px;"></div>
+                <div id="avmAnalysisSection" class="hidden" style="margin-top:24px;"></div>
             </div>
         </div>
 
@@ -3737,7 +3773,7 @@ function renderEmailList(containerId, emails, emptyMsg) {
 // ---- TABS ----
 function showTab(tab) {
     window.currentActiveTab = tab;
-    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach'].forEach(t => {
+    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach','avmoutreach'].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const tabEl = document.getElementById(`tab-${t}`);
         if (view) view.classList.toggle('hidden', t !== tab);
@@ -4828,6 +4864,309 @@ async function addToQueue() {
 
     showToast(`${lead.company_name} kuyruga eklendi!`, 'success');
     showTab('pending');
+}
+
+// ---- AVM & WORKPLACES OUTREACH LOGIC ----
+let _avmFoundCompanies = [];
+let _pendingAvmOutreach = null;
+
+async function searchAvmCompanies() {
+    const city = document.getElementById('avmCity').value;
+    const type = document.getElementById('avmType').value;
+    const btn = document.getElementById('btnAvmSearch');
+    const resultsDiv = document.getElementById('avmSearchResults');
+    const analysisDiv = document.getElementById('avmAnalysisSection');
+
+    GEMINI_KEY = localStorage.getItem('gemini_key') || '';
+    if (!GEMINI_KEY) {
+        showToast('Gemini API Key gerekli! Ayarlar bölümünden ekleyin.', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '🔍 Firmalar Aranıyor...';
+    resultsDiv.classList.remove('hidden');
+    analysisDiv.classList.add('hidden');
+    resultsDiv.innerHTML = `<div style="text-align:center;padding:30px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;">Gemini ile <strong>${city}</strong> şehrindeki orta ölçekli <strong>${type}</strong> firmaları aranıyor...</p></div>`;
+
+    // Get list of existing lead names to skip
+    const existingNames = leadsData.map(l => l.company_name.toLowerCase().trim());
+    const skipList = existingNames.length > 0 ? existingNames.join(', ') : 'yok';
+
+    const prompt = `Türkiye'de, özellikle "${city}" şehrinde faaliyet gösteren, orta ölçekli "${type}" kategorisinde yer alan 5 adet gerçek ve aktif firma bul.
+Bu firmaların isimlerini, varsa resmi web sitesi adreslerini ve kısa açıklamalarını getir.
+Zaten veritabanımızda kayıtlı olan şu firmaları kesinlikle atla ve listeye ekleme: ${skipList}.
+Bulduğun firmaların gerçekten var olan ve faal olan firmalar olduğundan emin olmak için arama motorunu kullan.
+
+Respond ONLY in a valid JSON array matching this schema (do NOT wrap in markdown, no code blocks):
+{
+  "companies": [
+    {
+      "name": "Firma / AVM / İş Yeri Adı",
+      "website": "http://www.firmawebsite.com",
+      "description": "Firma hakkında kısa açıklayıcı bilgi (sektörü, nerede yer aldığı, faaliyeti)",
+      "city": "${city}",
+      "sector": "Sektör veya iş alanı açıklaması"
+    }
+  ]
+}`;
+
+    try {
+        const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: 'You are a company research assistant. Find real companies using Google Search. Always respond in valid JSON matching the requested schema.' }] },
+                tools: [{ google_search: {} }],
+                generationConfig: {
+                    responseMimeType: 'application/json',
+                    temperature: 0.7
+                }
+            })
+        });
+
+        if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error(`Gemini API Error: ${err.substring(0, 150)}`);
+        }
+
+        const data = await resp.json();
+        const text = data.candidates[0].content.parts[0].text;
+        let jsonStr = text;
+        const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) jsonStr = codeBlockMatch[1];
+        jsonStr = jsonStr.trim();
+
+        const parsed = JSON.parse(jsonStr);
+        _avmFoundCompanies = parsed.companies || [];
+
+        if (_avmFoundCompanies.length === 0) {
+            resultsDiv.innerHTML = `<div class="card" style="border-left:4px solid #c62828;"><p style="color:#c62828;font-weight:600;">Sonuç bulunamadı.</p><p style="color:#888;font-size:12px;">Lütfen farklı bir şehir veya kategori seçerek tekrar deneyin.</p></div>`;
+            return;
+        }
+
+        let html = `<h4 style="margin-bottom:12px;font-size:15px;color:#333;">Arama Sonuçları (5 Firma Bulundu)</h4>`;
+        _avmFoundCompanies.forEach((c, idx) => {
+            html += `
+                <div class="preview-section" style="margin-bottom:12px; border-left:3px solid #e91e63;">
+                    <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <strong style="font-size:14px;color:#111;">${c.name}</strong>
+                            <div style="font-size:11px;color:#666;margin-top:2px;">
+                                🏢 ${c.sector} | 📍 ${c.city} | 🌐 <a href="${c.website}" target="_blank" style="color:#1976d2;text-decoration:none;">${c.website || 'Web sitesi bulunamadı'}</a>
+                            </div>
+                            <p style="margin:6px 0 0;font-size:13px;color:#444;">${c.description}</p>
+                        </div>
+                        <button class="btn btn-outline" id="btnAnalyze-${idx}" onclick="analyzeAvmCompany(${idx})" style="padding:6px 12px;font-size:12px;font-weight:600;">
+                            Analiz Et & Mail Oluştur
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        resultsDiv.innerHTML = html;
+
+    } catch (err) {
+        resultsDiv.innerHTML = `<div class="card" style="border-left:4px solid #c62828;"><p style="color:#c62828;font-weight:600;">Hata: ${err.message}</p><p style="color:#888;font-size:12px;margin-top:4px;">Lütfen API keyinizi kontrol edip tekrar deneyin.</p></div>`;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Firmaları Bul & Listele';
+    }
+}
+
+async function analyzeAvmCompany(index) {
+    const comp = _avmFoundCompanies[index];
+    if (!comp) return;
+
+    const cardBtn = document.getElementById(`btnAnalyze-${index}`);
+    const analysisDiv = document.getElementById('avmAnalysisSection');
+    const originalText = cardBtn.textContent;
+
+    cardBtn.disabled = true;
+    cardBtn.textContent = 'Analiz ediliyor...';
+    analysisDiv.classList.remove('hidden');
+    analysisDiv.innerHTML = `<div style="text-align:center;padding:24px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;"><strong>${comp.name}</strong> için operasyonel analiz yapılıyor ve mail taslağı hazırlanıyor...</p></div>`;
+
+    const prompt = `Firma: ${comp.name}
+Kategori/Sektör: ${comp.sector}
+Şehir: ${comp.city}
+Website: ${comp.website}
+Açıklama: ${comp.description}
+
+Bu firma için ActLedger (operasyonel mükemmellik/KPI/veri entegrasyonu), StrategyThrust (stratejik karar destek/roadmap), ATAOL AI Lab (yapay zeka/bilgisayarlı görü/kestirimci modeller), ATAOL AI Institute (kurumsal yapay zeka eğitimleri) platform ve hizmetlerimizden hangisi araştırılan firma için uygunsa ona göre soğuk outreach mail taslağı hazırla.
+E-posta Türkçe yazılmalı ve şu kurallara SIKI SIKIYA uymalıdır:
+
+1. SUBJECT: Exactly "[Firma Adı] + Operasyonel Verimsizlik / Stratejik Raporlama"
+2. GREETING: "Sayın Yöneticiler,"
+3. PARAGRAF 1: Sektöre özel ve son derece spesifik bir operasyonel acı noktası (veri takibi, manuel veri girişi, verimsizlik vb.) belirt. (E.g. "...sektöründeki firmaların genellikle ... görmekteyiz.")
+4. PARAGRAF 2: Sektöre özel ikinci bir acı noktası veya verimsizlik kalemi belirt (enerji/kaynak kayıpları, insan hatası, izlenebilirlik kaybı vb.). (E.g. "Ayrıca, ... yol açabilmektedir.")
+5. PARAGRAF 3: ATAOL AI Techs olarak sunduğumuz çözümlerden (başta ActLedger olmak üzere StrategyThrust, ATAOL AI Lab veya ATAOL AI Institute) firma için uygun olanları ve faydasını belirt. (E.g. "ATAOL AI Techs olarak, bu zorlukların üstesinden gelmek için geliştirdiğimiz [Platform Adı] platformu sayesinde... Aynı zamanda [diğer uygun hizmet varsa] yardımıyla...")
+6. PARAGRAF 4: Birebir şu CTA metnini yaz: "Size uzun bir satış sunumu yapmak istemememekteyiz. Bu dönüşümü Türkiye'de nasıl sağladığımıza dair hazırladığımız 1 sayfalık akış şemasını ve kısa içgörüyü bu mail adreslerinize bırakmamız hususunda sizden dönüş alabilirsek çok memnun olurum."
+7. CLOSING: "Saygılarımla." (Nokta ile)
+8. SIGNATURE: "Sertac GUL\nFounder, ATAOL AI Techs"
+9. AFFILIATION: "ATAOL AI Techs, İstanbul Teknik Üniversitesi Çekirdek iştirakıdır."
+
+Respond ONLY in a valid JSON matching this schema (do NOT wrap in markdown, no code blocks):
+{
+  "lead": {
+    "company_name": "${comp.name}",
+    "company_summary": "Firma hakkında 2 cümlelik analiz özeti",
+    "industry": "${comp.sector}",
+    "company_size": "Orta Ölçek",
+    "country": "TR",
+    "pain_points": ["Acı noktası 1", "Acı noktası 2"],
+    "service_match": ["ActLedger", "ATAOL AI Lab"]
+  },
+  "email": {
+    "subject": "Subject line",
+    "greeting": "Sayın Yöneticiler,",
+    "body_paragraphs": [
+      "Paragraph 1 text",
+      "Paragraph 2 text",
+      "Paragraph 3 text",
+      "Paragraph 4 text"
+    ]
+  }
+}`;
+
+    try {
+        const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: 'You are a professional copywriter. Write formal cold emails in Turkish strictly matching the template instructions.' }] },
+                generationConfig: {
+                    responseMimeType: 'application/json',
+                    temperature: 0.7
+                }
+            })
+        });
+
+        if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error(`Gemini API Error: ${err.substring(0, 150)}`);
+        }
+
+        const data = await resp.json();
+        const text = data.candidates[0].content.parts[0].text;
+        let jsonStr = text;
+        const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) jsonStr = codeBlockMatch[1];
+        jsonStr = jsonStr.trim();
+
+        const result = JSON.parse(jsonStr);
+        _pendingAvmOutreach = result;
+
+        // Construct HTML body and Text body
+        const bp = result.email.body_paragraphs || [];
+        const fullBodyHtml = `
+            <p>${result.email.greeting}</p>
+            <p>${bp[0] || ''}</p>
+            <p>${bp[1] || ''}</p>
+            <p>${bp[2] || ''}</p>
+            <p>${bp[3] || ''}</p>
+            <p>ATAOL AI Techs, İstanbul Teknik Üniversitesi Çekirdek iştirakıdır.</p>
+            <p>Saygılarımla.<br>Sertac GUL<br>Founder, ATAOL AI Techs</p>
+        `;
+        result.email.body_html = `<div style="font-family:sans-serif;font-size:14px;line-height:1.5;color:#333;max-width:600px;margin:0 auto;padding:20px;">${fullBodyHtml}</div>`;
+        result.email.body_text = `${result.email.greeting}\n\n${bp[0] || ''}\n\n${bp[1] || ''}\n\n${bp[2] || ''}\n\n${bp[3] || ''}\n\nATAOL AI Techs, İstanbul Teknik Üniversitesi Çekirdek iştirakıdır.\n\nSaygılarımla.\nSertac GUL\nFounder, ATAOL AI Techs`;
+
+        let html = `
+            <div class="card" style="border-top:3px solid #e91e63;margin-top:20px;">
+                <h4 style="margin-bottom:12px;">Analiz ve Outreach Taslağı</h4>
+                <div class="field"><strong>Firma:</strong> ${result.lead.company_name}</div>
+                <div class="field"><strong>Sektör:</strong> ${result.lead.industry}</div>
+                <div class="field"><strong>Hizmet Eşleşmesi:</strong> ${result.lead.service_match.join(', ')}</div>
+                
+                <div style="margin-top:16px;">
+                    <div class="form-group">
+                        <label>Alıcı Email Adresleri (virgülle ayırarak girin)</label>
+                        <input type="text" id="avmEmails" placeholder="zeynep.dusmez, burcu.basaran, yener.seker" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;">
+                    </div>
+                </div>
+
+                <div class="preview-section" style="margin-top:16px;">
+                    <h5 style="margin:0 0 8px;font-size:13px;color:#555;">E-posta Önizleme</h5>
+                    <div style="font-size:12px;color:#888;margin-bottom:8px;"><strong>Konu:</strong> ${result.email.subject}</div>
+                    <div class="email-preview" style="background:#fff;border:1px solid #eee;padding:16px;border-radius:6px;font-size:13px;line-height:1.6;white-space:pre-line;">
+                        ${result.email.body_text}
+                    </div>
+                </div>
+
+                <div class="btn-group" style="margin-top:16px;display:flex;gap:12px;">
+                    <button class="btn btn-success" onclick="addAvmOutreachToQueue()" style="flex:1;">Kuyruğa Ekle (Pending)</button>
+                    <button class="btn btn-outline" onclick="document.getElementById('avmAnalysisSection').classList.add('hidden')" style="flex:1;">İptal</button>
+                </div>
+            </div>
+        `;
+        analysisDiv.innerHTML = html;
+
+    } catch (err) {
+        analysisDiv.innerHTML = `<div class="card" style="border-left:4px solid #c62828;"><p style="color:#c62828;font-weight:600;">Hata: ${err.message}</p><p style="color:#888;font-size:12px;margin-top:4px;">Tekrar denemeyi deneyin.</p></div>`;
+    } finally {
+        cardBtn.disabled = false;
+        cardBtn.textContent = originalText;
+    }
+}
+
+async function addAvmOutreachToQueue() {
+    const result = _pendingAvmOutreach;
+    if (!result) return;
+
+    const avmEmails = document.getElementById('avmEmails').value.trim();
+    if (!avmEmails) { showToast('En az bir e-posta adresi girilmesi zorunludur!', 'error'); return; }
+
+    const leadId = Math.max(0, ...leadsData.map(l => typeof l.id === 'number' ? l.id : 0)) + 1;
+    const lead = result.lead;
+    const emailData = result.email;
+
+    const newLead = {
+        id: leadId,
+        company_name: lead.company_name,
+        company_summary: lead.company_summary,
+        industry: lead.industry,
+        company_size: lead.company_size,
+        country: lead.country,
+        language: 'tr',
+        website: _avmFoundCompanies.find(c => c.name === lead.company_name)?.website || '',
+        source: 'manual_search',
+        discovered_at: new Date().toISOString(),
+        pain_points: JSON.stringify(lead.pain_points || []),
+        service_match: JSON.stringify(lead.service_match || [])
+    };
+    leadsData.push(newLead);
+
+    const newEmail = {
+        lead_id: leadId,
+        to_email: avmEmails,
+        to_name: lead.company_name,
+        from_email: 'sertacgul@ataolai.tech',
+        subject: emailData.subject,
+        body_html: emailData.body_html,
+        body_text: emailData.body_text,
+        language: 'tr',
+        email_type: 'initial',
+        status: 'pending_review',
+        generated_at: new Date().toISOString()
+    };
+    emailsData.push(newEmail);
+
+    try {
+        await saveData();
+        renderAll();
+
+        // Reset
+        document.getElementById('avmAnalysisSection').classList.add('hidden');
+        document.getElementById('avmSearchResults').classList.add('hidden');
+        _pendingAvmOutreach = null;
+
+        showToast(`${lead.company_name} kuyruğa başarıyla eklendi!`, 'success');
+        showTab('pending');
+    } catch (err) {
+        showToast(`Veritabanına yazılırken hata oluştu: ${err.message}`, 'error');
+    }
 }
 
 // ---- ASSESSMENTS ----
