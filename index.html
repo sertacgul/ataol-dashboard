@@ -4923,7 +4923,6 @@ Respond ONLY in a valid JSON array matching this schema (do NOT wrap in markdown
                 systemInstruction: { parts: [{ text: 'You are a company research assistant. Find real companies using Google Search. Always respond in valid JSON matching the requested schema.' }] },
                 tools: [{ google_search: {} }],
                 generationConfig: {
-                    responseMimeType: 'application/json',
                     temperature: 0.7
                 }
             })
