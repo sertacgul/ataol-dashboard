@@ -39,10 +39,19 @@
         }
         .navbar .logo { color: #fff; font-size: 16px; font-weight: 700; text-decoration: none; }
         .navbar .logo span { color: #4fc3f7; }
-        .navbar nav { margin-left: 32px; display: flex; gap: 4px; }
+        .navbar nav {
+            margin-left: 32px; display: flex; gap: 4px;
+            overflow-x: auto; white-space: nowrap;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .navbar nav::-webkit-scrollbar {
+            display: none;
+        }
         .navbar nav a {
             color: #b0bec5; text-decoration: none; padding: 6px 14px; border-radius: 6px;
             font-size: 13px; font-weight: 500; cursor: pointer;
+            flex-shrink: 0;
         }
         .navbar nav a:hover, .navbar nav a.active { color: #fff; background: rgba(255,255,255,0.1); }
         .navbar .trigger-group { margin-left: auto; display: flex; gap: 4px; }
@@ -639,6 +648,7 @@
             <a onclick="showTab('assessments')" id="tab-assessments" style="color:#a855f7;">Assessments</a>
             <a onclick="showTab('oee')" id="tab-oee" style="color:#06b6d4;">Verimlilik Analizi</a>
             <a onclick="showTab('avmoutreach')" id="tab-avmoutreach" style="color:#e91e63;font-weight:600;">🏢 AVM & İş Yeri</a>
+            <a onclick="showTab('globaloutreach')" id="tab-globaloutreach" style="color:#8b5cf6;font-weight:600;">🌍 Global Outreach</a>
             <a onclick="showTab('newoutreach')" id="tab-newoutreach" style="color:#4fc3f7;font-weight:600;">+ New</a>
             <a onclick="showTab('bmc')" id="tab-bmc" style="color:#f43f5e;font-weight:600;">📊 Kanvas & Finans</a>
         </nav>
@@ -1265,6 +1275,69 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Global Outreach View -->
+    <div id="view-globaloutreach" class="hidden">
+        <div class="card">
+            <h3 style="margin-bottom:4px;">🌍 Global Outreach (AVM, Üretim & Ticaret)</h3>
+            <p style="color:#888;font-size:13px;margin-bottom:20px;">Seçilen ülkelerdeki (ABD, Güney Kore, Polonya vb.) orta ölçekli AVM, üretim, ticaret veya benzer sektörlerdeki firmaları bulun, analiz edin ve İngilizce B2B mail metinlerini hazırlayın.</p>
+
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                <div class="form-group" style="flex:1;min-width:200px;">
+                    <label>Hedef Ülke</label>
+                    <select id="globalCountry" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;background:#fff;">
+                        <option value="ABD">ABD (USA)</option>
+                        <option value="Güney Kore">Güney Kore (South Korea)</option>
+                        <option value="Polonya">Polonya (Poland)</option>
+                        <option value="Hollanda">Hollanda (Netherlands)</option>
+                        <option value="Norveç">Norveç (Norway)</option>
+                        <option value="İsveç">İsveç (Sweden)</option>
+                        <option value="Finlandiya">Finlandiya (Finland)</option>
+                        <option value="Kanada">Kanada (Canada)</option>
+                        <option value="Almanya">Almanya (Germany)</option>
+                        <option value="Birleşik Arap Emirlikleri">Birleşik Arap Emirlikleri (UAE)</option>
+                        <option value="Katar">Katar (Qatar)</option>
+                        <option value="Kuveyt">Kuveyt (Kuwait)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1;min-width:200px;">
+                    <label>Sektör / Firma Türü</label>
+                    <select id="globalSector" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;background:#fff;">
+                        <option value="AVM (Alışveriş Merkezi)">Orta Ölçekli AVM (Shopping Malls)</option>
+                        <option value="Üretim / İmalat (Manufacturing)">Üretim / İmalat (Manufacturing)</option>
+                        <option value="Ticaret / Perakende (Trading / Commerce)">Ticaret / Perakende (Trading / Commerce)</option>
+                        <option value="Benzer Sektörler (Similar Sectors)">Benzer Sektörler (Similar Sectors)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="border-top:1px dashed #eee;padding-top:16px;margin-bottom:16px;">
+                <h4 style="font-size:12px;color:#555;margin-bottom:12px;">Doğrudan Firma Girişi (Arama yapmadan doğrudan analiz etmek için opsiyonel)</h4>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <div class="form-group" style="flex:1;min-width:180px;">
+                        <label>Firma Adı</label>
+                        <input type="text" id="globalManualCompanyName" placeholder="Örn: Kalibre Boru, Acme Corp...">
+                    </div>
+                    <div class="form-group" style="flex:1;min-width:180px;">
+                        <label>Web Sitesi (Opsiyonel)</label>
+                        <input type="text" id="globalManualWebsite" placeholder="Örn: www.kalibreboru.com">
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                <button class="btn btn-success" id="btnGlobalSearch" onclick="searchGlobalCompanies()" style="flex:1;min-width:180px;font-weight:600;">
+                    🔍 Firmaları Bul & Listele
+                </button>
+                <button class="btn btn-outline" id="btnGlobalDirectAnalyze" onclick="analyzeGlobalCompanyDirect()" style="flex:1;min-width:180px;font-weight:600;border-color:#8b5cf6;color:#8b5cf6;">
+                    ⚡ Doğrudan Analiz Et & Mail Oluştur
+                </button>
+            </div>
+
+            <div id="globalSearchResults" class="hidden" style="margin-top:24px;"></div>
+            <div id="globalAnalysisSection" class="hidden" style="margin-top:24px;"></div>
         </div>
     </div>
 </div>
@@ -4327,7 +4400,7 @@ function renderEmailList(containerId, emails, emptyMsg) {
 // ---- TABS ----
 function showTab(tab) {
     window.currentActiveTab = tab;
-    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach','avmoutreach','bmc'].forEach(t => {
+    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach','avmoutreach','bmc','globaloutreach'].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const tabEl = document.getElementById(`tab-${t}`);
         if (view) view.classList.toggle('hidden', t !== tab);
@@ -5837,6 +5910,353 @@ async function addAvmOutreachToQueue() {
         document.getElementById('avmAnalysisSection').classList.add('hidden');
         document.getElementById('avmSearchResults').classList.add('hidden');
         _pendingAvmOutreach = null;
+
+        showToast(`${lead.company_name} kuyruğa başarıyla eklendi!`, 'success');
+        showTab('pending');
+    } catch (err) {
+        showToast(`Veritabanına yazılırken hata oluştu: ${err.message}`, 'error');
+    }
+}
+
+// ---- GLOBAL OUTREACH LOGIC ----
+let _globalFoundCompanies = [];
+let _pendingGlobalOutreach = null;
+
+async function searchGlobalCompanies() {
+    const country = document.getElementById('globalCountry').value;
+    const sector = document.getElementById('globalSector').value;
+    const btn = document.getElementById('btnGlobalSearch');
+    const resultsDiv = document.getElementById('globalSearchResults');
+    const analysisDiv = document.getElementById('globalAnalysisSection');
+
+    GEMINI_KEY = localStorage.getItem('gemini_key') || '';
+    if (!GEMINI_KEY) {
+        showToast('Gemini API Key gerekli! Ayarlar bölümünden ekleyin.', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '🔍 Firmalar Aranıyor...';
+    resultsDiv.classList.remove('hidden');
+    analysisDiv.classList.add('hidden');
+    resultsDiv.innerHTML = `<div style="text-align:center;padding:30px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;">Gemini ile <strong>${country}</strong> ülkesindeki orta ölçekli <strong>${sector}</strong> firmaları aranıyor...</p></div>`;
+
+    // Get list of existing lead names to skip
+    const existingNames = leadsData.map(l => l.company_name.toLowerCase().trim());
+    const skipList = existingNames.length > 0 ? existingNames.join(', ') : 'yok';
+
+    const prompt = `Find 5 real, active, medium-sized companies in "${country}" operating in the "${sector}" sector (such as shopping malls, manufacturing, trading, or similar).
+Provide their names, official website URLs, and a brief description (business type, location, activities).
+Strictly avoid and skip any of these already registered companies: ${skipList}.
+Use Google Search tool to ensure these are real, currently operating businesses.
+
+Respond ONLY in a valid JSON matching this schema (do NOT wrap in markdown, no code blocks):
+{
+  "companies": [
+    {
+      "name": "Company Name",
+      "website": "http://www.companywebsite.com",
+      "description": "Brief description of the company (its business, location, activities)",
+      "city": "City name",
+      "country": "${country}",
+      "sector": "Sector or business line"
+    }
+  ]
+}`;
+
+    try {
+        const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: 'You are a company research assistant. Find real companies using Google Search. Always respond in valid JSON matching the requested schema.' }] },
+                tools: [{ google_search: {} }],
+                generationConfig: {
+                    temperature: 0.7
+                }
+            })
+        });
+
+        if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error(`Gemini API Error: ${err.substring(0, 150)}`);
+        }
+
+        const data = await resp.json();
+        const text = data.candidates[0].content.parts[0].text;
+        let jsonStr = text;
+        const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) jsonStr = codeBlockMatch[1];
+        jsonStr = jsonStr.trim();
+
+        const parsed = JSON.parse(jsonStr);
+        _globalFoundCompanies = parsed.companies || [];
+
+        if (_globalFoundCompanies.length === 0) {
+            resultsDiv.innerHTML = `<div class="card" style="border-left:4px solid #c62828;"><p style="color:#c62828;font-weight:600;">Sonuç bulunamadı.</p><p style="color:#888;font-size:12px;">Lütfen farklı bir ülke veya kategori seçerek tekrar deneyin.</p></div>`;
+            return;
+        }
+
+        let html = `<h4 style="margin-bottom:12px;font-size:15px;color:#333;">Arama Sonuçları (5 Firma Bulundu)</h4>`;
+        _globalFoundCompanies.forEach((c, idx) => {
+            html += `
+                <div class="preview-section" style="margin-bottom:12px; border-left:3px solid #8b5cf6;">
+                    <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <strong style="font-size:14px;color:#111;">${c.name}</strong>
+                            <div style="font-size:11px;color:#666;margin-top:2px;">
+                                🏢 ${c.sector} | 📍 ${c.city || 'Bilinmiyor'}, ${c.country} | 🌐 <a href="${c.website}" target="_blank" style="color:#1976d2;text-decoration:none;">${c.website || 'Web sitesi bulunamadı'}</a>
+                            </div>
+                            <p style="margin:6px 0 0;font-size:13px;color:#444;">${c.description}</p>
+                        </div>
+                        <button class="btn btn-outline" id="btnGlobalAnalyze-${idx}" onclick="analyzeGlobalCompany(${idx})" style="padding:6px 12px;font-size:12px;font-weight:600;border-color:#8b5cf6;color:#8b5cf6;">
+                            Analiz Et & Mail Oluştur
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        resultsDiv.innerHTML = html;
+
+    } catch (err) {
+        resultsDiv.innerHTML = `<div class="card" style="border-left:4px solid #c62828;"><p style="color:#c62828;font-weight:600;">Hata: ${err.message}</p><p style="color:#888;font-size:12px;margin-top:4px;">Lütfen API keyinizi kontrol edip tekrar deneyin.</p></div>`;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Firmaları Bul & Listele';
+    }
+}
+
+async function analyzeGlobalCompanyDirect() {
+    const compName = document.getElementById('globalManualCompanyName').value.trim();
+    if (!compName) {
+        showToast('Lütfen firma adı girin veya "Firmaları Bul & Listele" butonunu kullanın.', 'error');
+        return;
+    }
+    const country = document.getElementById('globalCountry').value;
+    const sector = document.getElementById('globalSector').value;
+    const website = document.getElementById('globalManualWebsite').value.trim();
+
+    const comp = {
+        name: compName,
+        website: website,
+        description: `${country}'da faaliyet gösteren ${sector} firması.`,
+        city: 'Bilinmiyor',
+        country: country,
+        sector: sector
+    };
+    _globalFoundCompanies[999] = comp;
+
+    await analyzeGlobalCompany(999);
+}
+
+async function analyzeGlobalCompany(index) {
+    const comp = _globalFoundCompanies[index];
+    if (!comp) return;
+
+    let cardBtn = document.getElementById(`btnGlobalAnalyze-${index}`);
+    if (index === 999) {
+        cardBtn = document.getElementById('btnGlobalDirectAnalyze');
+    }
+    const analysisDiv = document.getElementById('globalAnalysisSection');
+    const originalText = cardBtn ? cardBtn.textContent : '';
+
+    if (cardBtn) {
+        cardBtn.disabled = true;
+        cardBtn.textContent = 'Analiz ediliyor...';
+    }
+    analysisDiv.classList.remove('hidden');
+    analysisDiv.innerHTML = `<div style="text-align:center;padding:24px;"><div class="spinner"></div><p style="color:#888;margin-top:12px;"><strong>${comp.name}</strong> için operasyonel analiz yapılıyor ve İngilizce mail taslağı hazırlanıyor...</p></div>`;
+
+    const country = comp.country || document.getElementById('globalCountry').value;
+    const sector = comp.sector || document.getElementById('globalSector').value;
+
+    const prompt = `Company Name: ${comp.name}
+Sector: ${sector}
+Location: ${comp.city || 'Unknown'}, ${country}
+Website: ${comp.website || 'None'}
+Description: ${comp.description || ''}
+
+Write a B2B cold outreach email in English. The email must be strictly plain text.
+Follow this EXACT structure:
+
+1. SUBJECT: Exactly "[Company Name] Operational Efficiency and Production/Service Quality Optimization" (use "Production Quality Optimization" for manufacturing/production, "Service Quality Optimization" or "Operational Quality Optimization" for AVM/trading/others).
+2. GREETING: Exactly "Dear Umut Bey,"
+3. PARAGRAPH 1: Address the company's sector. Highlight that companies in the "${sector}" sector (specifically in their business domain) can experience losses in operational efficiency of up to 15% due to manual processes and insufficient data analysis in their operations. Explain how this leads to issues like [sector-specific issues, e.g. increased scrap rates/extended quality control/rising costs for manufacturing, or high facility management costs/tenant complaints/energy waste for AVMs, or inventory turnover delays/supply chain errors for trading].
+4. PARAGRAPH 2: State: "In response to the challenges in this field, we target inefficiencies and quality control deficiencies with the ActLedger Operational Excellence System Platform developed under ATAOL AI Techs. Tailored for 15 sectors and 576+ departments with 7800+ ready-to-use KPIs, our platform eliminates paper forms and Excel-based complexity, offering the potential to increase operational efficiency (OEE) by 15% to 25%." (You may customize "OEE" or terminology slightly to suit AVM/trading if necessary, but keep the core metrics).
+5. PARAGRAPH 3: State: "At the same time, thanks to the advanced analytical capabilities of ATAOL AI Lab, it is also possible to prevent operational errors with predictive models and automate quality control/monitoring processes with computer vision."
+6. PARAGRAPH 4 (CTA): Exactly: "We do not wish to make a long sales presentation to you. We would be very pleased to receive your feedback to share the 1-page flowchart and short insight we prepared on how we achieved this transformation in Turkey to these email addresses, as we look to bring similar efficiency gains to organizations in ${country}."
+7. CLOSING: "Best regards,"
+8. SIGNATURE: "Sertac GUL\\nFounder, ATAOL AI Techs\\nsertacgul@ataolai.tech"
+9. AFFILIATION: "ATAOL AI Techs is an ITU Cekirdek (Istanbul Technical University) portfolio company."
+
+Respond ONLY in valid JSON matching this schema (do NOT wrap in markdown, no code blocks):
+{
+  "lead": {
+    "company_name": "${comp.name}",
+    "company_summary": "2-sentence analysis summary of the company in Turkish",
+    "industry": "${sector}",
+    "company_size": "Orta Ölçek",
+    "country": "${country}",
+    "pain_points": ["Pain point 1", "Pain point 2"],
+    "service_match": ["ActLedger", "ATAOL AI Lab"]
+  },
+  "email": {
+    "subject": "Subject line",
+    "greeting": "Dear Umut Bey,",
+    "body_paragraphs": [
+      "Paragraph 1 text",
+      "Paragraph 2 text",
+      "Paragraph 3 text",
+      "Paragraph 4 text"
+    ]
+  }
+}`;
+
+    try {
+        const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: 'You are a professional copywriter. Write formal cold emails in English strictly matching the template instructions.' }] },
+                generationConfig: {
+                    responseMimeType: 'application/json',
+                    temperature: 0.7
+                }
+            })
+        });
+
+        if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error(`Gemini API Error: ${err.substring(0, 150)}`);
+        }
+
+        const data = await resp.json();
+        const text = data.candidates[0].content.parts[0].text;
+        let jsonStr = text;
+        const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) jsonStr = codeBlockMatch[1];
+        jsonStr = jsonStr.trim();
+
+        const result = JSON.parse(jsonStr);
+        _pendingGlobalOutreach = result;
+
+        // Construct HTML body and Text body
+        const bp = result.email.body_paragraphs || [];
+        const fullBodyHtml = `
+            <p>${result.email.greeting}</p>
+            <p>${bp[0] || ''}</p>
+            <p>${bp[1] || ''}</p>
+            <p>${bp[2] || ''}</p>
+            <p>${bp[3] || ''}</p>
+            <p>ATAOL AI Techs is an ITU Cekirdek (Istanbul Technical University) portfolio company.</p>
+            <p>Best regards,<br>Sertac GUL<br>Founder, ATAOL AI Techs<br>sertacgul@ataolai.tech</p>
+        `;
+        result.email.body_html = `<div style="font-family:sans-serif;font-size:14px;line-height:1.5;color:#333;max-width:600px;margin:0 auto;padding:20px;">${fullBodyHtml}</div>`;
+        result.email.body_text = `${result.email.greeting}\n\n${bp[0] || ''}\n\n${bp[1] || ''}\n\n${bp[2] || ''}\n\n${bp[3] || ''}\n\nATAOL AI Techs is an ITU Cekirdek (Istanbul Technical University) portfolio company.\n\nBest regards,\nSertac GUL\nFounder, ATAOL AI Techs\nsertacgul@ataolai.tech`;
+
+        let html = `
+            <div class="card" style="border-top:3px solid #8b5cf6;margin-top:20px;">
+                <h4 style="margin-bottom:12px;">Analiz ve Outreach Taslağı (Global)</h4>
+                <div class="field"><strong>Firma:</strong> ${result.lead.company_name}</div>
+                <div class="field"><strong>Ülke:</strong> ${result.lead.country}</div>
+                <div class="field"><strong>Sektör:</strong> ${result.lead.industry}</div>
+                <div class="field"><strong>Hizmet Eşleşmesi:</strong> ${result.lead.service_match.join(', ')}</div>
+                
+                <div style="margin-top:16px;">
+                    <div class="form-group">
+                        <label>Alıcı Email Adresleri (virgülle ayırarak girin)</label>
+                        <input type="text" id="globalEmails" placeholder="example1@company.com, example2@company.com" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;">
+                    </div>
+                </div>
+
+                <div class="preview-section" style="margin-top:16px;">
+                    <h5 style="margin:0 0 8px;font-size:13px;color:#555;">E-posta Önizleme (Plain Text & English)</h5>
+                    <div style="font-size:12px;color:#888;margin-bottom:8px;"><strong>Konu:</strong> ${result.email.subject}</div>
+                    <div class="email-preview" style="background:#fff;border:1px solid #eee;padding:16px;border-radius:6px;font-size:13px;line-height:1.6;white-space:pre-line;">
+                        ${result.email.body_text}
+                    </div>
+                </div>
+
+                <div class="btn-group" style="margin-top:16px;display:flex;gap:12px;">
+                    <button class="btn btn-success" onclick="addGlobalOutreachToQueue()" style="flex:1;">Kuyruğa Ekle (Pending)</button>
+                    <button class="btn btn-outline" onclick="document.getElementById('globalAnalysisSection').classList.add('hidden')" style="flex:1;">İptal</button>
+                </div>
+            </div>
+        `;
+        analysisDiv.innerHTML = html;
+
+    } catch (err) {
+        analysisDiv.innerHTML = `<div class="card" style="border-left:4px solid #c62828;"><p style="color:#c62828;font-weight:600;">Hata: ${err.message}</p><p style="color:#888;font-size:12px;margin-top:4px;">Lütfen API keyinizi kontrol edip tekrar deneyin.</p></div>`;
+    } finally {
+        if (cardBtn) {
+            cardBtn.disabled = false;
+            cardBtn.textContent = originalText;
+        }
+    }
+}
+
+async function addGlobalOutreachToQueue() {
+    const result = _pendingGlobalOutreach;
+    if (!result) return;
+
+    const globalEmails = document.getElementById('globalEmails').value.trim();
+    if (!globalEmails) { showToast('En az bir e-posta adresi girilmesi zorunludur!', 'error'); return; }
+
+    const leadId = Math.max(0, ...leadsData.map(l => typeof l.id === 'number' ? l.id : 0)) + 1;
+    const lead = result.lead;
+    const emailData = result.email;
+
+    let website = '';
+    if (_globalFoundCompanies[999] && _globalFoundCompanies[999].name === lead.company_name) {
+        website = _globalFoundCompanies[999].website;
+    } else {
+        website = _globalFoundCompanies.find(c => c && c.name === lead.company_name)?.website || '';
+    }
+
+    const newLead = {
+        id: leadId,
+        company_name: lead.company_name,
+        company_summary: lead.company_summary,
+        industry: lead.industry,
+        company_size: lead.company_size,
+        country: lead.country,
+        language: 'en',
+        website: website,
+        source: 'global_outreach',
+        discovered_at: new Date().toISOString(),
+        pain_points: JSON.stringify(lead.pain_points || []),
+        service_match: JSON.stringify(lead.service_match || [])
+    };
+    leadsData.push(newLead);
+
+    const newEmail = {
+        lead_id: leadId,
+        to_email: globalEmails,
+        to_name: lead.company_name,
+        from_email: 'sertacgul@ataolai.tech',
+        subject: emailData.subject,
+        body_html: emailData.body_html,
+        body_text: emailData.body_text,
+        language: 'en',
+        email_type: 'initial',
+        status: 'pending_review',
+        generated_at: new Date().toISOString()
+    };
+    emailsData.push(newEmail);
+
+    try {
+        await saveData();
+        renderAll();
+
+        document.getElementById('globalAnalysisSection').classList.add('hidden');
+        const resultsDiv = document.getElementById('globalSearchResults');
+        if (resultsDiv) resultsDiv.classList.add('hidden');
+
+        document.getElementById('globalManualCompanyName').value = '';
+        document.getElementById('globalManualWebsite').value = '';
+        _pendingGlobalOutreach = null;
 
         showToast(`${lead.company_name} kuyruğa başarıyla eklendi!`, 'success');
         showTab('pending');
