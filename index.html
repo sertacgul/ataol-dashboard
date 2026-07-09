@@ -4433,7 +4433,7 @@ function renderEmailList(containerId, emails, emptyMsg) {
 // ---- TABS ----
 function showTab(tab) {
     window.currentActiveTab = tab;
-    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach','bmc','b2b'].forEach(t => {
+    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach','avmoutreach','globaloutreach','bmc','b2b'].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const tabEl = document.getElementById(`tab-${t}`);
         if (view) view.classList.toggle('hidden', t !== tab);
