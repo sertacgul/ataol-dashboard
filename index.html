@@ -7361,9 +7361,13 @@ async function deleteOeeReport(id, btn) {
         btn.classList.add('loading');
         resultDiv.classList.add('hidden');
         
-        const industry = document.getElementById('b2bIndustry').value.trim() || null;
+        const indVal = document.getElementById('b2bIndustry').value.trim();
+        const industry = indVal ? [indVal] : null;
+        
         const country = document.getElementById('b2bCountry').value.trim() || null;
-        const seniority = document.getElementById('b2bSeniority').value || null;
+        
+        const senVal = document.getElementById('b2bSeniority').value;
+        const seniority = senVal ? [senVal] : null;
         
         try {
             const resp = await fetch('https://ataol-b2b-api.onrender.com/api/v1/search', {
