@@ -1339,6 +1339,38 @@
             <div id="globalSearchResults" class="hidden" style="margin-top:24px;"></div>
             <div id="globalAnalysisSection" class="hidden" style="margin-top:24px;"></div>
         </div>
+        <div id="view-b2b" class="hidden">
+            <div class="card">
+                <h3 style="margin-bottom:12px;">B2B Veri Motoru (Apollo.io Clone)</h3>
+                <p style="color:#888;font-size:13px;margin-bottom:20px;">Yeni backend mimarimiz üzerinden şirket ve çalışan araması yapabilirsiniz.</p>
+
+                <div class="stats-row" style="margin-bottom:16px;">
+                    <div class="form-group">
+                        <label>Sektör</label>
+                        <input type="text" id="b2bIndustry" placeholder="Örn: Yazılım">
+                    </div>
+                    <div class="form-group">
+                        <label>Ülke</label>
+                        <input type="text" id="b2bCountry" placeholder="Örn: USA">
+                    </div>
+                    <div class="form-group">
+                        <label>Kıdem</label>
+                        <select id="b2bSeniority" style="width:100%; padding:10px 14px; border:1px solid #ddd; border-radius:8px; font-size:14px; background:#f8f9fc;">
+                            <option value="">Tümü</option>
+                            <option value="C-Level">C-Level</option>
+                            <option value="VP">VP</option>
+                            <option value="Director">Director</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Senior">Senior</option>
+                            <option value="Junior">Junior</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-success" id="btnB2BSearch" onclick="searchB2B()" style="width:100%;">Veritabanında Ara</button>
+
+                <div id="b2bResult" class="hidden" style="margin-top:20px;"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -4400,7 +4432,7 @@ function renderEmailList(containerId, emails, emptyMsg) {
 // ---- TABS ----
 function showTab(tab) {
     window.currentActiveTab = tab;
-    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach','avmoutreach','bmc','globaloutreach'].forEach(t => {
+    ['overview','outbox','pending','approved','sent','rejected','sentlog','approvedlog','gmaps','assessments','oee','newoutreach','bmc','b2b'].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const tabEl = document.getElementById(`tab-${t}`);
         if (view) view.classList.toggle('hidden', t !== tab);
@@ -7320,6 +7352,60 @@ async function deleteOeeReport(id, btn) {
         const el = document.getElementById('geminiKey');
         if (el) el.value = savedGemini;
     }
+    
+    async function searchB2B() {
+        const btn = document.getElementById('btnB2BSearch');
+        const resultDiv = document.getElementById('b2bResult');
+        btn.textContent = 'Aranıyor...';
+        btn.classList.add('loading');
+        resultDiv.classList.add('hidden');
+        
+        const industry = document.getElementById('b2bIndustry').value.trim() || null;
+        const country = document.getElementById('b2bCountry').value.trim() || null;
+        const seniority = document.getElementById('b2bSeniority').value || null;
+        
+        try {
+            const resp = await fetch('https://ataol-b2b-api.onrender.com/api/v1/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ industry, country, seniority, limit: 50 })
+            });
+            
+            const data = await resp.json();
+            
+            if (!resp.ok) {
+                throw new Error(data.detail || 'Bir hata oluştu');
+            }
+            
+            let html = `<h4>Arama Sonuçları (${data.length} kayıt)</h4>`;
+            if (data.length === 0) {
+                html += '<p style="color:#888;font-size:13px;margin-top:10px;">Aradığınız kriterlerde sonuç bulunamadı.</p>';
+            } else {
+                html += '<table style="margin-top:10px;"><thead><tr><th>Kişi</th><th>Şirket</th><th>Unvan</th><th>Email</th><th>Durum</th></tr></thead><tbody>';
+                data.forEach(c => {
+                    const statusColor = c.email_status === 'Verified' ? 'green' : (c.email_status === 'Catch_All' ? 'orange' : 'red');
+                    html += `<tr>
+                        <td><strong>${c.first_name} ${c.last_name}</strong></td>
+                        <td>${c.company.name}</td>
+                        <td>${c.title} <span style="font-size:10px;color:#888;">(${c.seniority})</span></td>
+                        <td>${c.email}</td>
+                        <td style="color:${statusColor};font-weight:600;">${c.email_status}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+            }
+            
+            resultDiv.innerHTML = html;
+            resultDiv.classList.remove('hidden');
+        } catch (err) {
+            resultDiv.innerHTML = `<div class="login-error" style="display:block;">Hata: ${err.message}</div>`;
+            resultDiv.classList.remove('hidden');
+        } finally {
+            btn.textContent = 'Veritabanında Ara';
+            btn.classList.remove('loading');
+        }
+    }
+    window.searchB2B = searchB2B;
 })();
 </script>
 </body>
