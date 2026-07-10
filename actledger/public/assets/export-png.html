@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>AskDesk Logo PNG Export</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F9FAFB; padding: 40px; }
+  h1 { color: #111827; font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+  p { color: #6B7280; font-size: 14px; margin-bottom: 32px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; }
+  .item { background: #fff; border: 1px solid #E5E7EB; border-radius: 8px; padding: 24px; text-align: center; }
+  .label { color: #6B7280; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  button { margin-top: 12px; background: #2563EB; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-size: 12px; font-weight: 500; cursor: pointer; }
+  button:hover { background: #1D4ED8; }
+</style>
+</head>
+<body>
+<h1>AskDesk Logo PNG Export</h1>
+<p>Her boyut icin "Indir" butonuna tikla.</p>
+<div class="grid" id="grid"></div>
+<script>
+function createSvgString(size, simplified) {
+  var ns = 'http://www.w3.org/2000/svg';
+  var svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('xmlns', ns);
+  svg.setAttribute('width', String(size));
+  svg.setAttribute('height', String(size));
+  svg.setAttribute('viewBox', '0 0 44 44');
+  svg.setAttribute('fill', 'none');
+
+  var rect = document.createElementNS(ns, 'rect');
+  rect.setAttribute('width', '44');
+  rect.setAttribute('height', '44');
+  rect.setAttribute('rx', '10');
+  rect.setAttribute('fill', '#2563EB');
+  svg.appendChild(rect);
+
+  if (!simplified) {
+    var circle = document.createElementNS(ns, 'circle');
+    circle.setAttribute('cx', '22');
+    circle.setAttribute('cy', '22');
+    circle.setAttribute('r', '12');
+    circle.setAttribute('fill', 'none');
+    circle.setAttribute('stroke', 'rgba(255,255,255,0.45)');
+    circle.setAttribute('stroke-width', '1.8');
+    svg.appendChild(circle);
+
+    var ellipse = document.createElementNS(ns, 'ellipse');
+    ellipse.setAttribute('cx', '22');
+    ellipse.setAttribute('cy', '22');
+    ellipse.setAttribute('rx', '12');
+    ellipse.setAttribute('ry', '4');
+    ellipse.setAttribute('fill', 'none');
+    ellipse.setAttribute('stroke', 'rgba(255,255,255,0.3)');
+    ellipse.setAttribute('stroke-width', '1');
+    svg.appendChild(ellipse);
+  }
+
+  var pathA = document.createElementNS(ns, 'path');
+  pathA.setAttribute('d', 'M14 34L22 10L30 34');
+  pathA.setAttribute('stroke', '#fff');
+  pathA.setAttribute('stroke-width', simplified ? '5' : '3');
+  pathA.setAttribute('stroke-linecap', 'round');
+  pathA.setAttribute('stroke-linejoin', 'round');
+  pathA.setAttribute('fill', 'none');
+  svg.appendChild(pathA);
+
+  var crossbar = document.createElementNS(ns, 'line');
+  crossbar.setAttribute('x1', '17');
+  crossbar.setAttribute('y1', '26');
+  crossbar.setAttribute('x2', '27');
+  crossbar.setAttribute('y2', '26');
+  crossbar.setAttribute('stroke', '#fff');
+  crossbar.setAttribute('stroke-width', simplified ? '4' : '2.6');
+  crossbar.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(crossbar);
+
+  if (!simplified) {
+    var arrow = document.createElementNS(ns, 'line');
+    arrow.setAttribute('x1', '27');
+    arrow.setAttribute('y1', '13');
+    arrow.setAttribute('x2', '35');
+    arrow.setAttribute('y2', '7');
+    arrow.setAttribute('stroke', '#93C5FD');
+    arrow.setAttribute('stroke-width', '2.2');
+    arrow.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(arrow);
+
+    var arrowHead = document.createElementNS(ns, 'polyline');
+    arrowHead.setAttribute('points', '31,6 35,7 34,11');
+    arrowHead.setAttribute('fill', 'none');
+    arrowHead.setAttribute('stroke', '#93C5FD');
+    arrowHead.setAttribute('stroke-width', '2');
+    arrowHead.setAttribute('stroke-linecap', 'round');
+    arrowHead.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(arrowHead);
+  }
+
+  var serializer = new XMLSerializer();
+  return serializer.serializeToString(svg);
+}
+
+function renderItem(name, size, label, simplified) {
+  var div = document.createElement('div');
+  div.className = 'item';
+
+  var labelEl = document.createElement('div');
+  labelEl.className = 'label';
+  labelEl.textContent = label;
+  div.appendChild(labelEl);
+
+  var canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  canvas.style.width = Math.min(size, 128) + 'px';
+  canvas.style.height = Math.min(size, 128) + 'px';
+
+  var svgStr = createSvgString(size, simplified);
+  var blob = new Blob([svgStr], {type: 'image/svg+xml'});
+  var url = URL.createObjectURL(blob);
+
+  var img = new Image();
+  img.onload = function() {
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, size, size);
+    URL.revokeObjectURL(url);
+
+    div.appendChild(canvas);
+
+    var btn = document.createElement('button');
+    btn.textContent = 'Indir';
+    btn.addEventListener('click', function() {
+      var a = document.createElement('a');
+      a.download = 'askdesk-' + name + '.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    });
+    div.appendChild(btn);
+  };
+  img.src = url;
+
+  return div;
+}
+
+var grid = document.getElementById('grid');
+var items = [
+  { name: 'logo-512', size: 512, label: 'Logo 512px', simplified: false },
+  { name: 'logo-256', size: 256, label: 'Logo 256px', simplified: false },
+  { name: 'logo-128', size: 128, label: 'Logo 128px', simplified: false },
+  { name: 'logo-64',  size: 64,  label: 'Logo 64px',  simplified: false },
+  { name: 'favicon-32', size: 32, label: 'Favicon 32px', simplified: true },
+  { name: 'favicon-16', size: 16, label: 'Favicon 16px', simplified: true }
+];
+
+items.forEach(function(item) {
+  grid.appendChild(renderItem(item.name, item.size, item.label, item.simplified));
+});
+</script>
+</body>
+</html>
