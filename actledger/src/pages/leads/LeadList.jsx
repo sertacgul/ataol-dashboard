@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
+import HelpButton from '../../components/HelpButton'
 
 export default function LeadList() {
   const [companies, setCompanies] = useState([])
@@ -119,6 +120,7 @@ export default function LeadList() {
           </tbody>
         </table>
       </div>
+      <HelpButton section="lead-yonetimi" />
     </div>
   )
 }

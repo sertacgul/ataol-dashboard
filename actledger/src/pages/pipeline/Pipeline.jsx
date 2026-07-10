@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../lib/api'
+import HelpButton from '../../components/HelpButton'
 
 export default function Pipeline() {
   const [stages, setStages] = useState([])
@@ -110,6 +111,7 @@ export default function Pipeline() {
           )
         })}
       </div>
+      <HelpButton section="crm-pipeline" />
     </div>
   )
 }

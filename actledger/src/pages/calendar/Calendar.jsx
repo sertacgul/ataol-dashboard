@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
+import HelpButton from '../../components/HelpButton'
 
 const TR_MONTHS = [
   'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -486,6 +487,7 @@ export default function Calendar() {
           </div>
         </div>
       )}
+      <HelpButton section="takvim" />
     </div>
   )
 }

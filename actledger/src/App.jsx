@@ -30,6 +30,8 @@ import Analytics from './pages/analytics/Analytics'
 import Simulator from './pages/simulator/Simulator'
 import Bmc from './pages/bmc/Bmc'
 import Competitors from './pages/competitors/Competitors'
+import EmailFinder from './pages/email-finder/EmailFinder'
+import Guide from './pages/Guide'
 
 function App() {
   return (
@@ -62,6 +64,8 @@ function App() {
         <Route path="simulator" element={<Simulator />} />
         <Route path="bmc" element={<Bmc />} />
         <Route path="competitors" element={<Competitors />} />
+        <Route path="email-finder" element={<EmailFinder />} />
+        <Route path="guide" element={<Guide />} />
         <Route path="settings" element={<Settings />} />
         <Route path="onboarding" element={<Onboarding />} />
       </Route>

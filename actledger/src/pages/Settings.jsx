@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../lib/api'
+import HelpButton from '../components/HelpButton'
 
 const EMPTY_EMAIL_SETTINGS = {
   smtp_host: '', smtp_port: '587', smtp_user: '', smtp_pass: '', from_name: '', from_email: '',
@@ -608,6 +609,7 @@ export default function Settings() {
           </form>
         )}
       </div>
+      <HelpButton section="ayarlar" />
     </div>
   )
 }

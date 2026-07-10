@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
+import HelpButton from '../../components/HelpButton'
 
 const STATUS_FILTERS = [
   { value: '', label: 'Tümü' },
@@ -119,6 +120,7 @@ export default function SeoList() {
           </tbody>
         </table>
       </div>
+      <HelpButton section="icerik-uretimi" />
     </div>
   )
 }

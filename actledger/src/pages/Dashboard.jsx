@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import StatCard from '../components/StatCard'
 import Badge from '../components/Badge'
+import HelpButton from '../components/HelpButton'
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
@@ -75,6 +76,7 @@ export default function Dashboard() {
           </table>
         )}
       </div>
+      <HelpButton section="baslangic" />
     </div>
   )
 }

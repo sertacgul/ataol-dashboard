@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../lib/api'
 import StatCard from '../../components/StatCard'
+import HelpButton from '../../components/HelpButton'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
@@ -219,6 +220,7 @@ export default function Analytics() {
           </div>
         </>
       )}
+      <HelpButton section="analitik" />
     </div>
   )
 }
