@@ -27,6 +27,9 @@ import TemplateList from './pages/templates/TemplateList'
 import TemplateNew from './pages/templates/TemplateNew'
 import Calendar from './pages/calendar/Calendar'
 import Analytics from './pages/analytics/Analytics'
+import Simulator from './pages/simulator/Simulator'
+import Bmc from './pages/bmc/Bmc'
+import Competitors from './pages/competitors/Competitors'
 
 function App() {
   return (
@@ -56,6 +59,9 @@ function App() {
         <Route path="templates/new" element={<TemplateNew />} />
         <Route path="calendar" element={<Calendar />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="simulator" element={<Simulator />} />
+        <Route path="bmc" element={<Bmc />} />
+        <Route path="competitors" element={<Competitors />} />
         <Route path="settings" element={<Settings />} />
         <Route path="onboarding" element={<Onboarding />} />
       </Route>
