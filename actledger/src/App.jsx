@@ -15,6 +15,9 @@ import OutreachDetail from './pages/outreach/OutreachDetail'
 import Pipeline from './pages/pipeline/Pipeline'
 import Settings from './pages/Settings'
 import Onboarding from './pages/Onboarding'
+import SeoList from './pages/seo/SeoList'
+import SeoNew from './pages/seo/SeoNew'
+import SeoDetail from './pages/seo/SeoDetail'
 
 function App() {
   return (
@@ -32,6 +35,9 @@ function App() {
         <Route path="leads/maps" element={<LeadMaps />} />
         <Route path="leads/:id" element={<LeadDetail />} />
         <Route path="pipeline" element={<Pipeline />} />
+        <Route path="seo" element={<SeoList />} />
+        <Route path="seo/new" element={<SeoNew />} />
+        <Route path="seo/:id" element={<SeoDetail />} />
         <Route path="settings" element={<Settings />} />
         <Route path="onboarding" element={<Onboarding />} />
       </Route>
