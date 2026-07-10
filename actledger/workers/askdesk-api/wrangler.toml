@@ -1,6 +1,11 @@
 name = "askdesk-api"
 main = "src/index.js"
 compatibility_date = "2026-07-10"
+workers_dev = true
+
+routes = [
+  { pattern = "api.askdesk.app/*", zone_name = "askdesk.app" }
+]
 
 [vars]
 CORS_ORIGIN = "https://askdesk.app"

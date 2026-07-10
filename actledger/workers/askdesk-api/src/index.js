@@ -13,6 +13,7 @@ import socialRoutes from './routes/social.js'
 import newsletterRoutes from './routes/newsletter.js'
 import templatesRoutes from './routes/templates.js'
 import calendarRoutes from './routes/calendar.js'
+import analyticsRoutes from './routes/analytics.js'
 
 const app = new Hono()
 
@@ -40,6 +41,7 @@ app.route('/social', socialRoutes)
 app.route('/newsletter', newsletterRoutes)
 app.route('/templates', templatesRoutes)
 app.route('/calendar', calendarRoutes)
+app.route('/analytics', analyticsRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
