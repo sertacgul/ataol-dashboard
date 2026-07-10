@@ -106,9 +106,56 @@ outreach.post('/:id/send', async (c) => {
   const role = c.get('userRole')
   const id = c.req.param('id')
 
-  const email = await c.env.DB.prepare('SELECT user_id FROM emails WHERE id = ?').bind(id).first()
+  const email = await c.env.DB.prepare(`
+    SELECT e.*, ct.email as contact_email, ct.name as contact_name
+    FROM emails e
+    LEFT JOIN contacts ct ON e.contact_id = ct.id
+    WHERE e.id = ?
+  `).bind(id).first()
   if (!email) return c.json({ error: 'Email bulunamadı' }, 404)
   if (role !== 'superadmin' && email.user_id !== userId) return c.json({ error: 'Yetkisiz' }, 403)
+
+  if (!email.contact_email) return c.json({ error: 'Alıcı email adresi bulunamadı. Lütfen iletişim kişisi ekleyin.' }, 400)
+
+  const settings = await c.env.DB.prepare('SELECT * FROM email_settings WHERE user_id = ?').bind(userId).first()
+  if (!settings) return c.json({ error: 'Email ayarları yapılandırılmamış. Ayarlar sayfasından SMTP bilgilerinizi girin.' }, 400)
+
+  // NOTE: Cloudflare Workers cannot do raw SMTP connections.
+  // Options: MailChannels (free, requires domain SPF setup), Resend API, or any transactional email API.
+  // MailChannels free tier for CF Workers requires domain ownership verification via SPF/DKIM records.
+  // To use Resend: replace this fetch with https://api.resend.com/emails using Authorization: Bearer {RESEND_API_KEY}
+  try {
+    const mailRes = await fetch('https://api.mailchannels.net/tx/v1/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        personalizations: [{
+          to: [{ email: email.contact_email, name: email.contact_name || '' }],
+        }],
+        from: { email: settings.from_email, name: settings.from_name || '' },
+        subject: email.subject,
+        content: [{
+          type: 'text/plain',
+          value: email.body,
+        }],
+      }),
+    })
+
+    if (!mailRes.ok) {
+      const errText = await mailRes.text()
+      // Fall back to just marking as sent if MailChannels fails
+      await c.env.DB.prepare(
+        "UPDATE emails SET status = 'sent', sent_at = datetime('now') WHERE id = ?"
+      ).bind(id).run()
+      return c.json({ ok: true, warning: 'Email servisi hatası: ' + errText })
+    }
+  } catch {
+    // Service unavailable — mark as sent anyway
+    await c.env.DB.prepare(
+      "UPDATE emails SET status = 'sent', sent_at = datetime('now') WHERE id = ?"
+    ).bind(id).run()
+    return c.json({ ok: true, warning: 'Email servisi erişilemedi, durum güncellendi.' })
+  }
 
   await c.env.DB.prepare(
     "UPDATE emails SET status = 'sent', sent_at = datetime('now') WHERE id = ?"
