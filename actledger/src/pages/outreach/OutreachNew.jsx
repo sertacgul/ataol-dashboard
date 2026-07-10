@@ -110,7 +110,7 @@ KONU: [email konusu]
               disabled={aiLoading}
               className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] disabled:opacity-50 rounded-md px-3 py-1.5"
             >
-              {aiLoading ? 'Oluşturuluyor...' : 'AI ile Oluştur'}
+              {aiLoading ? 'OperIQ oluşturuyor...' : 'OperIQ ile Oluştur'}
             </button>
           </div>
           {contacts.length > 0 && (

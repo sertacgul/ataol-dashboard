@@ -14,6 +14,7 @@ import OutreachNew from './pages/outreach/OutreachNew'
 import OutreachDetail from './pages/outreach/OutreachDetail'
 import Pipeline from './pages/pipeline/Pipeline'
 import Settings from './pages/Settings'
+import Onboarding from './pages/Onboarding'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
         <Route path="leads/:id" element={<LeadDetail />} />
         <Route path="pipeline" element={<Pipeline />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="onboarding" element={<Onboarding />} />
       </Route>
     </Routes>
   )

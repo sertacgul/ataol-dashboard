@@ -5,11 +5,22 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
+  const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     api.get('/auth/me')
-      .then((data) => setUser(data.user))
+      .then(async (data) => {
+        setUser(data.user)
+        if (data.user) {
+          try {
+            const profileData = await api.get('/profile')
+            setProfile(profileData.profile)
+          } catch {
+            setProfile(null)
+          }
+        }
+      })
       .catch(() => setUser(null))
       .finally(() => setLoading(false))
   }, [])
@@ -17,22 +28,30 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     const data = await api.post('/auth/login', { email, password })
     setUser(data)
+    try {
+      const profileData = await api.get('/profile')
+      setProfile(profileData.profile)
+    } catch {
+      setProfile(null)
+    }
     return data
   }
 
   async function register(email, password, name, company_name) {
     const data = await api.post('/auth/register', { email, password, name, company_name })
     setUser(data)
+    setProfile(null)
     return data
   }
 
   async function logout() {
     await api.post('/auth/logout')
     setUser(null)
+    setProfile(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, profile, setProfile, hasProfile: !!profile }}>
       {children}
     </AuthContext.Provider>
   )
