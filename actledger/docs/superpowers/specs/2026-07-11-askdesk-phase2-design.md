@@ -270,7 +270,14 @@ Tüm içerik türlerini takvimde planlama ve takip:
 - `PUT /calendar/:id` — plan güncelle (tarih değiştirme dahil)
 - `DELETE /calendar/:id` — plan sil
 
-## 5. AI Prompt Kuralları
+## 5. AI Branding ve Prompt Kuralları
+
+**ÖNEMLİ — AI Branding:** Uygulama arayüzünde hiçbir yerde "Gemini", "Claude", "OpenAI", "GPT" veya herhangi bir üçüncü parti AI ismi geçmez. Tüm AI özellikleri **"OperIQ AI"** olarak markalalanır. OperIQ, ATAOL AI Techs'in Grounded yapıdaki native yapay zeka uygulamasıdır.
+
+- Butonlar: "OperIQ ile Oluştur", "OperIQ Analiz Et", "OperIQ ile Çevir"
+- Yükleme mesajları: "OperIQ içerik oluşturuyor...", "OperIQ analiz ediyor..."
+- Hata mesajları: "OperIQ şu anda yanıt veremiyor, lütfen tekrar deneyin"
+- Arka planda Gemini API kullanılır ancak bu kullanıcıya görünmez
 
 Mevcut `/ai/generate` endpoint'i kullanılır. Her modül kendi prompt template'ini gönderir.
 
