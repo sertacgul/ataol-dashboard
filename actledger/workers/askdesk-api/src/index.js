@@ -9,6 +9,9 @@ import pipelineRoutes from './routes/pipeline.js'
 import mapsRoutes from './routes/maps.js'
 import profileRoutes from './routes/profile.js'
 import seoRoutes from './routes/seo.js'
+import socialRoutes from './routes/social.js'
+import newsletterRoutes from './routes/newsletter.js'
+import templatesRoutes from './routes/templates.js'
 
 const app = new Hono()
 
@@ -32,6 +35,9 @@ app.route('/pipeline', pipelineRoutes)
 app.route('/maps', mapsRoutes)
 app.route('/profile', profileRoutes)
 app.route('/seo', seoRoutes)
+app.route('/social', socialRoutes)
+app.route('/newsletter', newsletterRoutes)
+app.route('/templates', templatesRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
