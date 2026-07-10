@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import authRoutes from './routes/auth.js'
 
 const app = new Hono()
 
@@ -12,6 +13,8 @@ app.use('*', async (c, next) => {
   })
   return corsMiddleware(c, next)
 })
+
+app.route('/auth', authRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
