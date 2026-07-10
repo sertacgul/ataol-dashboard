@@ -62,4 +62,19 @@ auth.get('/me', async (c) => {
   }
 })
 
+auth.post('/seed-admin', async (c) => {
+  const { email, password, name } = await c.req.json()
+  const existing = await c.env.DB.prepare('SELECT id FROM users WHERE role = ?').bind('superadmin').first()
+  if (existing) return c.json({ error: 'Super Admin zaten var' }, 409)
+
+  const id = crypto.randomUUID()
+  const password_hash = hashSync(password, 10)
+
+  await c.env.DB.prepare(
+    'INSERT INTO users (id, email, password_hash, name, role) VALUES (?, ?, ?, ?, ?)'
+  ).bind(id, email, password_hash, name, 'superadmin').run()
+
+  return c.json({ id, email, name, role: 'superadmin' }, 201)
+})
+
 export default auth
