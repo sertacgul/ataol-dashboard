@@ -3,6 +3,8 @@ import { cors } from 'hono/cors'
 import authRoutes from './routes/auth.js'
 import dashboardRoutes from './routes/dashboard.js'
 import leadsRoutes from './routes/leads.js'
+import outreachRoutes from './routes/outreach.js'
+import aiRoutes from './routes/ai.js'
 
 const app = new Hono()
 
@@ -19,6 +21,8 @@ app.use('*', async (c, next) => {
 app.route('/auth', authRoutes)
 app.route('/dashboard', dashboardRoutes)
 app.route('/leads', leadsRoutes)
+app.route('/outreach', outreachRoutes)
+app.route('/ai', aiRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
