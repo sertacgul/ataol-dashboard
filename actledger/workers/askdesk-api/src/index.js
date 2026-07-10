@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import authRoutes from './routes/auth.js'
+import dashboardRoutes from './routes/dashboard.js'
+import leadsRoutes from './routes/leads.js'
 
 const app = new Hono()
 
@@ -15,6 +17,8 @@ app.use('*', async (c, next) => {
 })
 
 app.route('/auth', authRoutes)
+app.route('/dashboard', dashboardRoutes)
+app.route('/leads', leadsRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
