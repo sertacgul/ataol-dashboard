@@ -26,6 +26,7 @@ import NewsletterDetail from './pages/newsletter/NewsletterDetail'
 import TemplateList from './pages/templates/TemplateList'
 import TemplateNew from './pages/templates/TemplateNew'
 import Calendar from './pages/calendar/Calendar'
+import Analytics from './pages/analytics/Analytics'
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
         <Route path="templates" element={<TemplateList />} />
         <Route path="templates/new" element={<TemplateNew />} />
         <Route path="calendar" element={<Calendar />} />
+        <Route path="analytics" element={<Analytics />} />
         <Route path="settings" element={<Settings />} />
         <Route path="onboarding" element={<Onboarding />} />
       </Route>
