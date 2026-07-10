@@ -30,7 +30,7 @@ pipeline.get('/', async (c) => {
      FROM pipeline_items pi
      JOIN companies c ON c.id = pi.company_id
      WHERE pi.user_id = ?
-     ORDER BY pi.created_at DESC`
+     ORDER BY pi.updated_at DESC`
   ).bind(userId).all()
 
   return c.json({ stages: stages.results, items: items.results })
