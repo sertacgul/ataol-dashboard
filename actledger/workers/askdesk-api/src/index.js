@@ -7,6 +7,7 @@ import outreachRoutes from './routes/outreach.js'
 import aiRoutes from './routes/ai.js'
 import pipelineRoutes from './routes/pipeline.js'
 import mapsRoutes from './routes/maps.js'
+import profileRoutes from './routes/profile.js'
 
 const app = new Hono()
 
@@ -28,6 +29,7 @@ app.route('/outreach', outreachRoutes)
 app.route('/ai', aiRoutes)
 app.route('/pipeline', pipelineRoutes)
 app.route('/maps', mapsRoutes)
+app.route('/profile', profileRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
