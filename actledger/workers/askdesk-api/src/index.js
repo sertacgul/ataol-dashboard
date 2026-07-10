@@ -10,15 +10,16 @@ import mapsRoutes from './routes/maps.js'
 
 const app = new Hono()
 
-app.use('*', async (c, next) => {
-  const corsMiddleware = cors({
-    origin: c.env.CORS_ORIGIN || 'http://localhost:5173',
-    credentials: true,
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type'],
-  })
-  return corsMiddleware(c, next)
-})
+app.use('*', cors({
+  origin: (origin) => {
+    if (!origin) return 'https://askdesk.app'
+    if (origin.includes('askdesk') || origin.includes('localhost')) return origin
+    return 'https://askdesk.app'
+  },
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type'],
+}))
 
 app.route('/auth', authRoutes)
 app.route('/dashboard', dashboardRoutes)

@@ -1,8 +1,26 @@
 import { Hono } from 'hono'
-import { hashSync, compareSync } from 'bcryptjs'
 import { createToken } from '../middleware/auth.js'
 
 const auth = new Hono()
+
+// Password hashing using SHA-256 + salt (Workers-compatible)
+function toHex(buf) {
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+async function hashPassword(password) {
+  const salt = toHex(crypto.getRandomValues(new Uint8Array(16)))
+  const data = new TextEncoder().encode(salt + password)
+  const hash = toHex(await crypto.subtle.digest('SHA-256', data))
+  return salt + ':' + hash
+}
+
+async function verifyPassword(password, stored) {
+  const [salt, hash] = stored.split(':')
+  const data = new TextEncoder().encode(salt + password)
+  const computed = toHex(await crypto.subtle.digest('SHA-256', data))
+  return hash === computed
+}
 
 auth.post('/register', async (c) => {
   const { email, password, name, company_name } = await c.req.json()
@@ -14,7 +32,7 @@ auth.post('/register', async (c) => {
   if (existing) return c.json({ error: 'Bu email zaten kayıtlı' }, 409)
 
   const id = crypto.randomUUID()
-  const password_hash = hashSync(password, 10)
+  const password_hash = await hashPassword(password)
 
   await c.env.DB.prepare(
     'INSERT INTO users (id, email, password_hash, name, company_name, role) VALUES (?, ?, ?, ?, ?, ?)'
@@ -30,7 +48,7 @@ auth.post('/login', async (c) => {
   if (!email || !password) return c.json({ error: 'Email ve şifre gerekli' }, 400)
 
   const user = await c.env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first()
-  if (!user || !compareSync(password, user.password_hash)) {
+  if (!user || !(await verifyPassword(password, user.password_hash))) {
     return c.json({ error: 'Geçersiz email veya şifre' }, 401)
   }
 
@@ -68,7 +86,7 @@ auth.post('/seed-admin', async (c) => {
   if (existing) return c.json({ error: 'Super Admin zaten var' }, 409)
 
   const id = crypto.randomUUID()
-  const password_hash = hashSync(password, 10)
+  const password_hash = await hashPassword(password)
 
   await c.env.DB.prepare(
     'INSERT INTO users (id, email, password_hash, name, role) VALUES (?, ?, ?, ?, ?)'
