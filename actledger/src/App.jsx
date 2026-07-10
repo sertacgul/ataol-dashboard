@@ -1,20 +1,24 @@
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import LeadList from './pages/leads/LeadList'
 import LeadNew from './pages/leads/LeadNew'
 import LeadDetail from './pages/leads/LeadDetail'
+import LeadMaps from './pages/leads/LeadMaps'
 import OutreachList from './pages/outreach/OutreachList'
 import OutreachNew from './pages/outreach/OutreachNew'
 import OutreachDetail from './pages/outreach/OutreachDetail'
+import Pipeline from './pages/pipeline/Pipeline'
+import Settings from './pages/Settings'
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<div>AskDesk Landing</div>} />
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -24,10 +28,10 @@ function App() {
         <Route path="outreach/:id" element={<OutreachDetail />} />
         <Route path="leads" element={<LeadList />} />
         <Route path="leads/new" element={<LeadNew />} />
-        <Route path="leads/maps" element={<div className="text-sm text-[#6B7280]">Maps içeriği gelecek</div>} />
+        <Route path="leads/maps" element={<LeadMaps />} />
         <Route path="leads/:id" element={<LeadDetail />} />
-        <Route path="pipeline" element={<div className="text-sm text-[#6B7280]">Pipeline içeriği gelecek</div>} />
-        <Route path="settings" element={<div className="text-sm text-[#6B7280]">Ayarlar içeriği gelecek</div>} />
+        <Route path="pipeline" element={<Pipeline />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
     </Routes>
   )
