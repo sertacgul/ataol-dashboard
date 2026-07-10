@@ -14,6 +14,8 @@ import newsletterRoutes from './routes/newsletter.js'
 import templatesRoutes from './routes/templates.js'
 import calendarRoutes from './routes/calendar.js'
 import analyticsRoutes from './routes/analytics.js'
+import bmcRoutes from './routes/bmc.js'
+import competitorsRoutes from './routes/competitors.js'
 
 const app = new Hono()
 
@@ -42,6 +44,8 @@ app.route('/newsletter', newsletterRoutes)
 app.route('/templates', templatesRoutes)
 app.route('/calendar', calendarRoutes)
 app.route('/analytics', analyticsRoutes)
+app.route('/bmc', bmcRoutes)
+app.route('/competitors', competitorsRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
