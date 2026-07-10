@@ -25,6 +25,7 @@ import NewsletterNew from './pages/newsletter/NewsletterNew'
 import NewsletterDetail from './pages/newsletter/NewsletterDetail'
 import TemplateList from './pages/templates/TemplateList'
 import TemplateNew from './pages/templates/TemplateNew'
+import Calendar from './pages/calendar/Calendar'
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
         <Route path="newsletter/:id" element={<NewsletterDetail />} />
         <Route path="templates" element={<TemplateList />} />
         <Route path="templates/new" element={<TemplateNew />} />
+        <Route path="calendar" element={<Calendar />} />
         <Route path="settings" element={<Settings />} />
         <Route path="onboarding" element={<Onboarding />} />
       </Route>
