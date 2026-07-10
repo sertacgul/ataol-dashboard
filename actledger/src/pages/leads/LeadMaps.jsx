@@ -62,18 +62,55 @@ export default function LeadMaps() {
     }
   }
 
+  function detectSector(place) {
+    if (!place) return null
+    const types = place.types || []
+    if (types.includes('restaurant') || types.includes('food')) return 'Yiyecek & İçecek'
+    if (types.includes('lodging') || types.includes('hotel')) return 'Konaklama'
+    if (types.includes('health') || types.includes('hospital') || types.includes('pharmacy')) return 'Sağlık'
+    if (types.includes('school') || types.includes('university')) return 'Eğitim'
+    if (types.includes('store') || types.includes('shopping_mall')) return 'Perakende'
+    if (types.includes('bank') || types.includes('finance')) return 'Finans'
+    if (types.includes('gym') || types.includes('beauty_salon') || types.includes('spa')) return 'Güzellik & Sağlık'
+    if (types.includes('car_dealer') || types.includes('car_repair')) return 'Otomotiv'
+    if (types.includes('real_estate_agency')) return 'Gayrimenkul'
+    if (types.includes('lawyer') || types.includes('accounting')) return 'Profesyonel Hizmetler'
+    if (types.includes('travel_agency') || types.includes('tourist_attraction')) return 'Turizm'
+    return null
+  }
+
+  async function buildLeadPayload() {
+    const sector = detectSector(selected) || null
+    return {
+      name: selected.name,
+      website: selected.website || null,
+      country: selected.address || null,
+      sector,
+      source: 'maps',
+      notes: sentiment || null,
+    }
+  }
+
   async function handleSaveLead() {
     if (!selected) return
     setSavingLead(true)
     try {
-      const data = await api.post('/leads', {
-        name: selected.name,
-        website: selected.website || null,
-        country: selected.address || null,
-        source: 'maps',
-        notes: sentiment || null,
-      })
+      const payload = await buildLeadPayload()
+      const data = await api.post('/leads', payload)
       navigate(`/app/leads/${data.id}`)
+    } catch (err) {
+      setError(err.message)
+      setSavingLead(false)
+    }
+  }
+
+  async function handleSaveAndEmail() {
+    if (!selected) return
+    setSavingLead(true)
+    try {
+      const payload = await buildLeadPayload()
+      const data = await api.post('/leads', payload)
+      navigate(`/app/outreach/new?company=${data.id}`)
     } catch (err) {
       setError(err.message)
       setSavingLead(false)
@@ -137,13 +174,22 @@ export default function LeadMaps() {
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="text-sm font-semibold text-[#111827]">{selected.name}</div>
-                <button
-                  onClick={handleSaveLead}
-                  disabled={savingLead}
-                  className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5 flex-shrink-0 disabled:opacity-50"
-                >
-                  {savingLead ? 'Kaydediliyor...' : 'Lead Olarak Kaydet'}
-                </button>
+                <div className="flex flex-col gap-1.5 flex-shrink-0">
+                  <button
+                    onClick={handleSaveLead}
+                    disabled={savingLead}
+                    className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5 disabled:opacity-50"
+                  >
+                    {savingLead ? 'Kaydediliyor...' : 'Lead Olarak Kaydet'}
+                  </button>
+                  <button
+                    onClick={handleSaveAndEmail}
+                    disabled={savingLead}
+                    className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] rounded-md px-3 py-1.5 disabled:opacity-50"
+                  >
+                    {savingLead ? 'Kaydediliyor...' : 'Kaydet ve Email Oluştur'}
+                  </button>
+                </div>
               </div>
 
               {selected.website && (

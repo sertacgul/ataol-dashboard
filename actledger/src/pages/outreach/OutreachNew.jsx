@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { api } from '../../lib/api'
 
@@ -16,6 +16,13 @@ export default function OutreachNew() {
   const [aiLoading, setAiLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Inline company search state (when no ?company= param)
+  const [companyQuery, setCompanyQuery] = useState('')
+  const [companyResults, setCompanyResults] = useState([])
+  const [companySearching, setCompanySearching] = useState(false)
+  const [selectedCompanyId, setSelectedCompanyId] = useState(null)
+  const searchTimeout = useRef(null)
+
   useEffect(() => {
     if (!companyId) return
     api.get(`/leads/${companyId}`)
@@ -27,6 +34,32 @@ export default function OutreachNew() {
       .catch(() => {})
   }, [companyId])
 
+  function handleCompanyQueryChange(e) {
+    const q = e.target.value
+    setCompanyQuery(q)
+    if (searchTimeout.current) clearTimeout(searchTimeout.current)
+    if (!q.trim()) { setCompanyResults([]); return }
+    searchTimeout.current = setTimeout(async () => {
+      setCompanySearching(true)
+      try {
+        const data = await api.get(`/leads?q=${encodeURIComponent(q)}`)
+        setCompanyResults(data.companies || [])
+      } catch { setCompanyResults([]) } finally { setCompanySearching(false) }
+    }, 300)
+  }
+
+  async function handleSelectCompany(c) {
+    setSelectedCompanyId(c.id)
+    setCompanyQuery(c.name)
+    setCompanyResults([])
+    try {
+      const data = await api.get(`/leads/${c.id}`)
+      setCompany(data.company)
+      setContacts(data.contacts || [])
+      if (data.contacts?.length > 0) setContactId(data.contacts[0].id)
+    } catch { /* ignore */ }
+  }
+
   async function handleAiGenerate() {
     if (!company) { setError('Önce bir firma seçin.'); return }
     setAiLoading(true)
@@ -37,9 +70,32 @@ export default function OutreachNew() {
         ? `Alıcı: ${selectedContact.name}${selectedContact.title ? ` (${selectedContact.title})` : ''}`
         : ''
 
-      const prompt = `${contactInfo ? contactInfo + '\n' : ''}Firma: ${company.name}${company.sector ? ` - ${company.sector}` : ''}${company.country ? ` - ${company.country}` : ''}
+      // Fetch user's firm profile for personalized emails
+      let profileContext = ''
+      try {
+        const profileData = await api.get('/profile')
+        const p = profileData.profile
+        if (p) {
+          const parts = []
+          if (p.company_name) parts.push(`Gönderen Firma: ${p.company_name}`)
+          if (p.sector) parts.push(`Sektör: ${p.sector}`)
+          if (p.value_proposition) parts.push(`Değer Önerisi: ${p.value_proposition}`)
+          if (p.products_services) {
+            const ps = Array.isArray(p.products_services) ? p.products_services.join(', ') : p.products_services
+            if (ps) parts.push(`Ürün/Hizmetler: ${ps}`)
+          }
+          if (p.usps) {
+            const usps = Array.isArray(p.usps) ? p.usps.join(', ') : p.usps
+            if (usps) parts.push(`Farklılaşma: ${usps}`)
+          }
+          if (p.tone) parts.push(`Ton: ${p.tone}`)
+          if (parts.length) profileContext = '\n\n--- Gönderen Firma Bilgisi ---\n' + parts.join('\n')
+        }
+      } catch { /* profile optional */ }
 
-Bu firmaya profesyonel bir tanıtım emaili yaz. Türkçe olsun, kısa ve etkili olsun.
+      const prompt = `${contactInfo ? contactInfo + '\n' : ''}Alıcı Firma: ${company.name}${company.sector ? ` - ${company.sector}` : ''}${company.country ? ` - ${company.country}` : ''}${profileContext}
+
+Bu firmaya profesyonel bir tanıtım emaili yaz. Türkçe olsun, kısa ve etkili olsun. Gönderen firma bilgilerini kullanarak kişiselleştirilmiş bir email oluştur.
 
 Aşağıdaki formatta yanıt ver:
 KONU: [email konusu]
@@ -68,7 +124,7 @@ KONU: [email konusu]
     setError('')
     try {
       const data = await api.post('/outreach', {
-        company_id: companyId || null,
+        company_id: companyId || selectedCompanyId || null,
         contact_id: contactId || null,
         subject,
         body,
@@ -92,6 +148,37 @@ KONU: [email konusu]
       {error && (
         <div className="mb-4 text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">
           {error}
+        </div>
+      )}
+
+      {!companyId && (
+        <div className="mb-4 relative">
+          <label className="block text-xs font-medium text-[#374151] mb-1">Firma Seç</label>
+          <input
+            type="text"
+            value={companyQuery}
+            onChange={handleCompanyQueryChange}
+            placeholder="Firma adı ara..."
+            className="w-full text-sm border border-[#E5E7EB] rounded-md px-3 py-1.5 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] placeholder-[#9CA3AF]"
+          />
+          {companySearching && (
+            <div className="text-xs text-[#9CA3AF] mt-1">Aranıyor...</div>
+          )}
+          {companyResults.length > 0 && (
+            <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-[#E5E7EB] rounded-md shadow-md">
+              {companyResults.map(c => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => handleSelectCompany(c)}
+                  className="w-full text-left px-3 py-2 text-sm text-[#111827] hover:bg-[#F3F4F6] border-b border-[#F3F4F6] last:border-0"
+                >
+                  <span className="font-medium">{c.name}</span>
+                  {c.sector && <span className="text-xs text-[#6B7280] ml-2">{c.sector}</span>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

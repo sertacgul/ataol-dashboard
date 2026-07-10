@@ -20,6 +20,9 @@ export default function SeoDetail() {
   const [article, setArticle] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [publishing, setPublishing] = useState(false)
+  const [publishResult, setPublishResult] = useState(null)
+  const [publishError, setPublishError] = useState('')
 
   useEffect(() => {
     api.get(`/seo/${id}`)
@@ -27,6 +30,20 @@ export default function SeoDetail() {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
   }, [id])
+
+  async function handlePublish() {
+    setPublishing(true)
+    setPublishError('')
+    setPublishResult(null)
+    try {
+      const data = await api.post('/blog/publish', { article_id: id })
+      setPublishResult(data)
+    } catch (err) {
+      setPublishError(err.message || 'Yayinlama basarisiz')
+    } finally {
+      setPublishing(false)
+    }
+  }
 
   if (loading) {
     return <div className="text-xs text-[#9CA3AF] py-8 text-center">Yükleniyor...</div>
@@ -66,13 +83,38 @@ export default function SeoDetail() {
             </span>
           )}
         </div>
-        <button
-          onClick={() => navigate(`/app/seo/new?id=${id}`)}
-          className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
-        >
-          Düzenle
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePublish}
+            disabled={publishing}
+            className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] disabled:opacity-50 rounded-md px-3 py-1.5"
+          >
+            {publishing ? 'Yayinlaniyor...' : "Blog'a Yayinla"}
+          </button>
+          <button
+            onClick={() => navigate(`/app/seo/new?id=${id}`)}
+            className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
+          >
+            Düzenle
+          </button>
+        </div>
       </div>
+
+      {publishResult && (
+        <div className="mb-4 text-xs text-[#065F46] bg-[#D1FAE5] border border-[#6EE7B7] rounded-md px-3 py-2">
+          Yayinlandi!{' '}
+          {publishResult.url && (
+            <a href={publishResult.url} target="_blank" rel="noreferrer" className="underline font-medium">
+              Yayin linkini goruntule
+            </a>
+          )}
+        </div>
+      )}
+      {publishError && (
+        <div className="mb-4 text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">
+          {publishError}
+        </div>
+      )}
 
       <div className="space-y-4">
         {/* Meta */}

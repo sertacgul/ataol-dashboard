@@ -3,6 +3,14 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../lib/api'
 
+const EMPTY_EMAIL_SETTINGS = {
+  smtp_host: '', smtp_port: '587', smtp_user: '', smtp_pass: '', from_name: '', from_email: '',
+}
+
+const EMPTY_BLOG_SETTINGS = {
+  platform: 'wordpress', blog_url: '', api_username: '', api_password: '',
+}
+
 const TONE_OPTIONS = [
   { value: 'formal', label: 'Formal' },
   { value: 'friendly', label: 'Samimi' },
@@ -59,6 +67,25 @@ export default function Settings() {
   const [saveError, setSaveError] = useState('')
   const [saveSuccess, setSaveSuccess] = useState(false)
 
+  // Email settings state
+  const [emailSettings, setEmailSettings] = useState(null)
+  const [emailLoading, setEmailLoading] = useState(true)
+  const [emailEditMode, setEmailEditMode] = useState(false)
+  const [emailForm, setEmailForm] = useState(EMPTY_EMAIL_SETTINGS)
+  const [emailSaving, setEmailSaving] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [emailSuccess, setEmailSuccess] = useState('')
+  const [emailTesting, setEmailTesting] = useState(false)
+
+  // Blog settings state
+  const [blogSettings, setBlogSettings] = useState(null)
+  const [blogLoading, setBlogLoading] = useState(true)
+  const [blogEditMode, setBlogEditMode] = useState(false)
+  const [blogForm, setBlogForm] = useState(EMPTY_BLOG_SETTINGS)
+  const [blogSaving, setBlogSaving] = useState(false)
+  const [blogError, setBlogError] = useState('')
+  const [blogSuccess, setBlogSuccess] = useState('')
+
   useEffect(() => {
     api.get('/profile').then(data => {
       setProfile(data.profile || null)
@@ -68,6 +95,32 @@ export default function Settings() {
     }).finally(() => {
       setProfileLoading(false)
     })
+
+    api.get('/email-settings').then(data => {
+      setEmailSettings(data.settings || null)
+      if (data.settings) {
+        setEmailForm({
+          smtp_host: data.settings.smtp_host || '',
+          smtp_port: String(data.settings.smtp_port || 587),
+          smtp_user: data.settings.smtp_user || '',
+          smtp_pass: data.settings.smtp_pass || '',
+          from_name: data.settings.from_name || '',
+          from_email: data.settings.from_email || '',
+        })
+      }
+    }).catch(() => setEmailSettings(null)).finally(() => setEmailLoading(false))
+
+    api.get('/blog').then(data => {
+      setBlogSettings(data.settings || null)
+      if (data.settings) {
+        setBlogForm({
+          platform: data.settings.platform || 'wordpress',
+          blog_url: data.settings.blog_url || '',
+          api_username: data.settings.api_username || '',
+          api_password: data.settings.api_password || '',
+        })
+      }
+    }).catch(() => setBlogSettings(null)).finally(() => setBlogLoading(false))
   }, [])
 
   function setField(key, value) {
@@ -110,6 +163,66 @@ export default function Settings() {
     }
   }
 
+  async function handleEmailSave(e) {
+    e.preventDefault()
+    setEmailSaving(true)
+    setEmailError('')
+    setEmailSuccess('')
+    try {
+      const payload = { ...emailForm, smtp_port: Number(emailForm.smtp_port) || 587 }
+      if (emailSettings) {
+        await api.put('/email-settings', payload)
+      } else {
+        await api.post('/email-settings', payload)
+      }
+      // Refresh
+      const data = await api.get('/email-settings')
+      setEmailSettings(data.settings || null)
+      setEmailEditMode(false)
+      setEmailSuccess('Email ayarları kaydedildi.')
+    } catch (err) {
+      setEmailError(err.message || 'Kayıt başarısız')
+    } finally {
+      setEmailSaving(false)
+    }
+  }
+
+  async function handleEmailTest() {
+    setEmailTesting(true)
+    setEmailError('')
+    setEmailSuccess('')
+    try {
+      const data = await api.post('/email-settings/test', {})
+      setEmailSuccess(data.message || 'Test emaili gönderildi.')
+    } catch (err) {
+      setEmailError(err.message || 'Test gönderilemedi')
+    } finally {
+      setEmailTesting(false)
+    }
+  }
+
+  async function handleBlogSave(e) {
+    e.preventDefault()
+    setBlogSaving(true)
+    setBlogError('')
+    setBlogSuccess('')
+    try {
+      if (blogSettings) {
+        await api.put('/blog', blogForm)
+      } else {
+        await api.post('/blog', blogForm)
+      }
+      const data = await api.get('/blog')
+      setBlogSettings(data.settings || null)
+      setBlogEditMode(false)
+      setBlogSuccess('Blog ayarları kaydedildi.')
+    } catch (err) {
+      setBlogError(err.message || 'Kayıt başarısız')
+    } finally {
+      setBlogSaving(false)
+    }
+  }
+
   const inputCls = 'w-full text-sm border border-[#D1D5DB] rounded-md px-3 py-2 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] placeholder-[#9CA3AF]'
   const textareaCls = inputCls + ' resize-none'
   const readValCls = 'text-sm text-[#111827]'
@@ -146,6 +259,184 @@ export default function Settings() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Email Ayarları */}
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-md mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-xs font-semibold text-[#374151]">Email Ayarları</div>
+          {!emailLoading && emailSettings && !emailEditMode && (
+            <button
+              onClick={() => { setEmailEditMode(true); setEmailError(''); setEmailSuccess('') }}
+              className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
+            >
+              Düzenle
+            </button>
+          )}
+        </div>
+        {emailLoading ? (
+          <div className="text-xs text-[#9CA3AF]">Yükleniyor...</div>
+        ) : !emailSettings || emailEditMode ? (
+          <form onSubmit={handleEmailSave} className="flex flex-col gap-3">
+            {emailError && (
+              <div className="text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">{emailError}</div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className={labelCls}>SMTP Sunucu</label>
+                <input value={emailForm.smtp_host} onChange={e => setEmailForm(p => ({ ...p, smtp_host: e.target.value }))} className={inputCls} placeholder="smtp.gmail.com" />
+              </div>
+              <div>
+                <label className={labelCls}>Port</label>
+                <input value={emailForm.smtp_port} onChange={e => setEmailForm(p => ({ ...p, smtp_port: e.target.value }))} className={inputCls} placeholder="587" type="number" />
+              </div>
+              <div>
+                <label className={labelCls}>Kullanıcı Adı</label>
+                <input value={emailForm.smtp_user} onChange={e => setEmailForm(p => ({ ...p, smtp_user: e.target.value }))} className={inputCls} placeholder="user@domain.com" />
+              </div>
+              <div className="col-span-2">
+                <label className={labelCls}>Şifre</label>
+                <input type="password" value={emailForm.smtp_pass} onChange={e => setEmailForm(p => ({ ...p, smtp_pass: e.target.value }))} className={inputCls} placeholder="••••••••" />
+              </div>
+              <div>
+                <label className={labelCls}>Gönderici Adı</label>
+                <input value={emailForm.from_name} onChange={e => setEmailForm(p => ({ ...p, from_name: e.target.value }))} className={inputCls} placeholder="Firma Adı" />
+              </div>
+              <div>
+                <label className={labelCls}>Gönderici Email</label>
+                <input value={emailForm.from_email} onChange={e => setEmailForm(p => ({ ...p, from_email: e.target.value }))} className={inputCls} placeholder="hello@firma.com" />
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end pt-1">
+              {emailEditMode && (
+                <button type="button" onClick={() => setEmailEditMode(false)} className="text-xs font-medium text-[#374151] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]">İptal</button>
+              )}
+              <button type="submit" disabled={emailSaving} className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2">
+                {emailSaving ? 'Kaydediliyor...' : 'Kaydet'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {emailSuccess && (
+              <div className="text-xs text-[#065F46] bg-[#D1FAE5] border border-[#6EE7B7] rounded-md px-3 py-2">{emailSuccess}</div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="text-xs text-[#6B7280] mb-0.5">SMTP Sunucu</div>
+                <div className="text-sm text-[#111827]">{emailSettings.smtp_host || '—'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-[#6B7280] mb-0.5">Port</div>
+                <div className="text-sm text-[#111827]">{emailSettings.smtp_port || 587}</div>
+              </div>
+              <div>
+                <div className="text-xs text-[#6B7280] mb-0.5">Kullanıcı Adı</div>
+                <div className="text-sm text-[#111827]">{emailSettings.smtp_user || '—'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-[#6B7280] mb-0.5">Şifre</div>
+                <div className="text-sm text-[#111827]">{emailSettings.smtp_pass || '—'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-[#6B7280] mb-0.5">Gönderici Adı</div>
+                <div className="text-sm text-[#111827]">{emailSettings.from_name || '—'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-[#6B7280] mb-0.5">Gönderici Email</div>
+                <div className="text-sm text-[#111827]">{emailSettings.from_email || '—'}</div>
+              </div>
+            </div>
+            <div className="pt-2">
+              <button
+                onClick={handleEmailTest}
+                disabled={emailTesting}
+                className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] disabled:opacity-50 rounded-md px-3 py-1.5"
+              >
+                {emailTesting ? 'Gönderiliyor...' : 'Test Emaili Gönder'}
+              </button>
+              {emailError && <div className="text-xs text-[#991B1B] mt-2">{emailError}</div>}
+              {emailSuccess && <div className="text-xs text-[#065F46] mt-2">{emailSuccess}</div>}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Blog Ayarları */}
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-md mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-xs font-semibold text-[#374151]">Blog Ayarları</div>
+          {!blogLoading && blogSettings && !blogEditMode && (
+            <button
+              onClick={() => { setBlogEditMode(true); setBlogError(''); setBlogSuccess('') }}
+              className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
+            >
+              Düzenle
+            </button>
+          )}
+        </div>
+        {blogLoading ? (
+          <div className="text-xs text-[#9CA3AF]">Yükleniyor...</div>
+        ) : !blogSettings || blogEditMode ? (
+          <form onSubmit={handleBlogSave} className="flex flex-col gap-3">
+            {blogError && (
+              <div className="text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">{blogError}</div>
+            )}
+            <div>
+              <label className={labelCls}>Platform</label>
+              <select value={blogForm.platform} onChange={e => setBlogForm(p => ({ ...p, platform: e.target.value }))} className={inputCls}>
+                <option value="wordpress">WordPress</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Blog URL</label>
+              <input value={blogForm.blog_url} onChange={e => setBlogForm(p => ({ ...p, blog_url: e.target.value }))} className={inputCls} placeholder="https://blogunuz.com" />
+            </div>
+            <div>
+              <label className={labelCls}>API Kullanıcı Adı</label>
+              <input value={blogForm.api_username} onChange={e => setBlogForm(p => ({ ...p, api_username: e.target.value }))} className={inputCls} placeholder="WordPress kullanıcı adı" />
+            </div>
+            <div>
+              <label className={labelCls}>API Şifresi (Uygulama Şifresi)</label>
+              <input type="password" value={blogForm.api_password} onChange={e => setBlogForm(p => ({ ...p, api_password: e.target.value }))} className={inputCls} placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" />
+            </div>
+            <div className="text-xs text-[#6B7280] bg-[#F9FAFB] border border-[#E5E7EB] rounded-md px-3 py-2">
+              WordPress icin Uygulama Sifresi kullanin. Kullanici Profili sayfasindan Uygulama Sifreleri bolumunden olusturabilirsiniz.
+            </div>
+            <div className="flex gap-2 justify-end pt-1">
+              {blogEditMode && (
+                <button type="button" onClick={() => setBlogEditMode(false)} className="text-xs font-medium text-[#374151] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]">İptal</button>
+              )}
+              <button type="submit" disabled={blogSaving} className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2">
+                {blogSaving ? 'Kaydediliyor...' : 'Kaydet'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {blogSuccess && (
+              <div className="text-xs text-[#065F46] bg-[#D1FAE5] border border-[#6EE7B7] rounded-md px-3 py-2">{blogSuccess}</div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="text-xs text-[#6B7280] mb-0.5">Platform</div>
+                <div className="text-sm text-[#111827]">{blogSettings.platform || 'WordPress'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-[#6B7280] mb-0.5">Blog URL</div>
+                <div className="text-sm text-[#111827]">{blogSettings.blog_url || '—'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-[#6B7280] mb-0.5">API Kullanıcı Adı</div>
+                <div className="text-sm text-[#111827]">{blogSettings.api_username || '—'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-[#6B7280] mb-0.5">API Şifresi</div>
+                <div className="text-sm text-[#111827]">{blogSettings.api_password || '—'}</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Firma Profili */}
