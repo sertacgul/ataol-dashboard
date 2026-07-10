@@ -18,6 +18,13 @@ import Onboarding from './pages/Onboarding'
 import SeoList from './pages/seo/SeoList'
 import SeoNew from './pages/seo/SeoNew'
 import SeoDetail from './pages/seo/SeoDetail'
+import SocialList from './pages/social/SocialList'
+import SocialNew from './pages/social/SocialNew'
+import NewsletterList from './pages/newsletter/NewsletterList'
+import NewsletterNew from './pages/newsletter/NewsletterNew'
+import NewsletterDetail from './pages/newsletter/NewsletterDetail'
+import TemplateList from './pages/templates/TemplateList'
+import TemplateNew from './pages/templates/TemplateNew'
 
 function App() {
   return (
@@ -38,6 +45,13 @@ function App() {
         <Route path="seo" element={<SeoList />} />
         <Route path="seo/new" element={<SeoNew />} />
         <Route path="seo/:id" element={<SeoDetail />} />
+        <Route path="social" element={<SocialList />} />
+        <Route path="social/new" element={<SocialNew />} />
+        <Route path="newsletter" element={<NewsletterList />} />
+        <Route path="newsletter/new" element={<NewsletterNew />} />
+        <Route path="newsletter/:id" element={<NewsletterDetail />} />
+        <Route path="templates" element={<TemplateList />} />
+        <Route path="templates/new" element={<TemplateNew />} />
         <Route path="settings" element={<Settings />} />
         <Route path="onboarding" element={<Onboarding />} />
       </Route>
