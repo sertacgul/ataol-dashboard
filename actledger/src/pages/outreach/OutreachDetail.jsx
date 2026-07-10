@@ -1,0 +1,137 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { api } from '../../lib/api'
+import Badge from '../../components/Badge'
+
+export default function OutreachDetail() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [email, setEmail] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
+
+  useEffect(() => {
+    api.get(`/outreach/${id}`)
+      .then(data => setEmail(data.email))
+      .catch(() => setEmail(null))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  async function updateStatus(status) {
+    setActionLoading(true)
+    try {
+      await api.put(`/outreach/${id}`, { status })
+      setEmail(prev => ({ ...prev, status }))
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  async function handleSend() {
+    setActionLoading(true)
+    try {
+      await api.post(`/outreach/${id}/send`, {})
+      setEmail(prev => ({ ...prev, status: 'sent', sent_at: new Date().toISOString() }))
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  if (loading) {
+    return <div className="text-xs text-[#9CA3AF] py-8 text-center">Yükleniyor...</div>
+  }
+
+  if (!email) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-sm text-[#6B7280] mb-3">Email bulunamadı.</div>
+        <Link to="/app/outreach" className="text-xs text-[#2563EB] hover:underline">Outreach listesine dön</Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-xl">
+      <div className="flex items-center gap-3 mb-5">
+        <Link to="/app/outreach" className="text-xs text-[#6B7280] hover:text-[#111827]">Outreach</Link>
+        <span className="text-[#9CA3AF]">/</span>
+        <span className="text-sm font-semibold text-[#111827]">{email.subject || '(konu yok)'}</span>
+      </div>
+
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-4 mb-4">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-base font-semibold text-[#111827]">{email.company_name || '—'}</span>
+              <Badge status={email.opened ? 'opened' : email.status} />
+            </div>
+            {email.contact_name && (
+              <div className="text-xs text-[#6B7280]">{email.contact_name}</div>
+            )}
+            <div className="text-xs text-[#9CA3AF] mt-0.5">
+              {email.created_at ? new Date(email.created_at).toLocaleDateString('tr-TR') : ''}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {email.status === 'pending' && (
+              <>
+                <button
+                  onClick={() => updateStatus('approved')}
+                  disabled={actionLoading}
+                  className="text-xs font-medium text-white bg-[#059669] hover:bg-[#047857] disabled:opacity-50 rounded-md px-3 py-1.5"
+                >
+                  Onayla
+                </button>
+                <button
+                  onClick={() => updateStatus('rejected')}
+                  disabled={actionLoading}
+                  className="text-xs font-medium text-white bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 rounded-md px-3 py-1.5"
+                >
+                  Reddet
+                </button>
+              </>
+            )}
+            {email.status === 'approved' && (
+              <button
+                onClick={handleSend}
+                disabled={actionLoading}
+                className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-3 py-1.5"
+              >
+                {actionLoading ? 'Gönderiliyor...' : 'Gönder'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-[#E5E7EB] pt-4">
+          <div className="text-xs font-medium text-[#374151] mb-1">Konu</div>
+          <div className="text-sm text-[#111827] mb-4">{email.subject || '—'}</div>
+
+          <div className="text-xs font-medium text-[#374151] mb-1">İçerik</div>
+          <div className="text-sm text-[#111827] whitespace-pre-wrap bg-[#F9FAFB] border border-[#E5E7EB] rounded-md px-3 py-2">
+            {email.body || '—'}
+          </div>
+        </div>
+
+        {(email.sent_at || email.opened) && (
+          <div className="border-t border-[#E5E7EB] mt-4 pt-4 flex items-center gap-4">
+            {email.sent_at && (
+              <div>
+                <span className="text-xs text-[#9CA3AF]">Gönderildi: </span>
+                <span className="text-xs text-[#111827]">
+                  {new Date(email.sent_at).toLocaleDateString('tr-TR')}
+                </span>
+              </div>
+            )}
+            {email.opened && (
+              <div>
+                <span className="text-xs text-[#5B21B6] font-medium">Email açıldı</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

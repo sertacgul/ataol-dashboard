@@ -3,6 +3,13 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Dashboard from './pages/Dashboard'
+import LeadList from './pages/leads/LeadList'
+import LeadNew from './pages/leads/LeadNew'
+import LeadDetail from './pages/leads/LeadDetail'
+import OutreachList from './pages/outreach/OutreachList'
+import OutreachNew from './pages/outreach/OutreachNew'
+import OutreachDetail from './pages/outreach/OutreachDetail'
 
 function App() {
   return (
@@ -11,16 +18,16 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route path="dashboard" element={<div className="text-sm text-[#6B7280]">Dashboard içeriği gelecek</div>} />
-        <Route path="outreach" element={<div className="text-sm text-[#6B7280]">Outreach içeriği gelecek</div>} />
-        <Route path="leads" element={<div className="text-sm text-[#6B7280]">Leads içeriği gelecek</div>} />
-        <Route path="leads/new" element={<div>Yeni Lead</div>} />
-        <Route path="leads/maps" element={<div>Maps</div>} />
-        <Route path="leads/:id" element={<div>Lead Detay</div>} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="outreach" element={<OutreachList />} />
+        <Route path="outreach/new" element={<OutreachNew />} />
+        <Route path="outreach/:id" element={<OutreachDetail />} />
+        <Route path="leads" element={<LeadList />} />
+        <Route path="leads/new" element={<LeadNew />} />
+        <Route path="leads/maps" element={<div className="text-sm text-[#6B7280]">Maps içeriği gelecek</div>} />
+        <Route path="leads/:id" element={<LeadDetail />} />
         <Route path="pipeline" element={<div className="text-sm text-[#6B7280]">Pipeline içeriği gelecek</div>} />
         <Route path="settings" element={<div className="text-sm text-[#6B7280]">Ayarlar içeriği gelecek</div>} />
-        <Route path="outreach/new" element={<div>Yeni Outreach</div>} />
-        <Route path="outreach/:id" element={<div>Outreach Detay</div>} />
       </Route>
     </Routes>
   )
