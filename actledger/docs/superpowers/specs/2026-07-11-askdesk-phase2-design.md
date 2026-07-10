@@ -8,9 +8,54 @@
 
 ## 1. Genel Bakış
 
-Phase 2, AskDesk'e 5 içerik yönetim modülü ekler: SEO İçerik üretimi, Sosyal Medya paylaşımı, Newsletter oluşturma, Template Library ve Content Calendar. Tüm modüller mevcut Cloudflare Pages + Workers + D1 altyapısı üzerine inşa edilir.
+Phase 2, AskDesk'e 6 modül ekler: Firma Profili (onboarding), SEO İçerik üretimi, Sosyal Medya paylaşımı, Newsletter oluşturma, Template Library ve Content Calendar. Tüm modüller mevcut Cloudflare Pages + Workers + D1 altyapısı üzerine inşa edilir.
 
 ## 2. Modüller
+
+### 2.0 Firma Profili (Onboarding)
+
+Register sonrası zorunlu adım. Kullanıcı firmasını tanıtır, bu bilgiler tüm AI içerik üretimlerinde context olarak kullanılır.
+
+**Akıllı Profil Oluşturma:**
+1. Kullanıcı firma websitesini girer
+2. AI (Gemini) websiteyi analiz eder → otomatik profil taslağı oluşturur
+3. Kullanıcı taslağı düzenler, eksikleri tamamlar, onaylar
+
+**Manuel Ekleme:** Website yoksa veya AI sonucu yetersizse tüm alanlar elle doldurulabilir.
+
+**Profil Alanları:**
+
+| Alan | Tip | Açıklama |
+|------|-----|----------|
+| company_name | TEXT | Firma adı |
+| website | TEXT | Firma websitesi |
+| sector | TEXT | Sektör |
+| description | TEXT | Firma ne iş yapıyor (2-3 cümle) |
+| value_proposition | TEXT | Değer önerisi — müşteriye sunulan fayda |
+| target_audience | TEXT | Hedef kitle tanımı |
+| products_services | TEXT | Ürün/hizmet listesi (JSON array) |
+| competitors | TEXT | Rakipler (JSON array) |
+| usps | TEXT | Benzersiz satış noktaları — USP'ler (JSON array) |
+| tone | TEXT | İçerik tonu: 'formal', 'friendly', 'technical', 'casual' |
+| sample_content | TEXT | Örnek içerikler — mevcut websiteden veya elle (isteğe bağlı) |
+
+**Sayfalar:**
+- `/app/onboarding` — register sonrası zorunlu yönlendirme (profil dolana kadar diğer sayfalara erişim engellenir)
+- `/app/settings/profile` — profili sonradan düzenleme
+
+**AI Context Kullanımı:** Tüm içerik modüllerinde (SEO, Sosyal Medya, Newsletter, Outreach) Gemini'ye gönderilen prompt'lara firma profili otomatik olarak eklenir:
+```
+Firma Bilgileri:
+- Ad: {company_name}
+- Sektör: {sector}
+- Ne Yapar: {description}
+- Değer Önerisi: {value_proposition}
+- Hedef Kitle: {target_audience}
+- Ürün/Hizmetler: {products_services}
+- Ton: {tone}
+
+Bu firma için [istek] oluştur.
+```
 
 ### 2.1 SEO İçerik
 
@@ -94,6 +139,25 @@ Tüm içerik türlerini takvimde planlama ve takip:
 
 ## 3. Veritabanı Şeması (Yeni Tablolar)
 
+### company_profiles
+| Kolon | Tip | Açıklama |
+|-------|-----|----------|
+| id | TEXT (UUID) | Primary key |
+| user_id | TEXT UNIQUE | FK → users.id (1 kullanıcı = 1 profil) |
+| company_name | TEXT | Firma adı |
+| website | TEXT | Firma websitesi |
+| sector | TEXT | Sektör |
+| description | TEXT | Firma ne iş yapıyor |
+| value_proposition | TEXT | Değer önerisi |
+| target_audience | TEXT | Hedef kitle |
+| products_services | TEXT | JSON array — ürün/hizmetler |
+| competitors | TEXT | JSON array — rakipler |
+| usps | TEXT | JSON array — benzersiz satış noktaları |
+| tone | TEXT | 'formal', 'friendly', 'technical', 'casual' |
+| sample_content | TEXT | Örnek içerikler |
+| created_at | TEXT | ISO timestamp |
+| updated_at | TEXT | ISO timestamp |
+
 ### seo_articles
 | Kolon | Tip | Açıklama |
 |-------|-----|----------|
@@ -163,6 +227,12 @@ Tüm içerik türlerini takvimde planlama ve takip:
 | created_at | TEXT | ISO timestamp |
 
 ## 4. API Endpoint'leri
+
+### Firma Profili (/profile)
+- `GET /profile` — mevcut kullanıcının firma profilini getir
+- `POST /profile` — profil oluştur (onboarding)
+- `PUT /profile` — profil güncelle
+- `POST /profile/analyze` — website URL'ini AI ile analiz et, profil taslağı döndür (Gemini proxy)
 
 ### SEO (/seo)
 - `GET /seo` — makale listesi (filtreleme: status)
