@@ -1,0 +1,15 @@
+name = "askdesk-api"
+main = "src/index.js"
+compatibility_date = "2026-07-10"
+
+[vars]
+CORS_ORIGIN = "http://localhost:5173"
+
+# Gemini API key is set via: wrangler secret put GEMINI_API_KEY
+# Google Maps API key is set via: wrangler secret put GOOGLE_MAPS_API_KEY
+# JWT secret is set via: wrangler secret put JWT_SECRET
+
+[[d1_databases]]
+binding = "DB"
+database_name = "askdesk-db"
+database_id = "placeholder"
