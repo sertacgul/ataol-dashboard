@@ -238,6 +238,178 @@ async function setCachedDomain(db, domain, data) {
     .run()
 }
 
-// ─── Routes will be added in next tasks ──────────────────────
+// ─── POST /search ── Find people at a company ───────────────
+
+router.post('/search', async (c) => {
+  const userId = c.get('userId')
+  const { query, domain: inputDomain, company_id } = await c.req.json()
+
+  // Resolve domain
+  let domain = inputDomain
+  if (!domain && company_id) {
+    const company = await c.env.DB.prepare('SELECT website FROM companies WHERE id = ? AND user_id = ?')
+      .bind(company_id, userId).first()
+    domain = extractDomainFromUrl(company?.website)
+  }
+  if (!domain && query) {
+    // Try to use query as domain if it looks like one
+    if (query.includes('.') && !query.includes(' ')) domain = query.toLowerCase().replace(/^www\./, '')
+  }
+  if (!domain) return c.json({ error: 'Domain gerekli' }, 400)
+  domain = domain.toLowerCase().replace(/^www\./, '')
+
+  // Check cache first
+  let cached = await getCachedDomain(c.env.DB, domain)
+  if (cached) {
+    // Check which emails user already revealed
+    const revealed = await c.env.DB.prepare(
+      'SELECT email, person_name, verification_status, confidence_score FROM email_reveals WHERE user_id = ? AND domain = ?'
+    ).bind(userId, domain).all()
+    const revealedMap = {}
+    for (const r of (revealed.results || [])) revealedMap[r.email] = r
+
+    const people = cached.people.map((p, i) => {
+      const bestEmail = p.emails?.[0] || null
+      const rev = bestEmail ? revealedMap[bestEmail] : null
+      return {
+        id: `${domain}-${i}`,
+        masked_name: rev ? p.name : maskName(p.name),
+        full_name: rev ? p.name : null,
+        title: p.title,
+        department: classifyDepartment(p.title),
+        seniority: classifySeniority(p.title),
+        masked_email: rev ? bestEmail : maskEmail(bestEmail),
+        full_email: rev ? bestEmail : null,
+        revealed: !!rev,
+        verification_status: rev?.verification_status || null,
+        confidence_score: rev?.confidence_score || null,
+      }
+    })
+
+    return c.json({
+      company: cached.company_info,
+      people,
+      total_count: people.length,
+      has_catchall: cached.has_catchall,
+      mx_provider: cached.mx_provider,
+      from_cache: true,
+    })
+  }
+
+  // Fresh scrape
+  const [mx, scrapeResult] = await Promise.all([
+    checkMxRecords(domain),
+    scrapeWebsite(domain),
+  ])
+
+  const hasCatchAll = detectCatchAll(mx.mxHosts)
+
+  // Extract company info + people via Gemini
+  let companyInfo = { name: query || domain, domain, sector: '', location: '', employee_count: '' }
+  let people = []
+
+  if (scrapeResult.text.length > 200 && c.env.GEMINI_API_KEY) {
+    try {
+      const prompt = `Bu web sitesi iceriginden firma bilgileri ve calisanlari cikar.
+
+KURALLAR:
+- SADECE verilen icerikten bilgi cikar, uydurma
+- Calisanlarin isim ve unvanlarini bul
+- Her calisan icin departman tahmini yap
+
+Icerik:
+${scrapeResult.text.slice(0, 12000)}
+
+JSON formatinda don:
+{
+  "company_name": "...",
+  "description": "1-2 cumle",
+  "sector": "...",
+  "location": "...",
+  "employee_count": "...",
+  "people": [{"name": "Ad Soyad", "title": "Unvan"}]
+}`
+      const raw = await callGemini(prompt, c.env.GEMINI_API_KEY)
+      const jsonMatch = raw.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0])
+        companyInfo = {
+          name: parsed.company_name || companyInfo.name,
+          domain,
+          description: parsed.description || '',
+          sector: parsed.sector || '',
+          location: parsed.location || '',
+          employee_count: parsed.employee_count || '',
+          mx_valid: mx.hasMx,
+        }
+        if (Array.isArray(parsed.people)) {
+          people = parsed.people.filter(p => p.name && p.name.length > 1)
+        }
+      }
+    } catch (e) { /* Gemini failed, continue with scrape data */ }
+  }
+
+  // Generate emails for each person
+  const websiteEmails = scrapeResult.emails
+  const peopleWithEmails = people.map(p => {
+    const patterns = generateEmailPatterns(p.name, domain)
+    // Check if any pattern matches a website email
+    const matchedWebsite = patterns.find(pat => websiteEmails.some(we => we.toLowerCase() === pat.toLowerCase()))
+    const bestEmail = matchedWebsite || patterns[0] || null
+    return { ...p, emails: bestEmail ? [bestEmail] : [], matchedWebsite: !!matchedWebsite }
+  })
+
+  // Also add website emails that don't belong to any found person
+  const assignedEmails = new Set(peopleWithEmails.flatMap(p => p.emails.map(e => e.toLowerCase())))
+  for (const we of websiteEmails) {
+    if (!assignedEmails.has(we.toLowerCase())) {
+      const localPart = we.split('@')[0].replace(/[._]/g, ' ')
+      peopleWithEmails.push({ name: localPart, title: '', emails: [we], matchedWebsite: true })
+    }
+  }
+
+  // Save to cache
+  await setCachedDomain(c.env.DB, domain, {
+    company_info: companyInfo,
+    people: peopleWithEmails,
+    emails_raw: websiteEmails,
+    has_catchall: hasCatchAll,
+    mx_provider: mx.mxHosts[0] || '',
+  })
+
+  // Check user's existing reveals
+  const revealed = await c.env.DB.prepare(
+    'SELECT email FROM email_reveals WHERE user_id = ? AND domain = ?'
+  ).bind(userId, domain).all()
+  const revealedSet = new Set((revealed.results || []).map(r => r.email))
+
+  // Build masked response
+  const maskedPeople = peopleWithEmails.map((p, i) => {
+    const email = p.emails[0] || null
+    const isRevealed = email && revealedSet.has(email)
+    return {
+      id: `${domain}-${i}`,
+      masked_name: isRevealed ? p.name : maskName(p.name),
+      full_name: isRevealed ? p.name : null,
+      title: p.title,
+      department: classifyDepartment(p.title),
+      seniority: classifySeniority(p.title),
+      masked_email: isRevealed ? email : maskEmail(email),
+      full_email: isRevealed ? email : null,
+      revealed: isRevealed,
+      verification_status: null,
+      confidence_score: null,
+    }
+  })
+
+  return c.json({
+    company: companyInfo,
+    people: maskedPeople,
+    total_count: maskedPeople.length,
+    has_catchall: hasCatchAll,
+    mx_provider: mx.mxHosts[0] || '',
+    from_cache: false,
+  })
+})
 
 export default router
