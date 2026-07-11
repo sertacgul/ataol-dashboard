@@ -6,103 +6,103 @@ const FEATURES = [
     icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
     titleTr: 'AI Destekli Outreach',
     titleEn: 'AI-Powered Outreach',
-    descTr: 'OperIQ yapay zeka ile kisisellestirilmis email kampanyalari olusturun. Email acilma takibi, otomatik sablon uretimi ve firma bazli icerik optimizasyonu.',
-    descEn: 'Create personalized email campaigns with OperIQ AI. Email open tracking, automatic template generation, and company-based content optimization.',
+    descTr: 'Yapay zekâ ile kişiselleştirilmiş email kampanyaları oluşturun. Email açılma takibi, otomatik şablon üretimi ve firma bazlı içerik optimizasyonu.',
+    descEn: 'Create personalized email campaigns with AI. Email open tracking, automatic template generation, and company-based content optimization.',
   },
   {
     icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
     titleTr: 'Lead Generation',
     titleEn: 'Lead Generation',
-    descTr: 'Google Maps entegrasyonu ile hedef sektorunuzdeki firmalari bulun, yorumlarini analiz edin ve tek tikla lead listesine ekleyin. Sentiment analizi ile kaliteli leadleri onden secin.',
+    descTr: 'Google Maps entegrasyonu ile hedef sektörünüzdeki firmaları bulun, yorumlarını analiz edin ve tek tıkla lead listesine ekleyin. Sentiment analizi ile kaliteli leadleri önden seçin.',
     descEn: 'Find companies in your target sector with Google Maps integration, analyze reviews, and add to your lead list in one click. Pre-select quality leads with sentiment analysis.',
   },
   {
     icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7',
     titleTr: 'CRM Pipeline',
     titleEn: 'CRM Pipeline',
-    descTr: 'Surukle-birak kanban gorunumu ile satis surecini goruntulelestirin. Leadlerinizi kesfedildi, iletisime gecildi, teklif verildi ve kazanildi asamalari arasinda yonetin.',
+    descTr: 'Sürükle-bırak kanban görünümü ile satış sürecini görselleştirin. Leadlerinizi keşfedildi, iletişime geçildi, teklif verildi ve kazanıldı aşamaları arasında yönetin.',
     descEn: 'Visualize your sales process with drag-and-drop kanban view. Manage leads across discovered, contacted, offered, and won stages.',
   },
   {
     icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-    titleTr: 'SEO Icerik Uretimi',
+    titleTr: 'SEO İçerik Üretimi',
     titleEn: 'SEO Content Creation',
-    descTr: '6 adimli SEO makale yazma sureci: trend arastirmasi, konu secimi, Turkce icerik, Ingilizce ceviri, SEO skoru analizi ve dogrudan WordPress yayini.',
+    descTr: '6 adımlı SEO makale yazma süreci: trend araştırması, konu seçimi, Türkçe içerik, İngilizce çeviri, SEO skoru analizi ve doğrudan WordPress yayını.',
     descEn: '6-step SEO article workflow: trend research, topic selection, Turkish content, English translation, SEO score analysis, and direct WordPress publishing.',
   },
   {
     icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7',
     titleTr: 'Email Bulucu',
     titleEn: 'Email Finder',
-    descTr: 'Firma web sitesini tarayarak gercek email adreslerini bulun. MX kayit dogrulama, web sitesinden veri cekme ve kalip bazli email tahmini ile iletisim bilgilerine ulasin.',
+    descTr: 'Firma web sitesini tarayarak gerçek email adreslerini bulun. MX kayıt doğrulama, web sitesinden veri çekme ve kalıp bazlı email tahmini ile iletişim bilgilerine ulaşın.',
     descEn: 'Find real email addresses by scanning company websites. Reach contact info with MX record verification, web scraping, and pattern-based email estimation.',
   },
   {
     icon: 'M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z',
-    titleTr: 'Sosyal Medya Yonetimi',
+    titleTr: 'Sosyal Medya Yönetimi',
     titleEn: 'Social Media Management',
-    descTr: 'LinkedIn, Twitter/X, Instagram ve Facebook icin platforma ozel icerikler uretin. Karakter siniri kontrolu, hashtag onerisi ve AI destekli post olusturma.',
+    descTr: 'LinkedIn, Twitter/X, Instagram ve Facebook için platforma özel içerikler üretin. Karakter sınırı kontrolü, hashtag önerisi ve AI destekli post oluşturma.',
     descEn: 'Create platform-specific content for LinkedIn, Twitter/X, Instagram and Facebook. Character limit control, hashtag suggestions, and AI-powered post creation.',
   },
   {
     icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
     titleTr: 'Analytics Dashboard',
     titleEn: 'Analytics Dashboard',
-    descTr: 'Email gonderim trendi, sosyal medya dagilimi, pipeline asamalari ve icerik uretim istatistikleri. Tum verilerinizi tek panelde izleyin.',
+    descTr: 'Email gönderim trendi, sosyal medya dağılımı, pipeline aşamaları ve içerik üretim istatistikleri. Tüm verilerinizi tek panelde izleyin.',
     descEn: 'Email sending trends, social media distribution, pipeline stages, and content production statistics. Monitor all your data in one panel.',
   },
   {
     icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
-    titleTr: 'Finansal Simulasyon',
+    titleTr: 'Finansal Simülasyon',
     titleEn: 'Financial Simulation',
-    descTr: '3 senaryo (iyimser, gercekci, kotumser) ile 12 aylik gelir/gider projeksiyonu. Birim ekonomi analizi, kara gecis noktasi ve nakit akis grafikleri.',
+    descTr: '3 senaryo (iyimser, gerçekçi, kötümser) ile 12 aylık gelir/gider projeksiyonu. Birim ekonomi analizi, kâra geçiş noktası ve nakit akış grafikleri.',
     descEn: '12-month revenue/expense projection with 3 scenarios (optimistic, realistic, pessimistic). Unit economics analysis, break-even point, and cash flow charts.',
   },
   {
     icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
     titleTr: 'Rakip Analizi',
     titleEn: 'Competitor Analysis',
-    descTr: 'Rakip firmalarin web sitelerini analiz edin. Guclu yonler, zayif yonler ve firsatlar raporu ile stratejik konumlanmanizi belirleyin.',
+    descTr: 'Rakip firmaların web sitelerini analiz edin. Güçlü yönler, zayıf yönler ve fırsatlar raporu ile stratejik konumlanmanızı belirleyin.',
     descEn: 'Analyze competitor websites. Determine your strategic positioning with strengths, weaknesses, and opportunities reports.',
   },
 ]
 
 const STATS = [
-  { valueTr: '11+', valueEn: '11+', labelTr: 'Entegre Modul', labelEn: 'Integrated Modules' },
+  { valueTr: '11+', valueEn: '11+', labelTr: 'Entegre Modül', labelEn: 'Integrated Modules' },
   { valueTr: '4', valueEn: '4', labelTr: 'Sosyal Medya Platformu', labelEn: 'Social Media Platforms' },
   { valueTr: '3', valueEn: '3', labelTr: 'Senaryo Simülasyonu', labelEn: 'Scenario Simulations' },
-  { valueTr: '6', valueEn: '6', labelTr: 'Adimli SEO Sureci', labelEn: 'Step SEO Workflow' },
+  { valueTr: '6', valueEn: '6', labelTr: 'Adımlı SEO Süreci', labelEn: 'Step SEO Workflow' },
 ]
 
 const STEPS = [
   {
     numTr: '1', numEn: '1',
-    titleTr: 'Kayit Olun', titleEn: 'Sign Up',
-    descTr: 'Ucretsiz hesap olusturun ve firma profilinizi doldurun. OperIQ web sitenizi analiz ederek profili otomatik olusturur.',
-    descEn: 'Create a free account and fill your company profile. OperIQ auto-generates your profile by analyzing your website.',
+    titleTr: 'Kayıt Olun', titleEn: 'Sign Up',
+    descTr: 'Ücretsiz hesap oluşturun ve firma profilinizi doldurun. Web sitenizi analiz ederek profili otomatik oluşturur.',
+    descEn: 'Create a free account and fill your company profile. Auto-generates your profile by analyzing your website.',
   },
   {
     numTr: '2', numEn: '2',
     titleTr: 'Leadlerinizi Bulun', titleEn: 'Find Your Leads',
-    descTr: 'Google Maps, email bulucu veya manuel giris ile potansiyel musterilerinizi sisteme ekleyin.',
+    descTr: 'Google Maps, email bulucu veya manuel giriş ile potansiyel müşterilerinizi sisteme ekleyin.',
     descEn: 'Add your potential customers via Google Maps, email finder, or manual entry.',
   },
   {
     numTr: '3', numEn: '3',
-    titleTr: 'Kampanya Olusturun', titleEn: 'Create Campaigns',
-    descTr: 'OperIQ ile kisisellestirilmis email, SEO makale, sosyal medya icerigi ve newsletter uretin.',
-    descEn: 'Create personalized emails, SEO articles, social media content, and newsletters with OperIQ.',
+    titleTr: 'Kampanya Oluşturun', titleEn: 'Create Campaigns',
+    descTr: 'AI ile kişiselleştirilmiş email, SEO makale, sosyal medya içeriği ve newsletter üretin.',
+    descEn: 'Create personalized emails, SEO articles, social media content, and newsletters with AI.',
   },
   {
     numTr: '4', numEn: '4',
-    titleTr: 'Buyumeyi Takip Edin', titleEn: 'Track Growth',
-    descTr: 'Analytics, pipeline ve finansal simulasyon ile performansinizi olcun ve stratejinizi optimize edin.',
+    titleTr: 'Büyümeyi Takip Edin', titleEn: 'Track Growth',
+    descTr: 'Analytics, pipeline ve finansal simülasyon ile performansınızı ölçün ve stratejinizi optimize edin.',
     descEn: 'Measure performance and optimize your strategy with analytics, pipeline, and financial simulation.',
   },
 ]
 
 export default function Landing() {
-  const { t, lang } = useT()
+  const { t, lang, toggleLang } = useT()
   const isEn = lang === 'en'
 
   return (
@@ -116,6 +116,12 @@ export default function Landing() {
           <span className="text-base font-bold text-[#111827]">AskDesk</span>
         </div>
         <div className="flex items-center gap-4">
+          <button
+            onClick={toggleLang}
+            className="text-xs font-medium text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded-md px-2.5 py-1.5 transition-colors"
+          >
+            {lang === 'tr' ? 'EN' : 'TR'}
+          </button>
           <Link to="/login" className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors">
             {t('Giriş Yap')}
           </Link>
@@ -131,18 +137,23 @@ export default function Landing() {
       {/* Hero */}
       <section className="px-6 pt-20 pb-16 animate-[fadeInUp_0.6s_ease-out]">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-block text-xs font-medium text-[#2563EB] bg-[#EFF6FF] rounded-full px-4 py-1.5 mb-6">
+          <a
+            href="https://www.ataolai.tech/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-xs font-medium text-[#2563EB] bg-[#EFF6FF] rounded-full px-4 py-1.5 mb-6 hover:bg-[#DBEAFE] transition-colors"
+          >
             Powered by ATAOL AI Techs
-          </div>
+          </a>
           <h1 className="text-4xl font-bold text-[#111827] mb-5 leading-tight">
             {isEn
               ? 'The All-in-One Growth Platform for Startups'
-              : "Startup'lar icin Hepsi Bir Arada Buyume Platformu"}
+              : "Startup'lar İçin Hepsi Bir Arada Büyüme Platformu"}
           </h1>
           <p className="text-base text-[#6B7280] mb-8 max-w-2xl mx-auto leading-relaxed">
             {isEn
-              ? 'Find potential customers, create personalized outreach campaigns, manage leads in a CRM pipeline, produce SEO content, and make data-driven strategic decisions. All powered by OperIQ AI.'
-              : 'Potansiyel musterilerinizi bulun, kisisellestirilmis outreach kampanyalari olusturun, leadlerinizi CRM pipeline ile yonetin, SEO icerik uretin ve veriye dayali stratejik kararlar alin. Tumu OperIQ AI destekli.'}
+              ? 'Find potential customers, create personalized outreach campaigns, manage leads in a CRM pipeline, produce SEO content, and make data-driven strategic decisions. All powered by AI.'
+              : 'Potansiyel müşterilerinizi bulun, kişiselleştirilmiş outreach kampanyaları oluşturun, leadlerinizi CRM pipeline ile yönetin, SEO içerik üretin ve veriye dayalı stratejik kararlar alın. Tümü AI destekli.'}
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link
@@ -178,12 +189,12 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-2xl font-bold text-[#111827] mb-3">
-              {isEn ? 'Everything You Need to Grow' : 'Buyumeniz Icin Ihtiyaciniz Olan Her Sey'}
+              {isEn ? 'Everything You Need to Grow' : 'Büyümeniz İçin İhtiyacınız Olan Her Şey'}
             </h2>
             <p className="text-sm text-[#6B7280] max-w-xl mx-auto">
               {isEn
                 ? 'From lead discovery to content creation, from pipeline management to competitive analysis. One platform, all tools.'
-                : 'Lead kesfinden icerik uretimine, pipeline yonetiminden rakip analizine kadar. Tek platform, tum araclar.'}
+                : 'Lead keşfinden içerik üretimine, pipeline yönetiminden rakip analizine kadar. Tek platform, tüm araçlar.'}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -207,10 +218,10 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-2xl font-bold text-[#111827] mb-3">
-              {isEn ? 'How It Works' : 'Nasil Calisir?'}
+              {isEn ? 'How It Works' : 'Nasıl Çalışır?'}
             </h2>
             <p className="text-sm text-[#6B7280]">
-              {isEn ? '4 simple steps to accelerate your growth' : '4 basit adimda buyumenizi hizlandirin'}
+              {isEn ? '4 simple steps to accelerate your growth' : '4 basit adımda büyümenizi hızlandırın'}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -231,25 +242,25 @@ export default function Landing() {
       <section className="px-6 py-16 bg-[#F9FAFB]">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-[#111827] mb-3">
-            {isEn ? 'Powered by OperIQ AI' : 'OperIQ AI ile Guclendirilmis'}
+            {isEn ? 'AI-Powered Platform' : 'AI Destekli Platform'}
           </h2>
           <p className="text-sm text-[#6B7280] max-w-2xl mx-auto mb-8 leading-relaxed">
             {isEn
-              ? 'OperIQ, ATAOL AI Techs\' native AI engine, is integrated across all modules. From smart company profile creation to personalized email drafting, from SEO analysis to competitor research, AI accelerates every step of your workflow.'
-              : 'ATAOL AI Techs\'in yerli yapay zeka motoru OperIQ, tum modullere entegre edilmistir. Akilli firma profili olusturmadan kisisellestirilmis email taslagina, SEO analizinden rakip arastirmasina kadar her adimda AI is akisinizi hizlandirir.'}
+              ? 'AI technology is integrated across all modules. From smart company profile creation to personalized email drafting, from SEO analysis to competitor research, AI accelerates every step of your workflow.'
+              : 'Yapay zekâ teknolojisi tüm modüllere entegre edilmiştir. Akıllı firma profili oluşturmadan kişiselleştirilmiş email taslağına, SEO analizinden rakip araştırmasına kadar her adımda AI iş akışınızı hızlandırır.'}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div className="bg-white border border-[#E5E7EB] rounded-lg p-5">
-              <div className="text-sm font-semibold text-[#111827] mb-2">{isEn ? 'Smart Profiling' : 'Akilli Profil Olusturma'}</div>
-              <p className="text-xs text-[#6B7280]">{isEn ? 'Enter your website URL, OperIQ analyzes your site and auto-fills your company profile.' : 'Web site URL\'nizi girin, OperIQ sitenizi analiz edip firma profilinizi otomatik doldursun.'}</p>
+              <div className="text-sm font-semibold text-[#111827] mb-2">{isEn ? 'Smart Profiling' : 'Akıllı Profil Oluşturma'}</div>
+              <p className="text-xs text-[#6B7280]">{isEn ? 'Enter your website URL, AI analyzes your site and auto-fills your company profile.' : 'Web site URL\'nizi girin, AI sitenizi analiz edip firma profilinizi otomatik doldursun.'}</p>
             </div>
             <div className="bg-white border border-[#E5E7EB] rounded-lg p-5">
-              <div className="text-sm font-semibold text-[#111827] mb-2">{isEn ? 'Content Generation' : 'Icerik Uretimi'}</div>
-              <p className="text-xs text-[#6B7280]">{isEn ? 'SEO articles, social media posts, newsletters, email templates. All content is generated specific to your brand.' : 'SEO makale, sosyal medya postu, newsletter, email sablonu. Tum icerikler markaniza ozel uretilir.'}</p>
+              <div className="text-sm font-semibold text-[#111827] mb-2">{isEn ? 'Content Generation' : 'İçerik Üretimi'}</div>
+              <p className="text-xs text-[#6B7280]">{isEn ? 'SEO articles, social media posts, newsletters, email templates. All content is generated specific to your brand.' : 'SEO makale, sosyal medya postu, newsletter, email şablonu. Tüm içerikler markanıza özel üretilir.'}</p>
             </div>
             <div className="bg-white border border-[#E5E7EB] rounded-lg p-5">
               <div className="text-sm font-semibold text-[#111827] mb-2">{isEn ? 'Strategic Analysis' : 'Stratejik Analiz'}</div>
-              <p className="text-xs text-[#6B7280]">{isEn ? 'Competitor SWOT analysis, BMC recommendations, financial projections. Make data-driven decisions.' : 'Rakip SWOT analizi, BMC onerileri, finansal projeksiyonlar. Veriye dayali kararlar alin.'}</p>
+              <p className="text-xs text-[#6B7280]">{isEn ? 'Competitor SWOT analysis, BMC recommendations, financial projections. Make data-driven decisions.' : 'Rakip SWOT analizi, BMC önerileri, finansal projeksiyonlar. Veriye dayalı kararlar alın.'}</p>
             </div>
           </div>
         </div>
@@ -259,12 +270,12 @@ export default function Landing() {
       <section className="px-6 py-20">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-[#111827] mb-4">
-            {isEn ? 'Ready to Grow Your Startup?' : "Startup'inizi Buyutmeye Hazir misiniz?"}
+            {isEn ? 'Ready to Grow Your Startup?' : "Startup'ınızı Büyütmeye Hazır mısınız?"}
           </h2>
           <p className="text-sm text-[#6B7280] mb-8">
             {isEn
               ? 'Start free today. No credit card required.'
-              : 'Bugun ucretsiz baslayin. Kredi karti gerekmez.'}
+              : 'Bugün ücretsiz başlayın. Kredi kartı gerekmez.'}
           </p>
           <Link
             to="/register"
@@ -289,31 +300,43 @@ export default function Landing() {
               <p className="text-xs text-[#6B7280] leading-relaxed">
                 {isEn
                   ? 'All-in-one growth platform for startups. Find customers, create campaigns, manage your pipeline.'
-                  : "Startup'lar icin hepsi bir arada buyume platformu. Musteri bulun, kampanya olusturun, pipeline'inizi yonetin."}
+                  : "Startup'lar için hepsi bir arada büyüme platformu. Müşteri bulun, kampanya oluşturun, pipeline'ınızı yönetin."}
               </p>
             </div>
             <div>
-              <div className="text-xs font-semibold text-[#111827] mb-3">{isEn ? 'Product' : 'Urun'}</div>
+              <div className="text-xs font-semibold text-[#111827] mb-3">{isEn ? 'Product' : 'Ürün'}</div>
               <ul className="space-y-2 text-xs text-[#6B7280]">
                 <li>Outreach</li>
                 <li>Lead Generation</li>
                 <li>CRM Pipeline</li>
-                <li>{isEn ? 'SEO Content' : 'SEO Icerik'}</li>
+                <li>{isEn ? 'SEO Content' : 'SEO İçerik'}</li>
                 <li>Analytics</li>
               </ul>
             </div>
             <div>
-              <div className="text-xs font-semibold text-[#111827] mb-3">{isEn ? 'Company' : 'Firma'}</div>
+              <div className="text-xs font-semibold text-[#111827] mb-3">{isEn ? 'Contact' : 'İletişim'}</div>
               <ul className="space-y-2 text-xs text-[#6B7280]">
-                <li>ATAOL AI Techs</li>
-                <li>OperIQ AI</li>
-                <li>destek@askdesk.app</li>
+                <li>
+                  <a href="https://www.ataolai.tech/" target="_blank" rel="noopener noreferrer" className="hover:text-[#2563EB] transition-colors">
+                    ATAOL AI Techs
+                  </a>
+                </li>
+                <li>
+                  <a href="mailto:info@ataolai.tech" className="hover:text-[#2563EB] transition-colors">
+                    info@ataolai.tech
+                  </a>
+                </li>
+                <li>
+                  {isEn
+                    ? 'Istanbul Technical University ARI Teknokent Maslak/ISTANBUL'
+                    : 'İstanbul Teknik Üniversitesi Arı Teknokent Maslak/İSTANBUL'}
+                </li>
               </ul>
             </div>
           </div>
           <div className="border-t border-[#E5E7EB] pt-6 flex items-center justify-between">
-            <span className="text-xs text-[#9CA3AF]">&copy; 2026 AskDesk. Powered by ATAOL AI Techs</span>
-            <span className="text-xs text-[#9CA3AF]">{isEn ? 'All rights reserved.' : 'Tum hakları saklidir.'}</span>
+            <span className="text-xs text-[#9CA3AF]">&copy; 2026 AskDesk. Powered by <a href="https://www.ataolai.tech/" target="_blank" rel="noopener noreferrer" className="hover:text-[#2563EB] transition-colors">ATAOL AI Techs</a></span>
+            <span className="text-xs text-[#9CA3AF]">{isEn ? 'All rights reserved.' : 'Tüm hakları saklıdır.'}</span>
           </div>
         </div>
       </footer>
