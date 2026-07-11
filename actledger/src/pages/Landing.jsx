@@ -309,6 +309,7 @@ export default function Landing() {
               </p>
               <ul className="space-y-2.5 mb-6">
                 {[
+                  isEn ? '1 user' : '1 kullanıcı',
                   isEn ? '500 leads' : '500 lead',
                   isEn ? '200 emails/month' : '200 email/ay',
                   isEn ? '10 SEO articles/month' : '10 SEO makale/ay',
@@ -316,7 +317,6 @@ export default function Landing() {
                   isEn ? 'Email Finder' : 'Email Bulucu',
                   isEn ? 'Competitor Analysis' : 'Rakip Analizi',
                   isEn ? 'Social Media' : 'Sosyal Medya',
-                  isEn ? 'Up to 3 users' : '3 kullanıcıya kadar',
                   isEn ? 'Priority support' : 'Öncelikli destek',
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-xs text-[#374151]">
@@ -335,62 +335,25 @@ export default function Landing() {
               </Link>
             </div>
 
-            {/* Team */}
-            <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
-              <div className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-2">Team</div>
-              <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-3xl font-bold text-[#111827]">$36</span>
-                <span className="text-sm text-[#6B7280]">/{isEn ? 'user/mo' : 'kullanıcı/ay'}</span>
-              </div>
-              <p className="text-xs text-[#10B981] font-medium mb-5">
-                {isEn ? '$360/user/year (save $72)' : '$360/kullanıcı/yıl ($72 tasarruf)'}
-              </p>
-              <ul className="space-y-2.5 mb-6">
-                {[
-                  isEn ? 'All Growth features' : 'Tüm Growth özellikleri',
-                  isEn ? 'Per-seat pricing' : 'Kişi başı fiyatlandırma',
-                  isEn ? 'Unlimited team members' : 'Sınırsız ekip üyesi',
-                  isEn ? 'Team collaboration' : 'Ekip işbirliği',
-                  isEn ? 'Shared pipeline' : 'Ortak pipeline',
-                  isEn ? 'Role-based access' : 'Rol bazlı erişim',
-                  isEn ? 'Admin panel' : 'Yönetici paneli',
-                  isEn ? 'Dedicated account manager' : 'Özel hesap yöneticisi',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-[#374151]">
-                    <svg className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                to="/register"
-                className="block text-center text-sm font-medium text-[#2563EB] border border-[#2563EB] rounded-md py-2.5 hover:bg-[#EFF6FF] transition-colors"
-              >
-                {isEn ? 'Contact Sales' : 'Satışa Ulaşın'}
-              </Link>
-            </div>
-
             {/* Growth */}
             <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
               <div className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-2">Growth</div>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-3xl font-bold text-[#111827]">$49</span>
+                <span className="text-3xl font-bold text-[#111827]">$35</span>
                 <span className="text-sm text-[#6B7280]">/{isEn ? 'mo' : 'ay'}</span>
               </div>
               <p className="text-xs text-[#10B981] font-medium mb-5">
-                {isEn ? '$490/year (save $98)' : '$490/yıl ($98 tasarruf)'}
+                {isEn ? '$350/year (save $70)' : '$350/yıl ($70 tasarruf)'}
               </p>
               <ul className="space-y-2.5 mb-6">
                 {[
+                  isEn ? '1 user' : '1 kullanıcı',
                   isEn ? 'Unlimited leads' : 'Sınırsız lead',
                   isEn ? 'Unlimited emails' : 'Sınırsız email',
-                  isEn ? 'Unlimited SEO' : 'Sınırsız SEO',
+                  isEn ? 'Unlimited SEO articles' : 'Sınırsız SEO makale',
                   isEn ? 'Unlimited AI usage' : 'Sınırsız AI kullanımı',
                   isEn ? 'All Pro features' : 'Tüm Pro özellikleri',
                   isEn ? 'API access' : 'API erişimi',
-                  isEn ? 'Up to 10 users' : '10 kullanıcıya kadar',
                   isEn ? 'Custom onboarding' : 'Özel onboarding',
                   isEn ? 'Dedicated support' : 'Özel destek',
                 ].map((item, i) => (
@@ -407,6 +370,43 @@ export default function Landing() {
                 className="block text-center text-sm font-medium text-[#2563EB] border border-[#2563EB] rounded-md py-2.5 hover:bg-[#EFF6FF] transition-colors"
               >
                 {isEn ? 'Get Started' : 'Başla'}
+              </Link>
+            </div>
+
+            {/* Team */}
+            <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
+              <div className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-2">Team</div>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-3xl font-bold text-[#111827]">$30</span>
+                <span className="text-sm text-[#6B7280]">/{isEn ? 'user/mo' : 'kullanıcı/ay'}</span>
+              </div>
+              <p className="text-xs text-[#10B981] font-medium mb-5">
+                {isEn ? 'Min. 3 users ($90/mo)' : 'Min. 3 kullanıcı ($90/ay)'}
+              </p>
+              <ul className="space-y-2.5 mb-6">
+                {[
+                  isEn ? 'Min. 3 team members' : 'En az 3 ekip üyesi',
+                  isEn ? 'All Growth features' : 'Tüm Growth özellikleri',
+                  isEn ? 'Team collaboration' : 'Ekip işbirliği',
+                  isEn ? 'Shared pipeline & leads' : 'Ortak pipeline ve leadler',
+                  isEn ? 'Role-based access' : 'Rol bazlı erişim',
+                  isEn ? 'Admin panel' : 'Yönetici paneli',
+                  isEn ? 'Dedicated account manager' : 'Özel hesap yöneticisi',
+                  isEn ? 'Custom integrations' : 'Özel entegrasyonlar',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-[#374151]">
+                    <svg className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to="/register"
+                className="block text-center text-sm font-medium text-[#2563EB] border border-[#2563EB] rounded-md py-2.5 hover:bg-[#EFF6FF] transition-colors"
+              >
+                {isEn ? 'Contact Sales' : 'Satışa Ulaşın'}
               </Link>
             </div>
           </div>
