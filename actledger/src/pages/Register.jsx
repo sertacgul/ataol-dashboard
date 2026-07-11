@@ -67,8 +67,8 @@ export default function Register() {
           <p className="text-sm text-[#6B7280] mb-1">{t('Yeni hesap oluşturun')}</p>
           <p className="text-xs text-[#9CA3AF] mb-6">
             {isEn
-              ? '14-day free trial. Corporate email required. Payment will be charged after trial period.'
-              : '14 gün ücretsiz deneme. Kurumsal email gerekli. Deneme süresi sonunda ödeme alınır.'}
+              ? '7-day free trial. Corporate email required. Payment will be charged after trial period.'
+              : '7 gün ücretsiz deneme. Kurumsal email gerekli. Deneme süresi sonunda ödeme alınır.'}
           </p>
 
           {error && (
