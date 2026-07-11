@@ -15,7 +15,7 @@ async function callGemini(prompt, apiKey) {
     }),
   })
   const data = await res.json()
-  if (!res.ok) throw new Error(data.error?.message || 'Gemini API hatası')
+  if (!res.ok) throw new Error(data.error?.message || 'Gemini API hatasi')
   return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 }
 
@@ -76,14 +76,93 @@ async function checkMxRecords(domain) {
   }
 }
 
-// Detect catch-all domains (domains that accept any email)
-async function detectCatchAll(mxHosts) {
-  // Common catch-all indicators: Google Workspace, Microsoft 365
-  const googleMx = mxHosts.some(h => h.includes('google') || h.includes('gmail'))
-  const microsoftMx = mxHosts.some(h => h.includes('outlook') || h.includes('microsoft'))
-  // Google/Microsoft usually don't have catch-all by default
-  // Custom mail servers often do
-  return !googleMx && !microsoftMx && mxHosts.length > 0
+// Actually fetch a webpage and return its text content
+async function fetchPageText(url) {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; AskDesk/1.0)',
+        'Accept': 'text/html',
+      },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(8000),
+    })
+    if (!res.ok) return ''
+    const html = await res.text()
+    // Strip HTML tags, scripts, styles - keep text content
+    return html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#\d+;/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 15000) // limit to ~15k chars
+  } catch {
+    return ''
+  }
+}
+
+// Extract emails from raw HTML using regex
+function extractEmailsFromHtml(html) {
+  if (!html) return []
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g
+  const matches = html.match(emailRegex) || []
+  // Filter out common false positives
+  const filtered = matches.filter(e => {
+    const lower = e.toLowerCase()
+    if (lower.includes('example.com')) return false
+    if (lower.includes('sentry.io')) return false
+    if (lower.includes('webpack')) return false
+    if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.svg')) return false
+    if (lower.includes('wixpress') || lower.includes('w3.org')) return false
+    if (lower.includes('schema.org') || lower.includes('googleapis')) return false
+    if (lower.includes('cloudflare') || lower.includes('jsdelivr')) return false
+    return true
+  })
+  return [...new Set(filtered)]
+}
+
+// Scrape multiple pages of a website
+async function scrapeWebsite(domain) {
+  const baseUrl = `https://${domain}`
+  const paths = [
+    '/',
+    '/contact', '/contact-us', '/iletisim',
+    '/about', '/about-us', '/hakkimizda',
+    '/team', '/ekibimiz',
+  ]
+
+  // Fetch all pages in parallel
+  const results = await Promise.allSettled(
+    paths.map(p => fetchPageText(`${baseUrl}${p}`))
+  )
+
+  let allText = ''
+  let allEmails = []
+  const pagesScraped = []
+
+  for (let i = 0; i < results.length; i++) {
+    if (results[i].status === 'fulfilled' && results[i].value.length > 100) {
+      const pageText = results[i].value
+      allText += '\n--- Page: ' + paths[i] + ' ---\n' + pageText
+      pagesScraped.push(paths[i])
+
+      // Also extract emails from the raw text
+      const emails = extractEmailsFromHtml(pageText)
+      allEmails.push(...emails)
+    }
+  }
+
+  return {
+    text: allText.slice(0, 30000), // limit total text
+    emails: [...new Set(allEmails)],
+    pagesScraped,
+  }
 }
 
 // POST /email-finder/search
@@ -107,70 +186,97 @@ emailFinder.post('/search', async (c) => {
   }
 
   // Step 1: Verify domain has MX records
-  const { hasMx, mxHosts } = await checkMxRecords(domain)
-  const isCatchAll = hasMx ? await detectCatchAll(mxHosts) : false
+  // Step 2: Actually scrape the website
+  const [mxResult, scrapeResult] = await Promise.all([
+    checkMxRecords(domain),
+    scrapeWebsite(domain),
+  ])
 
-  // Step 2: Generate pattern-based emails (tahmini)
+  const { hasMx, mxHosts } = mxResult
+  const { text: websiteText, emails: scrapedEmails, pagesScraped } = scrapeResult
+
+  // Step 3: Generate pattern-based emails (tahmini)
   const patternEmails = generateEmailPatterns(person_name, domain)
 
-  // Step 3: Call OperIQ to find real, publicly available emails
-  let websiteEmails = []
-  let foundNames = []
+  // Step 4: Use Gemini to extract structured info from ACTUAL scraped content only
+  let companyInfo = null
+  let foundPeople = []
   const apiKey = c.env.GEMINI_API_KEY
 
-  if (apiKey) {
+  if (apiKey && websiteText.length > 200) {
     try {
-      const prompt = `You are an email research assistant. Your task is to find REAL, publicly available email addresses for the domain "${domain}".
+      const prompt = `Asagida bir firmanin web sitesinden cekilen metin icerik var.
 
-Search for:
-1. Email addresses listed on the website (contact pages, about pages, team pages, footer)
-2. Email addresses in public directories, social media profiles, or press releases
-3. Employee names and their roles/titles
-${person_name ? `4. Specifically look for emails belonging to: ${person_name}${person_title ? ` (${person_title})` : ''}` : ''}
+BU METINDEN ve SADECE BU METINDEN bilgi cikar. Metinde olmayan bilgiyi KESINLIKLE UYDURMA. Eger bir bilgi metinde yoksa null yaz.
 
-IMPORTANT: Only return email addresses that you are confident actually exist. Do NOT generate or guess email addresses.
+Cikar:
+1. Firma adi
+2. Firma tanimi (1-2 cumle, sitede yazildigi gibi)
+3. Sektor
+4. Lokasyon/adres (metinde varsa)
+5. Calisan sayisi (metinde varsa)
+6. Metinde gecen kisi isimleri ve unvanlari (sadece metinde acikca yazanlar)
 
-Return JSON only, no markdown:
+JSON formatinda don, markdown kullanma:
 {
-  "verified_emails": [{"email": "real@example.com", "source": "website contact page"}],
-  "found_names": [{"name": "Full Name", "title": "Job Title"}]
-}`
+  "company_name": "...",
+  "description": "..." veya null,
+  "sector": "..." veya null,
+  "location": "..." veya null,
+  "employee_count": "..." veya null,
+  "people": [{"name": "...", "title": "..."}]
+}
+
+KURALLAR:
+- Sadece metinde acikca yazan bilgileri yaz
+- Tahmin etme, varsayim yapma
+- Metinde olmayan kisi ismi veya unvan uydurma
+- "people" dizisine sadece metinde isim+unvan acikca gecen kisileri ekle
+- Eger metinde hicbir kisi ismi gecmiyorsa bos dizi don: []
+
+--- WEB SITESI ICERIGI ---
+${websiteText}
+--- ICERIK SONU ---`
+
       const text = await callGemini(prompt, apiKey)
       const match = text.match(/\{[\s\S]*\}/)
       if (match) {
         const parsed = JSON.parse(match[0])
-        websiteEmails = (parsed.verified_emails || parsed.website_emails || []).map(e => {
-          if (typeof e === 'string') return { email: e, source: 'web sitesi' }
-          return { email: e.email, source: e.source || 'web sitesi' }
-        })
-        foundNames = parsed.found_names || []
+        companyInfo = {
+          name: parsed.company_name || null,
+          description: parsed.description || null,
+          sector: parsed.sector || null,
+          location: parsed.location || null,
+          employee_count: parsed.employee_count || null,
+        }
+        foundPeople = (parsed.people || []).filter(p => p.name && p.name.trim())
       }
     } catch {
       // Gemini failed, continue without AI results
     }
   }
 
-  // Step 4: Build unified results with verification status
-  const verifiedSet = new Set(websiteEmails.map(e => e.email.toLowerCase()))
+  // Step 5: Build unified email results
+  const verifiedSet = new Set(scrapedEmails.map(e => e.toLowerCase()))
 
   const allEmails = []
 
-  // Add website-found emails first (verified)
-  for (const item of websiteEmails) {
+  // Scraped emails first (dogrulanmis - actually found on the website)
+  for (const email of scrapedEmails) {
     allEmails.push({
-      email: item.email,
+      email,
       status: 'verified',
-      source: item.source || 'web sitesi',
+      source: 'web sitesinden bulundu',
     })
   }
 
-  // Add pattern emails that aren't already in verified list (tahmini)
+  // Pattern emails (tahmini - not found on site, just generated)
   if (hasMx) {
     for (const email of patternEmails) {
       if (!verifiedSet.has(email.toLowerCase())) {
         allEmails.push({
           email,
-          status: isCatchAll ? 'catch_all' : 'estimated',
+          status: 'estimated',
           source: 'email kalip tahmini',
         })
       }
@@ -189,20 +295,18 @@ Return JSON only, no markdown:
     person_name || null,
     person_title || null,
     JSON.stringify(allEmails),
-    JSON.stringify(websiteEmails.map(e => e.email))
+    JSON.stringify(scrapedEmails)
   ).run()
 
   return c.json({
     id,
     domain,
     has_mx: hasMx,
-    is_catch_all: isCatchAll,
     mx_provider: mxHosts.length > 0 ? mxHosts[0] : null,
+    pages_scraped: pagesScraped,
+    company_info: companyInfo,
     emails: allEmails,
-    found_names: foundNames,
-    // Legacy fields for backward compat
-    found_emails: patternEmails,
-    website_emails: websiteEmails.map(e => e.email),
+    found_people: foundPeople,
   })
 })
 
@@ -222,7 +326,7 @@ emailFinder.get('/:id', async (c) => {
   const row = await c.env.DB.prepare(
     'SELECT * FROM email_finder_results WHERE id = ? AND user_id = ?'
   ).bind(id, userId).first()
-  if (!row) return c.json({ error: 'Bulunamadı' }, 404)
+  if (!row) return c.json({ error: 'Bulunamadi' }, 404)
   return c.json({ result: row })
 })
 
@@ -236,7 +340,7 @@ emailFinder.post('/:id/save-contact', async (c) => {
   const row = await c.env.DB.prepare(
     'SELECT * FROM email_finder_results WHERE id = ? AND user_id = ?'
   ).bind(id, userId).first()
-  if (!row) return c.json({ error: 'Bulunamadı' }, 404)
+  if (!row) return c.json({ error: 'Bulunamadi' }, 404)
 
   const contactId = crypto.randomUUID()
   await c.env.DB.prepare(
@@ -254,17 +358,18 @@ emailFinder.post('/export', async (c) => {
   ).bind(userId).all()
 
   const rows = result.results
-  const lines = ['ID,Domain,Kisi,Unvan,Bulunan Emailler,Web Sitesi Emailleri,Tarih']
+  const lines = ['ID,Domain,Kisi,Unvan,Bulunan Emailler,Dogrulama,Tarih']
   for (const r of rows) {
-    const foundArr = (() => { try { return JSON.parse(r.found_emails || '[]') } catch { return [] } })()
-    const webArr = (() => { try { return JSON.parse(r.website_emails || '[]') } catch { return [] } })()
+    const allArr = (() => { try { return JSON.parse(r.found_emails || '[]') } catch { return [] } })()
+    const verifiedArr = allArr.filter(e => typeof e === 'object' ? e.status === 'verified' : false)
+    const estimatedArr = allArr.filter(e => typeof e === 'object' ? e.status === 'estimated' : true)
     lines.push([
       r.id,
       r.domain || '',
       r.person_name || '',
       r.person_title || '',
-      foundArr.join('; '),
-      webArr.join('; '),
+      (typeof allArr[0] === 'object' ? allArr.map(e => e.email) : allArr).join('; '),
+      `${verifiedArr.length} dogrulanmis, ${estimatedArr.length} tahmini`,
       r.created_at || '',
     ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
   }
