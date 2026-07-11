@@ -5,6 +5,11 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   company_name TEXT,
   role TEXT NOT NULL DEFAULT 'member',
+  email_domain TEXT,
+  plan TEXT NOT NULL DEFAULT 'free',
+  trial_expires_at TEXT,
+  reset_token TEXT,
+  reset_token_expires TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

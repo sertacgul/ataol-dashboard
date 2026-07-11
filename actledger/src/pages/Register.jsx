@@ -3,8 +3,18 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useT } from '../contexts/LanguageContext'
 
+const FREE_DOMAINS = [
+  'gmail.com', 'googlemail.com', 'hotmail.com', 'outlook.com', 'live.com',
+  'yahoo.com', 'yahoo.co.uk', 'yahoo.com.tr', 'yandex.com', 'yandex.com.tr',
+  'mail.com', 'protonmail.com', 'proton.me', 'icloud.com', 'me.com',
+  'aol.com', 'zoho.com', 'gmx.com', 'gmx.de', 'mail.ru',
+  'inbox.com', 'fastmail.com', 'tutanota.com', 'tuta.com',
+  'msn.com', 'windowslive.com', 'mynet.com', 'superonline.com',
+]
+
 export default function Register() {
-  const { t } = useT()
+  const { t, lang } = useT()
+  const isEn = lang === 'en'
   const [form, setForm] = useState({ name: '', email: '', password: '', company_name: '' })
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -12,12 +22,27 @@ export default function Register() {
   const navigate = useNavigate()
 
   function update(field) {
-    return (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
+    return (e) => {
+      setForm((f) => ({ ...f, [field]: e.target.value }))
+      if (field === 'email') setError('')
+    }
+  }
+
+  function validateEmail() {
+    const domain = form.email.split('@')[1]?.toLowerCase()
+    if (domain && FREE_DOMAINS.includes(domain)) {
+      setError(isEn
+        ? 'Please use your corporate email address. Personal email addresses (Gmail, Hotmail, Yahoo, etc.) are not accepted.'
+        : 'Lütfen kurumsal email adresinizi kullanın. Gmail, Hotmail, Yahoo gibi kişisel email adresleri kabul edilmemektedir.')
+      return false
+    }
+    return true
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    if (!validateEmail()) return
     setSubmitting(true)
     try {
       await register(form.email, form.password, form.name, form.company_name)
@@ -39,7 +64,10 @@ export default function Register() {
 
         <div className="bg-white border border-[#E5E7EB] rounded-md p-6">
           <h1 className="text-lg font-semibold text-[#111827] mb-1">{t('Kayıt Ol')}</h1>
-          <p className="text-sm text-[#6B7280] mb-6">{t('Yeni hesap oluşturun')}</p>
+          <p className="text-sm text-[#6B7280] mb-1">{t('Yeni hesap oluşturun')}</p>
+          <p className="text-xs text-[#9CA3AF] mb-6">
+            {isEn ? '14-day free trial. Corporate email required.' : '14 gün ücretsiz deneme. Kurumsal email gerekli.'}
+          </p>
 
           {error && (
             <div className="text-sm text-[#DC2626] bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4">
@@ -60,9 +88,15 @@ export default function Register() {
                 placeholder={t('İsteğe bağlı')} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">{t('Email')}</label>
-              <input type="email" value={form.email} onChange={update('email')} required
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent" />
+              <label className="block text-sm font-medium text-[#374151] mb-1">
+                {isEn ? 'Corporate Email' : 'Kurumsal Email'}
+              </label>
+              <input type="email" value={form.email} onChange={update('email')} onBlur={validateEmail} required
+                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+                placeholder="ad@firmaniz.com" />
+              <p className="text-xs text-[#9CA3AF] mt-1">
+                {isEn ? 'Gmail, Hotmail, Yahoo etc. are not accepted' : 'Gmail, Hotmail, Yahoo vb. kabul edilmez'}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-[#374151] mb-1">{t('Şifre')}</label>

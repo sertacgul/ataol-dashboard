@@ -255,7 +255,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
             {/* Free */}
             <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
               <div className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-2">
@@ -263,10 +263,9 @@ export default function Landing() {
               </div>
               <div className="flex items-baseline gap-1 mb-1">
                 <span className="text-3xl font-bold text-[#111827]">$0</span>
-                <span className="text-sm text-[#6B7280]">/{isEn ? 'mo' : 'ay'}</span>
               </div>
-              <p className="text-xs text-[#6B7280] mb-5">
-                {isEn ? 'Perfect for getting started' : 'Başlamak için ideal'}
+              <p className="text-xs text-[#F59E0B] font-medium mb-5">
+                {isEn ? '14-day free trial' : '14 gün ücretsiz deneme'}
               </p>
               <ul className="space-y-2.5 mb-6">
                 {[
@@ -275,9 +274,9 @@ export default function Landing() {
                   isEn ? '2 SEO articles/month' : '2 SEO makale/ay',
                   isEn ? 'CRM Pipeline' : 'CRM Pipeline',
                   isEn ? 'Analytics & BMC' : 'Analytics ve BMC',
-                  isEn ? 'Financial Simulator' : 'Finansal Simülatör',
                   isEn ? '5 AI uses/day' : 'Günlük 5 AI kullanım',
                   isEn ? '1 user' : '1 kullanıcı',
+                  isEn ? 'Corporate email only' : 'Sadece kurumsal email',
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-xs text-[#374151]">
                     <svg className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -291,7 +290,7 @@ export default function Landing() {
                 to="/register"
                 className="block text-center text-sm font-medium text-[#2563EB] border border-[#2563EB] rounded-md py-2.5 hover:bg-[#EFF6FF] transition-colors"
               >
-                {t('Ücretsiz Başla')}
+                {isEn ? 'Start Trial' : 'Denemeye Başla'}
               </Link>
             </div>
 
@@ -305,9 +304,6 @@ export default function Landing() {
                 <span className="text-3xl font-bold text-[#111827]">$25</span>
                 <span className="text-sm text-[#6B7280]">/{isEn ? 'mo' : 'ay'}</span>
               </div>
-              <p className="text-xs text-[#6B7280] mb-1">
-                {isEn ? 'For growing startups' : 'Büyüyen startup\'lar için'}
-              </p>
               <p className="text-xs text-[#10B981] font-medium mb-5">
                 {isEn ? '$250/year (save $50)' : '$250/yıl ($50 tasarruf)'}
               </p>
@@ -319,7 +315,7 @@ export default function Landing() {
                   isEn ? 'Unlimited AI usage' : 'Sınırsız AI kullanımı',
                   isEn ? 'Email Finder' : 'Email Bulucu',
                   isEn ? 'Competitor Analysis' : 'Rakip Analizi',
-                  isEn ? 'Social Media Management' : 'Sosyal Medya Yönetimi',
+                  isEn ? 'Social Media' : 'Sosyal Medya',
                   isEn ? 'Up to 3 users' : '3 kullanıcıya kadar',
                   isEn ? 'Priority support' : 'Öncelikli destek',
                 ].map((item, i) => (
@@ -335,7 +331,44 @@ export default function Landing() {
                 to="/register"
                 className="block text-center text-sm font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md py-2.5 transition-colors"
               >
-                {isEn ? 'Start Free Trial' : 'Denemeye Başla'}
+                {isEn ? 'Get Started' : 'Başla'}
+              </Link>
+            </div>
+
+            {/* Team */}
+            <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
+              <div className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-2">Team</div>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-3xl font-bold text-[#111827]">$36</span>
+                <span className="text-sm text-[#6B7280]">/{isEn ? 'user/mo' : 'kullanıcı/ay'}</span>
+              </div>
+              <p className="text-xs text-[#10B981] font-medium mb-5">
+                {isEn ? '$360/user/year (save $72)' : '$360/kullanıcı/yıl ($72 tasarruf)'}
+              </p>
+              <ul className="space-y-2.5 mb-6">
+                {[
+                  isEn ? 'All Growth features' : 'Tüm Growth özellikleri',
+                  isEn ? 'Per-seat pricing' : 'Kişi başı fiyatlandırma',
+                  isEn ? 'Unlimited team members' : 'Sınırsız ekip üyesi',
+                  isEn ? 'Team collaboration' : 'Ekip işbirliği',
+                  isEn ? 'Shared pipeline' : 'Ortak pipeline',
+                  isEn ? 'Role-based access' : 'Rol bazlı erişim',
+                  isEn ? 'Admin panel' : 'Yönetici paneli',
+                  isEn ? 'Dedicated account manager' : 'Özel hesap yöneticisi',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-[#374151]">
+                    <svg className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to="/register"
+                className="block text-center text-sm font-medium text-[#2563EB] border border-[#2563EB] rounded-md py-2.5 hover:bg-[#EFF6FF] transition-colors"
+              >
+                {isEn ? 'Contact Sales' : 'Satışa Ulaşın'}
               </Link>
             </div>
 
@@ -346,9 +379,6 @@ export default function Landing() {
                 <span className="text-3xl font-bold text-[#111827]">$49</span>
                 <span className="text-sm text-[#6B7280]">/{isEn ? 'mo' : 'ay'}</span>
               </div>
-              <p className="text-xs text-[#6B7280] mb-1">
-                {isEn ? 'For scaling teams' : 'Ölçeklenen ekipler için'}
-              </p>
               <p className="text-xs text-[#10B981] font-medium mb-5">
                 {isEn ? '$490/year (save $98)' : '$490/yıl ($98 tasarruf)'}
               </p>
@@ -356,7 +386,7 @@ export default function Landing() {
                 {[
                   isEn ? 'Unlimited leads' : 'Sınırsız lead',
                   isEn ? 'Unlimited emails' : 'Sınırsız email',
-                  isEn ? 'Unlimited SEO articles' : 'Sınırsız SEO makale',
+                  isEn ? 'Unlimited SEO' : 'Sınırsız SEO',
                   isEn ? 'Unlimited AI usage' : 'Sınırsız AI kullanımı',
                   isEn ? 'All Pro features' : 'Tüm Pro özellikleri',
                   isEn ? 'API access' : 'API erişimi',
@@ -376,7 +406,7 @@ export default function Landing() {
                 to="/register"
                 className="block text-center text-sm font-medium text-[#2563EB] border border-[#2563EB] rounded-md py-2.5 hover:bg-[#EFF6FF] transition-colors"
               >
-                {isEn ? 'Start Free Trial' : 'Denemeye Başla'}
+                {isEn ? 'Get Started' : 'Başla'}
               </Link>
             </div>
           </div>

@@ -437,4 +437,7 @@ export const en = {
 
   // Splash
   'Powered by OperIQ AI': 'Powered by OperIQ AI',
+
+  // Forgot Password
+  'Şifremi Unuttum': 'Forgot Password',
 }

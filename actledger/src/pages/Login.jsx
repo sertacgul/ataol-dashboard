@@ -61,6 +61,11 @@ export default function Login() {
               {submitting ? t('Giriş yapılıyor...') : t('Giriş Yap')}
             </button>
           </form>
+          <div className="mt-3 text-center">
+            <Link to="/forgot-password" className="text-xs text-[#6B7280] hover:text-[#2563EB] transition-colors">
+              {t('Şifremi Unuttum')}
+            </Link>
+          </div>
         </div>
 
         <p className="text-sm text-[#6B7280] text-center mt-4">
