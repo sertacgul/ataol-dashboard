@@ -57,6 +57,35 @@ function extractDomainFromUrl(url) {
   }
 }
 
+// Check MX records via Cloudflare DoH
+async function checkMxRecords(domain) {
+  try {
+    const res = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=MX`, {
+      headers: { 'Accept': 'application/dns-json' },
+    })
+    if (!res.ok) return { hasMx: false, mxHosts: [] }
+    const data = await res.json()
+    const mxRecords = (data.Answer || []).filter(r => r.type === 15)
+    const mxHosts = mxRecords.map(r => {
+      const parts = (r.data || '').split(' ')
+      return parts.length >= 2 ? parts[1].replace(/\.$/, '') : r.data
+    })
+    return { hasMx: mxRecords.length > 0, mxHosts }
+  } catch {
+    return { hasMx: false, mxHosts: [] }
+  }
+}
+
+// Detect catch-all domains (domains that accept any email)
+async function detectCatchAll(mxHosts) {
+  // Common catch-all indicators: Google Workspace, Microsoft 365
+  const googleMx = mxHosts.some(h => h.includes('google') || h.includes('gmail'))
+  const microsoftMx = mxHosts.some(h => h.includes('outlook') || h.includes('microsoft'))
+  // Google/Microsoft usually don't have catch-all by default
+  // Custom mail servers often do
+  return !googleMx && !microsoftMx && mxHosts.length > 0
+}
+
 // POST /email-finder/search
 emailFinder.post('/search', async (c) => {
   const userId = c.get('userId')
@@ -77,25 +106,74 @@ emailFinder.post('/search', async (c) => {
     return c.json({ error: 'Domain veya firma web sitesi gerekli' }, 400)
   }
 
-  const foundEmails = generateEmailPatterns(person_name, domain)
+  // Step 1: Verify domain has MX records
+  const { hasMx, mxHosts } = await checkMxRecords(domain)
+  const isCatchAll = hasMx ? await detectCatchAll(mxHosts) : false
 
-  // Call OperIQ (Gemini) to find publicly available emails on the domain
+  // Step 2: Generate pattern-based emails (tahmini)
+  const patternEmails = generateEmailPatterns(person_name, domain)
+
+  // Step 3: Call OperIQ to find real, publicly available emails
   let websiteEmails = []
   let foundNames = []
   const apiKey = c.env.GEMINI_API_KEY
 
   if (apiKey) {
     try {
-      const prompt = `Analyze ${domain} website. Find all publicly available email addresses, contact forms, and employee names. Return JSON only, no markdown: {"website_emails": [], "found_names": [{"name": "", "title": ""}]}`
+      const prompt = `You are an email research assistant. Your task is to find REAL, publicly available email addresses for the domain "${domain}".
+
+Search for:
+1. Email addresses listed on the website (contact pages, about pages, team pages, footer)
+2. Email addresses in public directories, social media profiles, or press releases
+3. Employee names and their roles/titles
+${person_name ? `4. Specifically look for emails belonging to: ${person_name}${person_title ? ` (${person_title})` : ''}` : ''}
+
+IMPORTANT: Only return email addresses that you are confident actually exist. Do NOT generate or guess email addresses.
+
+Return JSON only, no markdown:
+{
+  "verified_emails": [{"email": "real@example.com", "source": "website contact page"}],
+  "found_names": [{"name": "Full Name", "title": "Job Title"}]
+}`
       const text = await callGemini(prompt, apiKey)
       const match = text.match(/\{[\s\S]*\}/)
       if (match) {
         const parsed = JSON.parse(match[0])
-        websiteEmails = parsed.website_emails || []
+        websiteEmails = (parsed.verified_emails || parsed.website_emails || []).map(e => {
+          if (typeof e === 'string') return { email: e, source: 'web sitesi' }
+          return { email: e.email, source: e.source || 'web sitesi' }
+        })
         foundNames = parsed.found_names || []
       }
     } catch {
       // Gemini failed, continue without AI results
+    }
+  }
+
+  // Step 4: Build unified results with verification status
+  const verifiedSet = new Set(websiteEmails.map(e => e.email.toLowerCase()))
+
+  const allEmails = []
+
+  // Add website-found emails first (verified)
+  for (const item of websiteEmails) {
+    allEmails.push({
+      email: item.email,
+      status: 'verified',
+      source: item.source || 'web sitesi',
+    })
+  }
+
+  // Add pattern emails that aren't already in verified list (tahmini)
+  if (hasMx) {
+    for (const email of patternEmails) {
+      if (!verifiedSet.has(email.toLowerCase())) {
+        allEmails.push({
+          email,
+          status: isCatchAll ? 'catch_all' : 'estimated',
+          source: 'email kalip tahmini',
+        })
+      }
     }
   }
 
@@ -110,11 +188,22 @@ emailFinder.post('/search', async (c) => {
     domain,
     person_name || null,
     person_title || null,
-    JSON.stringify(foundEmails),
-    JSON.stringify(websiteEmails)
+    JSON.stringify(allEmails),
+    JSON.stringify(websiteEmails.map(e => e.email))
   ).run()
 
-  return c.json({ id, domain, found_emails: foundEmails, website_emails: websiteEmails, found_names: foundNames })
+  return c.json({
+    id,
+    domain,
+    has_mx: hasMx,
+    is_catch_all: isCatchAll,
+    mx_provider: mxHosts.length > 0 ? mxHosts[0] : null,
+    emails: allEmails,
+    found_names: foundNames,
+    // Legacy fields for backward compat
+    found_emails: patternEmails,
+    website_emails: websiteEmails.map(e => e.email),
+  })
 })
 
 // GET /email-finder/

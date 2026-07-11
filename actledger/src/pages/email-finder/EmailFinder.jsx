@@ -20,6 +20,37 @@ function CopyButton({ text }) {
   )
 }
 
+function StatusBadge({ status }) {
+  if (status === 'verified') {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] font-medium">
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+        Dogrulanmis
+      </span>
+    )
+  }
+  if (status === 'catch_all') {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#D97706] font-medium">
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Catch-All Domain
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#FEF9C3] text-[#92400E] font-medium">
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Tahmini
+    </span>
+  )
+}
+
 export default function EmailFinder() {
   const [companyQuery, setCompanyQuery] = useState('')
   const [companySuggestions, setCompanySuggestions] = useState([])
@@ -80,7 +111,7 @@ export default function EmailFinder() {
 
   async function handleSearch() {
     if (!domain && !selectedCompany) {
-      setError('Firma seçin veya domain girin.')
+      setError('Firma secin veya domain girin.')
       return
     }
     setError('')
@@ -97,7 +128,7 @@ export default function EmailFinder() {
       setSavingResultId(data.id)
       loadHistory()
     } catch (e) {
-      setError(e.message || 'Arama başarısız oldu.')
+      setError(e.message || 'Arama basarisiz oldu.')
     } finally {
       setLoading(false)
     }
@@ -114,7 +145,7 @@ export default function EmailFinder() {
       })
       setSavedEmails(prev => new Set([...prev, email]))
     } catch (e) {
-      alert(e.message || 'Kaydetme başarısız.')
+      alert(e.message || 'Kaydetme basarisiz.')
     } finally {
       setSavingEmail(null)
     }
@@ -128,7 +159,7 @@ export default function EmailFinder() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     })
-    if (!res.ok) { alert('Export hatası'); return }
+    if (!res.ok) { alert('Export hatasi'); return }
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -138,11 +169,14 @@ export default function EmailFinder() {
     URL.revokeObjectURL(url)
   }
 
+  const verifiedEmails = result?.emails?.filter(e => e.status === 'verified') || []
+  const estimatedEmails = result?.emails?.filter(e => e.status === 'estimated' || e.status === 'catch_all') || []
+
   return (
     <div>
       <div className="mb-4">
         <h1 className="text-base font-semibold text-[#111827]">Email Bulucu</h1>
-        <p className="text-xs text-[#6B7280] mt-0.5">OperIQ ile firma domain'inden email adresi bul ve kisi olarak kaydet.</p>
+        <p className="text-xs text-[#6B7280] mt-0.5">OperIQ ile firma domain'inden gercek email adresi bul ve dogrulama durumunu gor.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -226,24 +260,48 @@ export default function EmailFinder() {
       {/* Results */}
       {result && (
         <div className="space-y-4 mb-6">
-          {result.found_emails?.length > 0 && (
+          {/* Domain Info Bar */}
+          <div className={`rounded-md p-3 text-xs flex items-center gap-2 ${result.has_mx ? 'bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46]' : 'bg-[#FEF2F2] border border-[#FECACA] text-[#991B1B]'}`}>
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {result.has_mx ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              )}
+            </svg>
+            <span>
+              <strong>{result.domain}</strong>
+              {result.has_mx
+                ? ` - MX kaydi dogrulandi${result.mx_provider ? ` (${result.mx_provider})` : ''}${result.is_catch_all ? ' - Catch-all domain' : ''}`
+                : ' - MX kaydi bulunamadi, bu domain email almayabilir'}
+            </span>
+          </div>
+
+          {/* Verified Emails */}
+          {verifiedEmails.length > 0 && (
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-              <div className="text-sm font-semibold text-[#111827] mb-3">
-                Tahmin Edilen Email Adresleri
-                <span className="ml-2 text-xs font-normal text-[#9CA3AF]">({result.domain})</span>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-sm font-semibold text-[#111827]">Dogrulanmis Email Adresleri</div>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] font-medium">{verifiedEmails.length}</span>
               </div>
               <div className="space-y-2">
-                {result.found_emails.map((email) => (
-                  <div key={email} className="flex items-center justify-between gap-2 py-1.5 border-b border-[#F3F4F6] last:border-0">
-                    <span className="text-xs font-mono text-[#374151]">{email}</span>
+                {verifiedEmails.map((item) => (
+                  <div key={item.email} className="flex items-center justify-between gap-2 py-2 border-b border-[#F3F4F6] last:border-0">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono text-[#374151]">{item.email}</span>
+                      <StatusBadge status={item.status} />
+                      {item.source && (
+                        <span className="text-xs text-[#9CA3AF]">Kaynak: {item.source}</span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
-                      <CopyButton text={email} />
+                      <CopyButton text={item.email} />
                       <button
-                        onClick={() => handleSaveContact(email)}
-                        disabled={savingEmail === email || savedEmails.has(email)}
+                        onClick={() => handleSaveContact(item.email)}
+                        disabled={savingEmail === item.email || savedEmails.has(item.email)}
                         className="text-xs px-2 py-0.5 rounded border border-[#2563EB] text-[#2563EB] hover:bg-[#EFF6FF] disabled:opacity-50 transition-colors"
                       >
-                        {savedEmails.has(email) ? 'Kaydedildi' : savingEmail === email ? '...' : 'Kisiyi Kaydet'}
+                        {savedEmails.has(item.email) ? 'Kaydedildi' : savingEmail === item.email ? '...' : 'Kisiyi Kaydet'}
                       </button>
                     </div>
                   </div>
@@ -252,20 +310,38 @@ export default function EmailFinder() {
             </div>
           )}
 
-          {result.website_emails?.length > 0 && (
+          {/* Estimated Emails */}
+          {estimatedEmails.length > 0 && (
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-              <div className="text-sm font-semibold text-[#111827] mb-3">Web Sitesinden Bulunan</div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-sm font-semibold text-[#111827]">Tahmini Email Adresleri</div>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-[#FEF9C3] text-[#92400E] font-medium">{estimatedEmails.length}</span>
+              </div>
+              <p className="text-xs text-[#6B7280] mb-3">Bu adresler isim ve domain bilgisine gore olusturulmustur, dogrulanmamistir.</p>
               <div className="space-y-2">
-                {result.website_emails.map((email) => (
-                  <div key={email} className="flex items-center justify-between gap-2 py-1.5 border-b border-[#F3F4F6] last:border-0">
-                    <span className="text-xs font-mono text-[#374151]">{email}</span>
-                    <CopyButton text={email} />
+                {estimatedEmails.map((item) => (
+                  <div key={item.email} className="flex items-center justify-between gap-2 py-2 border-b border-[#F3F4F6] last:border-0">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono text-[#374151]">{item.email}</span>
+                      <StatusBadge status={item.status} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CopyButton text={item.email} />
+                      <button
+                        onClick={() => handleSaveContact(item.email)}
+                        disabled={savingEmail === item.email || savedEmails.has(item.email)}
+                        className="text-xs px-2 py-0.5 rounded border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F3F4F6] disabled:opacity-50 transition-colors"
+                      >
+                        {savedEmails.has(item.email) ? 'Kaydedildi' : savingEmail === item.email ? '...' : 'Kisiyi Kaydet'}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
+          {/* Found Names */}
           {result.found_names?.length > 0 && (
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
               <div className="text-sm font-semibold text-[#111827] mb-3">Bulunan Kisiler</div>
@@ -280,9 +356,17 @@ export default function EmailFinder() {
             </div>
           )}
 
-          {result.found_emails?.length === 0 && result.website_emails?.length === 0 && (
+          {/* No MX warning */}
+          {!result.has_mx && (
+            <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-md p-3 text-xs text-[#991B1B]">
+              Bu domain icin MX kaydi bulunamadi. Email adresleri gecersiz olabilir.
+            </div>
+          )}
+
+          {/* No results at all */}
+          {verifiedEmails.length === 0 && estimatedEmails.length === 0 && (
             <div className="bg-[#FEF9C3] border border-[#FDE047] rounded-md p-3 text-xs text-[#92400E]">
-              Kisi adi girilmedi veya bu domain icin email tahmini yapilamadi.
+              Kisi adi girilmedi veya bu domain icin email bulunamadi.
             </div>
           )}
 
@@ -321,11 +405,18 @@ export default function EmailFinder() {
             <tbody>
               {history.map(row => {
                 const emails = (() => { try { return JSON.parse(row.found_emails || '[]') } catch { return [] } })()
+                const verifiedCount = Array.isArray(emails) ? emails.filter(e => typeof e === 'object' && e.status === 'verified').length : 0
+                const totalCount = Array.isArray(emails) ? emails.length : 0
                 return (
                   <tr key={row.id} className="border-b border-[#E5E7EB] last:border-0 hover:bg-[#F9FAFB]">
                     <td className="px-4 py-2.5 text-xs font-mono text-[#374151]">{row.domain}</td>
                     <td className="px-4 py-2.5 text-xs text-[#6B7280]">{row.person_name || '-'}</td>
-                    <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">{emails.length} adres</td>
+                    <td className="px-4 py-2.5 text-xs">
+                      <span className="text-[#374151]">{totalCount} adres</span>
+                      {verifiedCount > 0 && (
+                        <span className="ml-1.5 text-[#059669]">({verifiedCount} dogrulanmis)</span>
+                      )}
+                    </td>
                     <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">
                       {row.created_at ? new Date(row.created_at).toLocaleDateString('tr-TR') : '-'}
                     </td>
