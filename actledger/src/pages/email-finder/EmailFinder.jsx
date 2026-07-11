@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../../lib/api'
 import HelpButton from '../../components/HelpButton'
+import { useT } from '../../contexts/LanguageContext'
 
-function CopyButton({ text }) {
+function CopyButton({ text, t }) {
   const [copied, setCopied] = useState(false)
   function handleCopy() {
     navigator.clipboard.writeText(text).then(() => {
@@ -15,19 +16,19 @@ function CopyButton({ text }) {
       onClick={handleCopy}
       className="text-xs px-2 py-0.5 rounded border border-[#E5E7EB] text-[#6B7280] hover:text-[#2563EB] hover:border-[#2563EB] transition-colors"
     >
-      {copied ? 'Kopyalandı' : 'Kopyala'}
+      {copied ? t('Kopyalandı') : t('Kopyala')}
     </button>
   )
 }
 
-function StatusBadge({ status }) {
+function StatusBadge({ status, t }) {
   if (status === 'verified') {
     return (
       <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] font-medium">
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
-        Dogrulanmis
+        {t('Dogrulanmis')}
       </span>
     )
   }
@@ -36,12 +37,13 @@ function StatusBadge({ status }) {
       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      Tahmini
+      {t('Tahmini')}
     </span>
   )
 }
 
 export default function EmailFinder() {
+  const { t } = useT()
   const [companyQuery, setCompanyQuery] = useState('')
   const [companySuggestions, setCompanySuggestions] = useState([])
   const [selectedCompany, setSelectedCompany] = useState(null)
@@ -101,7 +103,7 @@ export default function EmailFinder() {
 
   async function handleSearch() {
     if (!domain && !selectedCompany) {
-      setError('Firma secin veya domain girin.')
+      setError(t('Firma secin veya domain girin.'))
       return
     }
     setError('')
@@ -118,7 +120,7 @@ export default function EmailFinder() {
       setSavingResultId(data.id)
       loadHistory()
     } catch (e) {
-      setError(e.message || 'Arama basarisiz oldu.')
+      setError(e.message || t('Arama basarisiz oldu.'))
     } finally {
       setLoading(false)
     }
@@ -135,7 +137,7 @@ export default function EmailFinder() {
       })
       setSavedEmails(prev => new Set([...prev, email]))
     } catch (e) {
-      alert(e.message || 'Kaydetme basarisiz.')
+      alert(e.message || t('Kaydetme basarisiz.'))
     } finally {
       setSavingEmail(null)
     }
@@ -149,7 +151,7 @@ export default function EmailFinder() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     })
-    if (!res.ok) { alert('Export hatasi'); return }
+    if (!res.ok) { alert(t('Export hatasi')); return }
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -166,22 +168,22 @@ export default function EmailFinder() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-base font-semibold text-[#111827]">Email Bulucu</h1>
-        <p className="text-xs text-[#6B7280] mt-0.5">Firma web sitesini tarayarak gercek email adresleri ve firma bilgileri bulun.</p>
+        <h1 className="text-base font-semibold text-[#111827]">{t('Email Bulucu')}</h1>
+        <p className="text-xs text-[#6B7280] mt-0.5">{t('Firma web sitesini tarayarak gercek email adresleri ve firma bilgileri bulun.')}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         {/* Firma Sec */}
         <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-          <div className="text-sm font-semibold text-[#111827] mb-3">Firma Sec</div>
+          <div className="text-sm font-semibold text-[#111827] mb-3">{t('Firma Sec')}</div>
           <div className="space-y-3">
             <div className="relative">
-              <label className="text-xs text-[#6B7280] block mb-1">Firma Ara</label>
+              <label className="text-xs text-[#6B7280] block mb-1">{t('Firma Ara')}</label>
               <input
                 type="text"
                 value={companyQuery}
                 onChange={e => handleCompanyInput(e.target.value)}
-                placeholder="Firma adi ile ara..."
+                placeholder={t('Firma adi ile ara...')}
                 className="w-full text-xs border border-[#E5E7EB] rounded-md px-2.5 py-1.5 text-[#111827] focus:outline-none focus:border-[#2563EB]"
               />
               {companySuggestions.length > 0 && (
@@ -200,7 +202,7 @@ export default function EmailFinder() {
               )}
             </div>
             <div>
-              <label className="text-xs text-[#6B7280] block mb-1">Domain (otomatik dolar veya manuel gir)</label>
+              <label className="text-xs text-[#6B7280] block mb-1">{t('Domain (otomatik dolar veya manuel gir)')}</label>
               <input
                 type="text"
                 value={domain}
@@ -214,10 +216,10 @@ export default function EmailFinder() {
 
         {/* Kisi Bilgileri */}
         <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-          <div className="text-sm font-semibold text-[#111827] mb-3">Kisi Bilgileri</div>
+          <div className="text-sm font-semibold text-[#111827] mb-3">{t('Kisi Bilgileri')}</div>
           <div className="space-y-3">
             <div>
-              <label className="text-xs text-[#6B7280] block mb-1">Kisi Adi (opsiyonel)</label>
+              <label className="text-xs text-[#6B7280] block mb-1">{t('Kisi Adi (opsiyonel)')}</label>
               <input
                 type="text"
                 value={personName}
@@ -227,7 +229,7 @@ export default function EmailFinder() {
               />
             </div>
             <div>
-              <label className="text-xs text-[#6B7280] block mb-1">Unvan/Pozisyon (opsiyonel)</label>
+              <label className="text-xs text-[#6B7280] block mb-1">{t('Unvan/Pozisyon (opsiyonel)')}</label>
               <input
                 type="text"
                 value={personTitle}
@@ -242,7 +244,7 @@ export default function EmailFinder() {
               disabled={loading}
               className="w-full py-2 bg-[#2563EB] text-white text-xs font-medium rounded-md hover:bg-[#1D4ED8] disabled:opacity-50 transition-colors"
             >
-              {loading ? 'Web sitesi taranıyor...' : 'OperIQ ile Ara'}
+              {loading ? t('Web sitesi taranıyor...') : t('OperIQ ile Ara')}
             </button>
           </div>
         </div>
@@ -263,10 +265,10 @@ export default function EmailFinder() {
             <span>
               <strong>{result.domain}</strong>
               {result.has_mx
-                ? ` - MX kaydi dogrulandi${result.mx_provider ? ` (${result.mx_provider})` : ''}`
-                : ' - MX kaydi bulunamadi, bu domain email almayabilir'}
+                ? ` - ${t('MX kaydi dogrulandi')}${result.mx_provider ? ` (${result.mx_provider})` : ''}`
+                : ` - ${t('MX kaydi bulunamadi, bu domain email almayabilir')}`}
               {result.pages_scraped?.length > 0 && (
-                <span className="ml-2 text-[#6B7280]">({result.pages_scraped.length} sayfa tarandi)</span>
+                <span className="ml-2 text-[#6B7280]">({result.pages_scraped.length} {t('sayfa tarandi')})</span>
               )}
             </span>
           </div>
@@ -274,40 +276,40 @@ export default function EmailFinder() {
           {/* Company Info Card */}
           {ci && (ci.name || ci.description) && (
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-              <div className="text-sm font-semibold text-[#111827] mb-3">Firma Bilgileri</div>
+              <div className="text-sm font-semibold text-[#111827] mb-3">{t('Firma Bilgileri')}</div>
               <div className="space-y-2">
                 {ci.name && (
                   <div className="flex items-start gap-2">
-                    <span className="text-xs text-[#6B7280] w-24 shrink-0">Firma Adi</span>
+                    <span className="text-xs text-[#6B7280] w-24 shrink-0">{t('Firma Adi')}</span>
                     <span className="text-xs text-[#111827] font-medium">{ci.name}</span>
                   </div>
                 )}
                 {ci.description && (
                   <div className="flex items-start gap-2">
-                    <span className="text-xs text-[#6B7280] w-24 shrink-0">Tanim</span>
+                    <span className="text-xs text-[#6B7280] w-24 shrink-0">{t('Tanim')}</span>
                     <span className="text-xs text-[#374151]">{ci.description}</span>
                   </div>
                 )}
                 {ci.sector && (
                   <div className="flex items-start gap-2">
-                    <span className="text-xs text-[#6B7280] w-24 shrink-0">Sektor</span>
+                    <span className="text-xs text-[#6B7280] w-24 shrink-0">{t('Sektor')}</span>
                     <span className="text-xs text-[#374151]">{ci.sector}</span>
                   </div>
                 )}
                 {ci.location && (
                   <div className="flex items-start gap-2">
-                    <span className="text-xs text-[#6B7280] w-24 shrink-0">Lokasyon</span>
+                    <span className="text-xs text-[#6B7280] w-24 shrink-0">{t('Lokasyon')}</span>
                     <span className="text-xs text-[#374151]">{ci.location}</span>
                   </div>
                 )}
                 {ci.employee_count && (
                   <div className="flex items-start gap-2">
-                    <span className="text-xs text-[#6B7280] w-24 shrink-0">Calisan Sayisi</span>
+                    <span className="text-xs text-[#6B7280] w-24 shrink-0">{t('Calisan Sayisi')}</span>
                     <span className="text-xs text-[#374151]">{ci.employee_count}</span>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-[#9CA3AF] mt-3 italic">Bu bilgiler firmanin web sitesinden alinmistir.</p>
+              <p className="text-xs text-[#9CA3AF] mt-3 italic">{t('Bu bilgiler firmanin web sitesinden alinmistir.')}</p>
             </div>
           )}
 
@@ -315,25 +317,25 @@ export default function EmailFinder() {
           {verifiedEmails.length > 0 && (
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
               <div className="flex items-center gap-2 mb-3">
-                <div className="text-sm font-semibold text-[#111827]">Web Sitesinden Bulunan Email Adresleri</div>
+                <div className="text-sm font-semibold text-[#111827]">{t('Web Sitesinden Bulunan Email Adresleri')}</div>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] font-medium">{verifiedEmails.length}</span>
               </div>
-              <p className="text-xs text-[#6B7280] mb-3">Bu adresler firmanin web sitesinde acikca yer almaktadir.</p>
+              <p className="text-xs text-[#6B7280] mb-3">{t('Bu adresler firmanin web sitesinde acikca yer almaktadir.')}</p>
               <div className="space-y-2">
                 {verifiedEmails.map((item) => (
                   <div key={item.email} className="flex items-center justify-between gap-2 py-2 border-b border-[#F3F4F6] last:border-0">
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-mono text-[#374151]">{item.email}</span>
-                      <StatusBadge status="verified" />
+                      <StatusBadge status="verified" t={t} />
                     </div>
                     <div className="flex items-center gap-2">
-                      <CopyButton text={item.email} />
+                      <CopyButton text={item.email} t={t} />
                       <button
                         onClick={() => handleSaveContact(item.email)}
                         disabled={savingEmail === item.email || savedEmails.has(item.email)}
                         className="text-xs px-2 py-0.5 rounded border border-[#2563EB] text-[#2563EB] hover:bg-[#EFF6FF] disabled:opacity-50 transition-colors"
                       >
-                        {savedEmails.has(item.email) ? 'Kaydedildi' : savingEmail === item.email ? '...' : 'Kisiyi Kaydet'}
+                        {savedEmails.has(item.email) ? t('Kaydedildi') : savingEmail === item.email ? '...' : t('Kisiyi Kaydet')}
                       </button>
                     </div>
                   </div>
@@ -345,8 +347,8 @@ export default function EmailFinder() {
           {/* Found People from Website */}
           {result.found_people?.length > 0 && (
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-              <div className="text-sm font-semibold text-[#111827] mb-3">Web Sitesinde Bulunan Kisiler</div>
-              <p className="text-xs text-[#6B7280] mb-3">Bu kisiler firmanin web sitesinde isimleriyle yer almaktadir.</p>
+              <div className="text-sm font-semibold text-[#111827] mb-3">{t('Web Sitesinde Bulunan Kisiler')}</div>
+              <p className="text-xs text-[#6B7280] mb-3">{t('Bu kisiler firmanin web sitesinde isimleriyle yer almaktadir.')}</p>
               <div className="space-y-1.5">
                 {result.found_people.map((person, i) => (
                   <div key={i} className="flex items-center gap-3 py-1.5 border-b border-[#F3F4F6] last:border-0">
@@ -362,25 +364,25 @@ export default function EmailFinder() {
           {estimatedEmails.length > 0 && (
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
               <div className="flex items-center gap-2 mb-3">
-                <div className="text-sm font-semibold text-[#111827]">Tahmini Email Adresleri</div>
+                <div className="text-sm font-semibold text-[#111827]">{t('Tahmini Email Adresleri')}</div>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-[#FEF9C3] text-[#92400E] font-medium">{estimatedEmails.length}</span>
               </div>
-              <p className="text-xs text-[#6B7280] mb-3">Bu adresler isim ve domain bilgisine gore olusturulmus kaliplardir. Web sitesinde dogrulanmamistir.</p>
+              <p className="text-xs text-[#6B7280] mb-3">{t('Bu adresler isim ve domain bilgisine gore olusturulmus kaliplardir. Web sitesinde dogrulanmamistir.')}</p>
               <div className="space-y-2">
                 {estimatedEmails.map((item) => (
                   <div key={item.email} className="flex items-center justify-between gap-2 py-2 border-b border-[#F3F4F6] last:border-0">
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-mono text-[#374151]">{item.email}</span>
-                      <StatusBadge status="estimated" />
+                      <StatusBadge status="estimated" t={t} />
                     </div>
                     <div className="flex items-center gap-2">
-                      <CopyButton text={item.email} />
+                      <CopyButton text={item.email} t={t} />
                       <button
                         onClick={() => handleSaveContact(item.email)}
                         disabled={savingEmail === item.email || savedEmails.has(item.email)}
                         className="text-xs px-2 py-0.5 rounded border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F3F4F6] disabled:opacity-50 transition-colors"
                       >
-                        {savedEmails.has(item.email) ? 'Kaydedildi' : savingEmail === item.email ? '...' : 'Kisiyi Kaydet'}
+                        {savedEmails.has(item.email) ? t('Kaydedildi') : savingEmail === item.email ? '...' : t('Kisiyi Kaydet')}
                       </button>
                     </div>
                   </div>
@@ -392,7 +394,7 @@ export default function EmailFinder() {
           {/* No MX warning */}
           {!result.has_mx && (
             <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-md p-3 text-xs text-[#991B1B]">
-              Bu domain icin MX kaydi bulunamadi. Email adresleri gecersiz olabilir.
+              {t('Bu domain icin MX kaydi bulunamadi. Email adresleri gecersiz olabilir.')}
             </div>
           )}
 
@@ -400,8 +402,8 @@ export default function EmailFinder() {
           {verifiedEmails.length === 0 && estimatedEmails.length === 0 && (
             <div className="bg-[#FEF9C3] border border-[#FDE047] rounded-md p-3 text-xs text-[#92400E]">
               {personName
-                ? 'Bu domain icin email bulunamadi. Web sitesinde acik email adresi yer almiyor olabilir.'
-                : 'Kisi adi girilmediginden tahmini email olusturulamadi. Web sitesinde de acik email bulunamadi.'}
+                ? t('Bu domain icin email bulunamadi. Web sitesinde acik email adresi yer almiyor olabilir.')
+                : t('Kisi adi girilmediginden tahmini email olusturulamadi. Web sitesinde de acik email bulunamadi.')}
             </div>
           )}
 
@@ -410,7 +412,7 @@ export default function EmailFinder() {
               onClick={handleExport}
               className="text-xs px-4 py-2 border border-[#E5E7EB] rounded-md text-[#374151] hover:bg-[#F3F4F6] transition-colors"
             >
-              CSV Olarak Indir
+              {t('CSV Olarak Indir')}
             </button>
           </div>
         </div>
@@ -420,21 +422,21 @@ export default function EmailFinder() {
       {history.length > 0 && (
         <div className="bg-white border border-[#E5E7EB] rounded-md overflow-hidden">
           <div className="px-4 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-between">
-            <h2 className="text-xs font-semibold text-[#374151]">Onceki Aramalar</h2>
+            <h2 className="text-xs font-semibold text-[#374151]">{t('Onceki Aramalar')}</h2>
             <button
               onClick={handleExport}
               className="text-xs text-[#2563EB] hover:underline"
             >
-              Tumunu Indir
+              {t('Tumunu Indir')}
             </button>
           </div>
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#E5E7EB]">
                 <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Domain</th>
-                <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Kisi</th>
-                <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Bulunan</th>
-                <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Tarih</th>
+                <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Kisi')}</th>
+                <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Bulunan')}</th>
+                <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Tarih')}</th>
               </tr>
             </thead>
             <tbody>
@@ -447,9 +449,9 @@ export default function EmailFinder() {
                     <td className="px-4 py-2.5 text-xs font-mono text-[#374151]">{row.domain}</td>
                     <td className="px-4 py-2.5 text-xs text-[#6B7280]">{row.person_name || '-'}</td>
                     <td className="px-4 py-2.5 text-xs">
-                      <span className="text-[#374151]">{totalCount} adres</span>
+                      <span className="text-[#374151]">{totalCount} {t('adres')}</span>
                       {verifiedCount > 0 && (
-                        <span className="ml-1.5 text-[#059669]">({verifiedCount} dogrulanmis)</span>
+                        <span className="ml-1.5 text-[#059669]">({verifiedCount} {t('dogrulanmis')})</span>
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
+import { useT } from '../contexts/LanguageContext'
 
 const TONE_OPTIONS = [
   { value: 'formal', label: 'Formal' },
@@ -29,6 +30,7 @@ function parseLines(str) {
 }
 
 export default function Onboarding() {
+  const { t } = useT()
   const navigate = useNavigate()
   const { profile, setProfile, hasProfile } = useAuth()
 
@@ -116,13 +118,13 @@ export default function Onboarding() {
           <span className="text-sm font-semibold tracking-tight text-[#111827]">AskDesk</span>
         </div>
 
-        <h1 className="text-xl font-semibold text-[#111827] mb-1">Firma Profilinizi Oluşturun</h1>
-        <p className="text-sm text-[#6B7280] mb-8">OperIQ AI, içeriklerinizi kişiselleştirmek için firmanızı tanımalı.</p>
+        <h1 className="text-xl font-semibold text-[#111827] mb-1">{t('Firma Profilinizi Oluşturun')}</h1>
+        <p className="text-sm text-[#6B7280] mb-8">{t('OperIQ AI, içeriklerinizi kişiselleştirmek için firmanızı tanımalı.')}</p>
 
         {/* Section 1: Akıllı Başlangıç */}
         <div className="bg-white border border-[#E5E7EB] rounded-md p-5 mb-6">
-          <h2 className="text-sm font-semibold text-[#111827] mb-1">Akıllı Başlangıç</h2>
-          <p className="text-xs text-[#6B7280] mb-3">Web sitenizi girin, OperIQ formu otomatik dolduracak.</p>
+          <h2 className="text-sm font-semibold text-[#111827] mb-1">{t('Akıllı Başlangıç')}</h2>
+          <p className="text-xs text-[#6B7280] mb-3">{t('Web sitenizi girin, OperIQ formu otomatik dolduracak.')}</p>
           {analyzeError && (
             <div className="mb-3 text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">
               {analyzeError}
@@ -143,7 +145,7 @@ export default function Onboarding() {
               disabled={analyzing || !websiteUrl.trim()}
               className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2 whitespace-nowrap"
             >
-              {analyzing ? 'OperIQ firmanızı analiz ediyor...' : 'OperIQ ile Analiz Et'}
+              {analyzing ? t('OperIQ firmanızı analiz ediyor...') : t('OperIQ ile Analiz Et')}
             </button>
           </div>
         </div>
@@ -151,7 +153,7 @@ export default function Onboarding() {
         {/* Section 2: Firma Profili Formu */}
         <form onSubmit={handleSubmit}>
           <div className="bg-white border border-[#E5E7EB] rounded-md p-5 mb-6 space-y-4">
-            <h2 className="text-sm font-semibold text-[#111827]">Firma Profili</h2>
+            <h2 className="text-sm font-semibold text-[#111827]">{t('Firma Profili')}</h2>
 
             {saveError && (
               <div className="text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">
@@ -162,7 +164,7 @@ export default function Onboarding() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-[#374151] mb-1">
-                  Firma Adı <span className="text-[#DC2626]">*</span>
+                  {t('Firma Adı')} <span className="text-[#DC2626]">*</span>
                 </label>
                 <input
                   value={form.company_name}
@@ -173,7 +175,7 @@ export default function Onboarding() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[#374151] mb-1">Web Sitesi</label>
+                <label className="block text-xs font-medium text-[#374151] mb-1">{t('Web Sitesi')}</label>
                 <input
                   value={form.website}
                   onChange={e => setField('website', e.target.value)}
@@ -184,7 +186,7 @@ export default function Onboarding() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#374151] mb-1">Sektör</label>
+              <label className="block text-xs font-medium text-[#374151] mb-1">{t('Sektör')}</label>
               <input
                 value={form.sector}
                 onChange={e => setField('sector', e.target.value)}
@@ -194,7 +196,7 @@ export default function Onboarding() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#374151] mb-1">Açıklama</label>
+              <label className="block text-xs font-medium text-[#374151] mb-1">{t('Açıklama')}</label>
               <textarea
                 value={form.description}
                 onChange={e => setField('description', e.target.value)}
@@ -205,7 +207,7 @@ export default function Onboarding() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#374151] mb-1">Değer Önerisi</label>
+              <label className="block text-xs font-medium text-[#374151] mb-1">{t('Değer Önerisi')}</label>
               <textarea
                 value={form.value_proposition}
                 onChange={e => setField('value_proposition', e.target.value)}
@@ -216,7 +218,7 @@ export default function Onboarding() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#374151] mb-1">Hedef Kitle</label>
+              <label className="block text-xs font-medium text-[#374151] mb-1">{t('Hedef Kitle')}</label>
               <textarea
                 value={form.target_audience}
                 onChange={e => setField('target_audience', e.target.value)}
@@ -228,8 +230,8 @@ export default function Onboarding() {
 
             <div>
               <label className="block text-xs font-medium text-[#374151] mb-1">
-                Ürünler / Hizmetler
-                <span className="text-[#9CA3AF] font-normal ml-1">— her satıra bir ürün/hizmet</span>
+                {t('Ürünler / Hizmetler')}
+                <span className="text-[#9CA3AF] font-normal ml-1">{t('- her satıra bir ürün/hizmet')}</span>
               </label>
               <textarea
                 value={form.products_services}
@@ -242,8 +244,8 @@ export default function Onboarding() {
 
             <div>
               <label className="block text-xs font-medium text-[#374151] mb-1">
-                Rakipler
-                <span className="text-[#9CA3AF] font-normal ml-1">— her satıra bir rakip</span>
+                {t('Rakipler')}
+                <span className="text-[#9CA3AF] font-normal ml-1">{t('- her satıra bir rakip')}</span>
               </label>
               <textarea
                 value={form.competitors}
@@ -256,8 +258,8 @@ export default function Onboarding() {
 
             <div>
               <label className="block text-xs font-medium text-[#374151] mb-1">
-                Ayırt Edici Özellikler (USP)
-                <span className="text-[#9CA3AF] font-normal ml-1">— her satıra bir USP</span>
+                {t('Ayırt Edici Özellikler (USP)')}
+                <span className="text-[#9CA3AF] font-normal ml-1">{t('- her satıra bir USP')}</span>
               </label>
               <textarea
                 value={form.usps}
@@ -269,22 +271,22 @@ export default function Onboarding() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#374151] mb-1">İçerik Tonu</label>
+              <label className="block text-xs font-medium text-[#374151] mb-1">{t('İçerik Tonu')}</label>
               <select
                 value={form.tone}
                 onChange={e => setField('tone', e.target.value)}
                 className="w-full text-sm border border-[#D1D5DB] rounded-md px-3 py-2 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827]"
               >
                 {TONE_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value}>{t(opt.label)}</option>
                 ))}
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-[#374151] mb-1">
-                Örnek İçerik
-                <span className="text-[#9CA3AF] font-normal ml-1">— isteğe bağlı</span>
+                {t('Örnek İçerik')}
+                <span className="text-[#9CA3AF] font-normal ml-1">{t('- isteğe bağlı')}</span>
               </label>
               <textarea
                 value={form.sample_content}
@@ -301,7 +303,7 @@ export default function Onboarding() {
             disabled={saving}
             className="w-full text-sm font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2.5"
           >
-            {saving ? 'Kaydediliyor...' : 'Profili Kaydet ve Devam Et'}
+            {saving ? t('Kaydediliyor...') : t('Profili Kaydet ve Devam Et')}
           </button>
         </form>
       </div>

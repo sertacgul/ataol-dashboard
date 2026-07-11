@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 const inputClass = 'w-full text-sm border border-[#E5E7EB] rounded-md px-3 py-1.5 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] placeholder-[#9CA3AF]'
 const labelClass = 'block text-xs font-medium text-[#374151] mb-1'
@@ -20,6 +21,7 @@ const SOCIAL_PLATFORMS = [
 ]
 
 export default function TemplateNew() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [category, setCategory] = useState('email')
@@ -51,9 +53,9 @@ export default function TemplateNew() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-5">
-        <Link to="/app/templates" className="text-xs text-[#6B7280] hover:text-[#111827]">Şablonlar</Link>
+        <Link to="/app/templates" className="text-xs text-[#6B7280] hover:text-[#111827]">{t('Şablonlar')}</Link>
         <span className="text-[#9CA3AF]">/</span>
-        <span className="text-sm font-semibold text-[#111827]">Yeni Şablon</span>
+        <span className="text-sm font-semibold text-[#111827]">{t('Yeni Şablon')}</span>
       </div>
 
       {error && (
@@ -65,7 +67,7 @@ export default function TemplateNew() {
       <div className="bg-white border border-[#E5E7EB] rounded-md p-5 mb-4">
         {/* Name */}
         <div className="mb-4">
-          <label className={labelClass}>Şablon Adı</label>
+          <label className={labelClass}>{t('Şablon Adı')}</label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
@@ -76,7 +78,7 @@ export default function TemplateNew() {
 
         {/* Category */}
         <div className="mb-4">
-          <label className={labelClass}>Kategori</label>
+          <label className={labelClass}>{t('Kategori')}</label>
           <select
             value={category}
             onChange={e => { setCategory(e.target.value); setPlatform('') }}
@@ -88,10 +90,10 @@ export default function TemplateNew() {
           </select>
         </div>
 
-        {/* Platform — only if social */}
+        {/* Platform - only if social */}
         {category === 'social' && (
           <div className="mb-4">
-            <label className={labelClass}>Platform</label>
+            <label className={labelClass}>{t('Platform')}</label>
             <select
               value={platform}
               onChange={e => setPlatform(e.target.value)}
@@ -107,7 +109,7 @@ export default function TemplateNew() {
 
         {/* Content */}
         <div className="mb-4">
-          <label className={labelClass}>İçerik</label>
+          <label className={labelClass}>{t('İçerik')}</label>
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
@@ -135,13 +137,13 @@ export default function TemplateNew() {
             disabled={saving}
             className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5"
           >
-            {saving ? 'Kaydediliyor...' : 'Kaydet'}
+            {saving ? t('Kaydediliyor...') : t('Kaydet')}
           </button>
           <Link
             to="/app/templates"
             className="text-xs text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded-md px-4 py-1.5"
           >
-            İptal
+            {t('İptal')}
           </Link>
         </div>
       </div>

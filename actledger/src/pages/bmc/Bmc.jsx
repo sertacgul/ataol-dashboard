@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 const EMPTY_DATA = {
   partners: [],
@@ -25,7 +26,7 @@ const SECTIONS = [
   { key: 'revenue_streams', title: 'Gelir Akışları', subtitle: 'Revenue Streams', color: '#6366F1' },
 ]
 
-function Section({ section, items, onAdd, onDelete }) {
+function Section({ section, items, onAdd, onDelete, t }) {
   const [inputVal, setInputVal] = useState('')
 
   function handleAdd() {
@@ -45,8 +46,8 @@ function Section({ section, items, onAdd, onDelete }) {
       style={{ borderTop: `3px solid ${section.color}`, minHeight: '200px' }}
     >
       <div className="px-3 pt-3 pb-2 border-b border-[#F3F4F6]">
-        <div className="text-xs font-semibold text-[#111827]">{section.title}</div>
-        <div className="text-[10px] text-[#9CA3AF]">{section.subtitle}</div>
+        <div className="text-xs font-semibold text-[#111827]">{t(section.title)}</div>
+        <div className="text-xs text-[#9CA3AF]">{t(section.subtitle)}</div>
       </div>
       <div className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
         {items.map((item, i) => (
@@ -63,7 +64,7 @@ function Section({ section, items, onAdd, onDelete }) {
           </div>
         ))}
         {items.length === 0 && (
-          <div className="text-[10px] text-[#D1D5DB] italic">Henüz öğe yok</div>
+          <div className="text-xs text-[#D1D5DB] italic">{t('Henüz öğe yok')}</div>
         )}
       </div>
       <div className="px-3 pb-3 flex gap-1">
@@ -72,14 +73,14 @@ function Section({ section, items, onAdd, onDelete }) {
           value={inputVal}
           onChange={e => setInputVal(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="Ekle..."
+          placeholder={t('Ekle...')}
           className="flex-1 text-xs border border-[#E5E7EB] rounded px-2 py-1 focus:outline-none focus:border-[#2563EB]"
         />
         <button
           onClick={handleAdd}
           className="text-xs px-2 py-1 bg-[#2563EB] text-white rounded hover:bg-[#1D4ED8]"
         >
-          Ekle
+          {t('Ekle')}
         </button>
       </div>
     </div>
@@ -87,6 +88,7 @@ function Section({ section, items, onAdd, onDelete }) {
 }
 
 export default function Bmc() {
+  const { t } = useT()
   const [data, setData] = useState(EMPTY_DATA)
   const [exists, setExists] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -186,7 +188,7 @@ Her alanda 3-5 madde olsun. Sadece JSON formatında yanıt ver.`
   }
 
   if (loading) {
-    return <div className="text-xs text-[#9CA3AF] py-8 text-center">Yükleniyor...</div>
+    return <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yükleniyor...')}</div>
   }
 
   const top5Keys = ['partners', 'activities', 'resources', 'value_propositions', 'relationships', 'channels', 'segments']
@@ -197,7 +199,7 @@ Her alanda 3-5 madde olsun. Sadece JSON formatında yanıt ver.`
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-base font-semibold text-[#111827]">Business Model Canvas</h1>
-          <p className="text-xs text-[#6B7280] mt-0.5">İş modelinizi görselleştirin ve düzenleyin.</p>
+          <p className="text-xs text-[#6B7280] mt-0.5">{t('İş modelinizi görselleştirin ve düzenleyin.')}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -205,13 +207,13 @@ Her alanda 3-5 madde olsun. Sadece JSON formatında yanıt ver.`
             disabled={aiLoading}
             className="text-xs px-3 py-1.5 border border-[#2563EB] text-[#2563EB] rounded-md hover:bg-[#EFF6FF] disabled:opacity-50"
           >
-            {aiLoading ? 'OperIQ düşünüyor...' : 'OperIQ ile Doldur'}
+            {aiLoading ? t('OperIQ düşünüyor...') : t('OperIQ ile Doldur')}
           </button>
           <button
             onClick={() => window.print()}
             className="text-xs px-3 py-1.5 border border-[#E5E7EB] text-[#374151] rounded-md hover:bg-[#F9FAFB]"
           >
-            Yazdır
+            {t('Yazdır')}
           </button>
         </div>
       </div>
@@ -224,6 +226,7 @@ Her alanda 3-5 madde olsun. Sadece JSON formatında yanıt ver.`
           items={data.partners}
           onAdd={onAdd}
           onDelete={onDelete}
+          t={t}
         />
 
         {/* Activities + Resources stacked */}
@@ -248,6 +251,7 @@ Her alanda 3-5 madde olsun. Sadece JSON formatında yanıt ver.`
           items={data.value_propositions}
           onAdd={onAdd}
           onDelete={onDelete}
+          t={t}
         />
 
         {/* Relationships + Channels stacked */}
@@ -272,6 +276,7 @@ Her alanda 3-5 madde olsun. Sadece JSON formatında yanıt ver.`
           items={data.segments}
           onAdd={onAdd}
           onDelete={onDelete}
+          t={t}
         />
       </div>
 
@@ -282,12 +287,14 @@ Her alanda 3-5 madde olsun. Sadece JSON formatında yanıt ver.`
           items={data.cost_structure}
           onAdd={onAdd}
           onDelete={onDelete}
+          t={t}
         />
         <Section
           section={SECTIONS[8]}
           items={data.revenue_streams}
           onAdd={onAdd}
           onDelete={onDelete}
+          t={t}
         />
       </div>
     </div>

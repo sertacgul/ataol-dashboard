@@ -18,7 +18,7 @@ const labels = {
 
 export default function Badge({ status }) {
   return (
-    <span className={`inline-flex text-[10px] font-medium px-2 py-0.5 rounded-full ${styles[status] || styles.draft}`}>
+    <span className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full ${styles[status] || styles.draft}`}>
       {labels[status] || status}
     </span>
   )

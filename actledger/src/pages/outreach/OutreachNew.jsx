@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 export default function OutreachNew() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const companyId = searchParams.get('company')
@@ -61,7 +63,7 @@ export default function OutreachNew() {
   }
 
   async function handleAiGenerate() {
-    if (!company) { setError('Önce bir firma seçin.'); return }
+    if (!company) { setError(t('Önce bir firma seçin.')); return }
     setAiLoading(true)
     setError('')
     try {
@@ -118,8 +120,8 @@ KONU: [email konusu]
   }
 
   async function handleSubmit(status) {
-    if (!subject.trim()) { setError('Konu zorunludur.'); return }
-    if (!body.trim()) { setError('İçerik zorunludur.'); return }
+    if (!subject.trim()) { setError(t('Konu zorunludur.')); return }
+    if (!body.trim()) { setError(t('İçerik zorunludur.')); return }
     setLoading(true)
     setError('')
     try {
@@ -142,7 +144,7 @@ KONU: [email konusu]
       <div className="flex items-center gap-3 mb-5">
         <Link to="/app/outreach" className="text-xs text-[#6B7280] hover:text-[#111827]">Outreach</Link>
         <span className="text-[#9CA3AF]">/</span>
-        <span className="text-sm font-semibold text-[#111827]">Yeni Email</span>
+        <span className="text-sm font-semibold text-[#111827]">{t('Yeni Email')}</span>
       </div>
 
       {error && (
@@ -153,16 +155,16 @@ KONU: [email konusu]
 
       {!companyId && (
         <div className="mb-4 relative">
-          <label className="block text-xs font-medium text-[#374151] mb-1">Firma Seç</label>
+          <label className="block text-xs font-medium text-[#374151] mb-1">{t('Firma Seç')}</label>
           <input
             type="text"
             value={companyQuery}
             onChange={handleCompanyQueryChange}
-            placeholder="Firma adı ara..."
+            placeholder={t('Firma adı ara...')}
             className="w-full text-sm border border-[#E5E7EB] rounded-md px-3 py-1.5 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] placeholder-[#9CA3AF]"
           />
           {companySearching && (
-            <div className="text-xs text-[#9CA3AF] mt-1">Aranıyor...</div>
+            <div className="text-xs text-[#9CA3AF] mt-1">{t('Aranıyor...')}</div>
           )}
           {companyResults.length > 0 && (
             <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-[#E5E7EB] rounded-md shadow-md">
@@ -197,21 +199,21 @@ KONU: [email konusu]
               disabled={aiLoading}
               className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] disabled:opacity-50 rounded-md px-3 py-1.5"
             >
-              {aiLoading ? 'OperIQ oluşturuyor...' : 'OperIQ ile Oluştur'}
+              {aiLoading ? t('OperIQ oluşturuyor...') : t('OperIQ ile Oluştur')}
             </button>
           </div>
           {contacts.length > 0 && (
             <div>
-              <label className="block text-xs font-medium text-[#374151] mb-1">İletişim Kişisi</label>
+              <label className="block text-xs font-medium text-[#374151] mb-1">{t('İletişim Kişisi')}</label>
               <select
                 value={contactId}
                 onChange={e => setContactId(e.target.value)}
                 className="w-full text-sm border border-[#E5E7EB] rounded-md px-3 py-1.5 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827]"
               >
-                <option value="">Seçiniz</option>
+                <option value="">{t('Seçiniz')}</option>
                 {contacts.map(c => (
                   <option key={c.id} value={c.id}>
-                    {c.name}{c.title ? ` — ${c.title}` : ''}
+                    {c.name}{c.title ? ` - ${c.title}` : ''}
                   </option>
                 ))}
               </select>
@@ -224,25 +226,25 @@ KONU: [email konusu]
         <div className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-[#374151] mb-1">
-              Konu <span className="text-[#DC2626]">*</span>
+              {t('Konu')} <span className="text-[#DC2626]">*</span>
             </label>
             <input
               value={subject}
               onChange={e => setSubject(e.target.value)}
               className="w-full text-sm border border-[#E5E7EB] rounded-md px-3 py-1.5 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] placeholder-[#9CA3AF]"
-              placeholder="Email konusu"
+              placeholder={t('Email konusu')}
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-[#374151] mb-1">
-              İçerik <span className="text-[#DC2626]">*</span>
+              {t('İçerik')} <span className="text-[#DC2626]">*</span>
             </label>
             <textarea
               value={body}
               onChange={e => setBody(e.target.value)}
               rows={10}
               className="w-full text-sm border border-[#E5E7EB] rounded-md px-3 py-1.5 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] placeholder-[#9CA3AF] resize-none"
-              placeholder="Email içeriği..."
+              placeholder={t('Email içeriği...')}
             />
           </div>
         </div>
@@ -255,7 +257,7 @@ KONU: [email konusu]
           onClick={() => handleSubmit('pending')}
           className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5"
         >
-          {loading ? 'Kaydediliyor...' : 'Onaya Gönder'}
+          {loading ? t('Kaydediliyor...') : t('Onaya Gönder')}
         </button>
         <button
           type="button"
@@ -263,13 +265,13 @@ KONU: [email konusu]
           onClick={() => handleSubmit('draft')}
           className="text-xs font-medium text-[#374151] border border-[#E5E7EB] hover:bg-[#F9FAFB] disabled:opacity-50 rounded-md px-4 py-1.5"
         >
-          Taslak Kaydet
+          {t('Taslak Kaydet')}
         </button>
         <Link
           to="/app/outreach"
           className="text-xs text-[#6B7280] border border-[#E5E7EB] rounded-md px-4 py-1.5 hover:bg-[#F9FAFB]"
         >
-          İptal
+          {t('İptal')}
         </Link>
       </div>
     </div>

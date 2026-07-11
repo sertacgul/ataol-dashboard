@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../lib/api'
 import HelpButton from '../../components/HelpButton'
+import { useT } from '../../contexts/LanguageContext'
 
 export default function Pipeline() {
+  const { t } = useT()
   const [stages, setStages] = useState([])
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -58,7 +60,7 @@ export default function Pipeline() {
   }
 
   if (loading) {
-    return <div className="text-xs text-[#9CA3AF] py-8 text-center">Yükleniyor...</div>
+    return <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yükleniyor...')}</div>
   }
 
   return (

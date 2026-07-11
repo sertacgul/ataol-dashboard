@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
 import Badge from '../../components/Badge'
 import HelpButton from '../../components/HelpButton'
+import { useT } from '../../contexts/LanguageContext'
 
 const FILTERS = [
   { value: '', label: 'Tümü' },
@@ -14,6 +15,7 @@ const FILTERS = [
 ]
 
 export default function OutreachList() {
+  const { t } = useT()
   const [emails, setEmails] = useState([])
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState('')
@@ -40,7 +42,7 @@ export default function OutreachList() {
           to="/app/outreach/new"
           className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
         >
-          + Yeni Email
+          + {t('Yeni Email')}
         </Link>
       </div>
 
@@ -55,7 +57,7 @@ export default function OutreachList() {
                 : 'text-[#6B7280] border-[#E5E7EB] hover:bg-[#F9FAFB]'
             }`}
           >
-            {f.label}
+            {t(f.label)}
           </button>
         ))}
       </div>
@@ -64,42 +66,42 @@ export default function OutreachList() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Firma</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Konu</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Durum</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Tarih</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Firma')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Konu')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Durum')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Tarih')}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td colSpan={4} className="text-center text-xs text-[#9CA3AF] py-8">
-                  Yükleniyor...
+                  {t('Yükleniyor...')}
                 </td>
               </tr>
             ) : emails.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-xs text-[#9CA3AF] py-8">
-                  {status ? 'Bu filtrede email bulunamadı.' : 'Henüz email oluşturulmamış.'}
+                  {status ? t('Bu filtrede email bulunamadı.') : t('Henüz email oluşturulmamış.')}
                 </td>
               </tr>
             ) : (
               emails.map(email => (
                 <tr key={email.id} className="border-b border-[#E5E7EB] last:border-0 hover:bg-[#F9FAFB]">
-                  <td className="px-4 py-2.5 text-xs text-[#6B7280]">{email.company_name || '—'}</td>
+                  <td className="px-4 py-2.5 text-xs text-[#6B7280]">{email.company_name || '-'}</td>
                   <td className="px-4 py-2.5">
                     <Link
                       to={`/app/outreach/${email.id}`}
                       className="text-sm font-medium text-[#2563EB] hover:underline"
                     >
-                      {email.subject || '(konu yok)'}
+                      {email.subject || t('(konu yok)')}
                     </Link>
                   </td>
                   <td className="px-4 py-2.5">
                     <Badge status={email.opened ? 'opened' : email.status} />
                   </td>
                   <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">
-                    {email.created_at ? new Date(email.created_at).toLocaleDateString('tr-TR') : '—'}
+                    {email.created_at ? new Date(email.created_at).toLocaleDateString('tr-TR') : '-'}
                   </td>
                 </tr>
               ))

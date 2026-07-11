@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 const inputClass = 'w-full text-sm border border-[#E5E7EB] rounded-md px-3 py-1.5 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] placeholder-[#9CA3AF]'
 const labelClass = 'block text-xs font-medium text-[#374151] mb-1'
@@ -35,6 +36,7 @@ function PosterPreview({ title, body }) {
 }
 
 export default function NewsletterNew() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
@@ -92,7 +94,7 @@ export default function NewsletterNew() {
       <div className="flex items-center gap-3 mb-5">
         <Link to="/app/newsletter" className="text-xs text-[#6B7280] hover:text-[#111827]">Newsletter</Link>
         <span className="text-[#9CA3AF]">/</span>
-        <span className="text-sm font-semibold text-[#111827]">Yeni Bülten</span>
+        <span className="text-sm font-semibold text-[#111827]">{t('Yeni Bülten')}</span>
       </div>
 
       {error && (
@@ -104,7 +106,7 @@ export default function NewsletterNew() {
       <div className="bg-white border border-[#E5E7EB] rounded-md p-5 mb-4">
         {/* Title */}
         <div className="mb-4">
-          <label className={labelClass}>Başlık</label>
+          <label className={labelClass}>{t('Başlık')}</label>
           <input
             value={title}
             onChange={e => setTitle(e.target.value)}
@@ -120,13 +122,13 @@ export default function NewsletterNew() {
             disabled={aiLoading}
             className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5"
           >
-            {aiLoading ? 'İçerik oluşturuluyor...' : 'OperIQ ile İçerik Oluştur'}
+            {aiLoading ? t('İçerik oluşturuluyor...') : t('OperIQ ile İçerik Oluştur')}
           </button>
         </div>
 
         {/* Body */}
         <div className="mb-6">
-          <label className={labelClass}>İçerik</label>
+          <label className={labelClass}>{t('İçerik')}</label>
           <textarea
             value={body}
             onChange={e => setBody(e.target.value)}
@@ -153,20 +155,20 @@ export default function NewsletterNew() {
             disabled={saving}
             className="text-xs font-medium text-[#374151] bg-[#F3F4F6] hover:bg-[#E5E7EB] disabled:opacity-50 rounded-md px-4 py-1.5"
           >
-            {saving ? 'Kaydediliyor...' : 'Taslak Kaydet'}
+            {saving ? t('Kaydediliyor...') : t('Taslak Kaydet')}
           </button>
           <button
             onClick={() => handleSave('completed')}
             disabled={saving}
             className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5"
           >
-            {saving ? 'Kaydediliyor...' : 'Tamamla'}
+            {saving ? t('Kaydediliyor...') : t('Tamamla')}
           </button>
           <Link
             to="/app/newsletter"
             className="text-xs text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded-md px-4 py-1.5"
           >
-            İptal
+            {t('İptal')}
           </Link>
         </div>
       </div>

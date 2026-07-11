@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 export default function LeadMaps() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -119,7 +121,7 @@ export default function LeadMaps() {
 
   return (
     <div>
-      <h1 className="text-base font-semibold text-[#111827] mb-4">Maps'ten Firma Bul</h1>
+      <h1 className="text-base font-semibold text-[#111827] mb-4">{t("Maps'ten Firma Bul")}</h1>
 
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
         <input
@@ -134,7 +136,7 @@ export default function LeadMaps() {
           disabled={searching}
           className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5 disabled:opacity-50"
         >
-          {searching ? 'Aranıyor...' : 'Ara'}
+          {searching ? t('Aranıyor...') : t('Ara')}
         </button>
       </form>
 
@@ -146,7 +148,7 @@ export default function LeadMaps() {
         {/* Sol: Sonuçlar */}
         <div className="w-1/2 flex flex-col gap-2">
           {results.length === 0 && !searching && (
-            <div className="text-xs text-[#9CA3AF]">Arama yapın.</div>
+            <div className="text-xs text-[#9CA3AF]">{t('Arama yapın.')}</div>
           )}
           {results.map(place => (
             <button
@@ -158,7 +160,7 @@ export default function LeadMaps() {
               <div className="text-xs text-[#6B7280] mt-0.5">{place.address}</div>
               {place.rating && (
                 <div className="text-xs text-[#9CA3AF] mt-0.5">
-                  {place.rating} / 5 — {place.user_ratings_total || 0} yorum
+                  {place.rating} / 5 - {place.user_ratings_total || 0} {t('yorum')}
                 </div>
               )}
             </button>
@@ -168,7 +170,7 @@ export default function LeadMaps() {
         {/* Sağ: Detay */}
         <div className="w-1/2">
           {loadingDetails && (
-            <div className="text-xs text-[#9CA3AF]">Yükleniyor...</div>
+            <div className="text-xs text-[#9CA3AF]">{t('Yükleniyor...')}</div>
           )}
           {selected && !loadingDetails && (
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
@@ -180,14 +182,14 @@ export default function LeadMaps() {
                     disabled={savingLead}
                     className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5 disabled:opacity-50"
                   >
-                    {savingLead ? 'Kaydediliyor...' : 'Lead Olarak Kaydet'}
+                    {savingLead ? t('Kaydediliyor...') : t('Lead Olarak Kaydet')}
                   </button>
                   <button
                     onClick={handleSaveAndEmail}
                     disabled={savingLead}
                     className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] rounded-md px-3 py-1.5 disabled:opacity-50"
                   >
-                    {savingLead ? 'Kaydediliyor...' : 'Kaydet ve Email Oluştur'}
+                    {savingLead ? t('Kaydediliyor...') : t('Kaydet ve Email Oluştur')}
                   </button>
                 </div>
               </div>
@@ -207,13 +209,13 @@ export default function LeadMaps() {
               )}
               {selected.rating && (
                 <div className="text-xs text-[#9CA3AF] mb-3">
-                  {selected.rating} / 5 — {selected.user_ratings_total || 0} yorum
+                  {selected.rating} / 5 - {selected.user_ratings_total || 0} {t('yorum')}
                 </div>
               )}
 
               {selected.reviews?.length > 0 && (
                 <div>
-                  <div className="text-xs font-semibold text-[#374151] mb-2">Yorumlar</div>
+                  <div className="text-xs font-semibold text-[#374151] mb-2">{t('Yorumlar')}</div>
                   <div className="flex flex-col gap-2 mb-3">
                     {selected.reviews.map((rv, i) => (
                       <div key={i} className="border border-[#E5E7EB] rounded-md p-2">
@@ -232,7 +234,7 @@ export default function LeadMaps() {
                     disabled={loadingSentiment}
                     className="text-xs text-[#6B7280] border border-[#E5E7EB] rounded-md px-3 py-1.5 hover:bg-[#F9FAFB] disabled:opacity-50 mb-2"
                   >
-                    {loadingSentiment ? 'Analiz ediliyor...' : 'Sentiment Analizi'}
+                    {loadingSentiment ? t('Analiz ediliyor...') : t('Sentiment Analizi')}
                   </button>
 
                   {sentiment && (

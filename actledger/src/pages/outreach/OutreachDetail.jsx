@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../../lib/api'
 import Badge from '../../components/Badge'
+import { useT } from '../../contexts/LanguageContext'
 
 export default function OutreachDetail() {
+  const { t } = useT()
   const { id } = useParams()
   const navigate = useNavigate()
   const [email, setEmail] = useState(null)
@@ -38,14 +40,14 @@ export default function OutreachDetail() {
   }
 
   if (loading) {
-    return <div className="text-xs text-[#9CA3AF] py-8 text-center">Yükleniyor...</div>
+    return <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yükleniyor...')}</div>
   }
 
   if (!email) {
     return (
       <div className="text-center py-12">
-        <div className="text-sm text-[#6B7280] mb-3">Email bulunamadı.</div>
-        <Link to="/app/outreach" className="text-xs text-[#2563EB] hover:underline">Outreach listesine dön</Link>
+        <div className="text-sm text-[#6B7280] mb-3">{t('Email bulunamadı.')}</div>
+        <Link to="/app/outreach" className="text-xs text-[#2563EB] hover:underline">{t('Outreach listesine dön')}</Link>
       </div>
     )
   }
@@ -55,14 +57,14 @@ export default function OutreachDetail() {
       <div className="flex items-center gap-3 mb-5">
         <Link to="/app/outreach" className="text-xs text-[#6B7280] hover:text-[#111827]">Outreach</Link>
         <span className="text-[#9CA3AF]">/</span>
-        <span className="text-sm font-semibold text-[#111827]">{email.subject || '(konu yok)'}</span>
+        <span className="text-sm font-semibold text-[#111827]">{email.subject || t('(konu yok)')}</span>
       </div>
 
       <div className="bg-white border border-[#E5E7EB] rounded-md p-4 mb-4">
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-base font-semibold text-[#111827]">{email.company_name || '—'}</span>
+              <span className="text-base font-semibold text-[#111827]">{email.company_name || '-'}</span>
               <Badge status={email.opened ? 'opened' : email.status} />
             </div>
             {email.contact_name && (
@@ -81,14 +83,14 @@ export default function OutreachDetail() {
                   disabled={actionLoading}
                   className="text-xs font-medium text-white bg-[#059669] hover:bg-[#047857] disabled:opacity-50 rounded-md px-3 py-1.5"
                 >
-                  Onayla
+                  {t('Onayla')}
                 </button>
                 <button
                   onClick={() => updateStatus('rejected')}
                   disabled={actionLoading}
                   className="text-xs font-medium text-white bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 rounded-md px-3 py-1.5"
                 >
-                  Reddet
+                  {t('Reddet')}
                 </button>
               </>
             )}
@@ -98,19 +100,19 @@ export default function OutreachDetail() {
                 disabled={actionLoading}
                 className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-3 py-1.5"
               >
-                {actionLoading ? 'Gönderiliyor...' : 'Gönder'}
+                {actionLoading ? t('Gönderiliyor...') : t('Gönder')}
               </button>
             )}
           </div>
         </div>
 
         <div className="border-t border-[#E5E7EB] pt-4">
-          <div className="text-xs font-medium text-[#374151] mb-1">Konu</div>
-          <div className="text-sm text-[#111827] mb-4">{email.subject || '—'}</div>
+          <div className="text-xs font-medium text-[#374151] mb-1">{t('Konu')}</div>
+          <div className="text-sm text-[#111827] mb-4">{email.subject || '-'}</div>
 
-          <div className="text-xs font-medium text-[#374151] mb-1">İçerik</div>
+          <div className="text-xs font-medium text-[#374151] mb-1">{t('İçerik')}</div>
           <div className="text-sm text-[#111827] whitespace-pre-wrap bg-[#F9FAFB] border border-[#E5E7EB] rounded-md px-3 py-2">
-            {email.body || '—'}
+            {email.body || '-'}
           </div>
         </div>
 
@@ -118,7 +120,7 @@ export default function OutreachDetail() {
           <div className="border-t border-[#E5E7EB] mt-4 pt-4 flex items-center gap-4">
             {email.sent_at && (
               <div>
-                <span className="text-xs text-[#9CA3AF]">Gönderildi: </span>
+                <span className="text-xs text-[#9CA3AF]">{t('Gönderildi')}: </span>
                 <span className="text-xs text-[#111827]">
                   {new Date(email.sent_at).toLocaleDateString('tr-TR')}
                 </span>
@@ -126,7 +128,7 @@ export default function OutreachDetail() {
             )}
             {email.opened && (
               <div>
-                <span className="text-xs text-[#5B21B6] font-medium">Email açıldı</span>
+                <span className="text-xs text-[#5B21B6] font-medium">{t('Email açıldı')}</span>
               </div>
             )}
           </div>

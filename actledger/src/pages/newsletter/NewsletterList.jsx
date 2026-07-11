@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
 import Badge from '../../components/Badge'
+import { useT } from '../../contexts/LanguageContext'
 
 export default function NewsletterList() {
+  const { t } = useT()
   const [newsletters, setNewsletters] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -27,7 +29,7 @@ export default function NewsletterList() {
           to="/app/newsletter/new"
           className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
         >
-          + Yeni Bülten
+          + {t('Yeni Bülten')}
         </Link>
       </div>
 
@@ -35,22 +37,22 @@ export default function NewsletterList() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Başlık</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Durum</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Tarih</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Başlık')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Durum')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Tarih')}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td colSpan={3} className="text-center text-xs text-[#9CA3AF] py-8">
-                  Yükleniyor...
+                  {t('Yükleniyor...')}
                 </td>
               </tr>
             ) : newsletters.length === 0 ? (
               <tr>
                 <td colSpan={3} className="text-center text-xs text-[#9CA3AF] py-8">
-                  Henüz bülten oluşturulmamış.
+                  {t('Henüz bülten oluşturulmamış.')}
                 </td>
               </tr>
             ) : (
@@ -61,14 +63,14 @@ export default function NewsletterList() {
                       to={`/app/newsletter/${n.id}`}
                       className="text-sm font-medium text-[#2563EB] hover:underline"
                     >
-                      {n.title || '(Başlıksız)'}
+                      {n.title || t('(Başlıksız)')}
                     </Link>
                   </td>
                   <td className="px-4 py-2.5">
                     <Badge status={n.status} />
                   </td>
                   <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">
-                    {n.created_at ? new Date(n.created_at).toLocaleDateString('tr-TR') : '—'}
+                    {n.created_at ? new Date(n.created_at).toLocaleDateString('tr-TR') : '-'}
                   </td>
                 </tr>
               ))

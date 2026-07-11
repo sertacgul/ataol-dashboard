@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
 import HelpButton from '../../components/HelpButton'
+import { useT } from '../../contexts/LanguageContext'
 
 const TR_MONTHS = [
   'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -58,6 +59,7 @@ function buildGrid(year, month) {
 }
 
 export default function Calendar() {
+  const { t } = useT()
   const today = new Date()
   const [currentMonth, setCurrentMonth] = useState(
     `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
@@ -227,7 +229,7 @@ export default function Calendar() {
       <div className="flex-1 min-w-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-base font-semibold text-[#111827]">İçerik Takvimi</h1>
+          <h1 className="text-base font-semibold text-[#111827]">{t('İçerik Takvimi')}</h1>
           <div className="flex items-center gap-3">
             <button
               onClick={prevMonth}
@@ -271,7 +273,7 @@ export default function Calendar() {
 
         {/* Grid cells */}
         {loading ? (
-          <div className="text-xs text-[#6B7280] py-8 text-center">Yükleniyor...</div>
+          <div className="text-xs text-[#6B7280] py-8 text-center">{t('Yükleniyor...')}</div>
         ) : (
           <div className="grid grid-cols-7 border-l border-[#E5E7EB]">
             {cells.map((cellDate, i) => {
@@ -298,7 +300,7 @@ export default function Calendar() {
                         draggable
                         onDragStart={() => handleDragStart(it.id)}
                         onClick={e => openEdit(it, e)}
-                        className="text-white text-[10px] leading-tight px-1.5 py-0.5 rounded truncate cursor-pointer hover:opacity-80"
+                        className="text-white text-xs leading-tight px-1.5 py-0.5 rounded truncate cursor-pointer hover:opacity-80"
                         style={{ backgroundColor: TYPE_COLORS[it.type] || '#6B7280' }}
                         title={it.title}
                       >
@@ -316,9 +318,9 @@ export default function Calendar() {
       {/* Right sidebar: Upcoming 7 days */}
       <div className="w-56 flex-shrink-0">
         <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-          <div className="text-xs font-semibold text-[#374151] mb-3">Yaklaşan 7 Gün</div>
+          <div className="text-xs font-semibold text-[#374151] mb-3">{t('Yaklaşan 7 Gün')}</div>
           {upcoming.length === 0 ? (
-            <div className="text-xs text-[#9CA3AF]">Yaklaşan içerik yok.</div>
+            <div className="text-xs text-[#9CA3AF]">{t('Yaklaşan içerik yok.')}</div>
           ) : (
             <div className="flex flex-col gap-2">
               {upcoming.map(it => (
@@ -329,7 +331,7 @@ export default function Calendar() {
                   />
                   <div className="min-w-0">
                     <div className="text-xs text-[#111827] truncate">{it.title}</div>
-                    <div className="text-[10px] text-[#9CA3AF]">{it.scheduled_date}</div>
+                    <div className="text-xs text-[#9CA3AF]">{it.scheduled_date}</div>
                   </div>
                 </div>
               ))}
@@ -349,7 +351,7 @@ export default function Calendar() {
             onClick={e => e.stopPropagation()}
           >
             <div className="text-sm font-semibold text-[#111827] mb-4">
-              Yeni Plan — {newDay}
+              {t('Yeni Plan')} - {newDay}
             </div>
             <form onSubmit={handleSaveNew} className="flex flex-col gap-3">
               {newError && (
@@ -358,17 +360,17 @@ export default function Calendar() {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-medium text-[#374151] mb-1">Başlık</label>
+                <label className="block text-xs font-medium text-[#374151] mb-1">{t('Başlık')}</label>
                 <input
                   value={newForm.title}
                   onChange={e => setNewForm(f => ({ ...f, title: e.target.value }))}
                   className="w-full text-sm border border-[#D1D5DB] rounded-md px-3 py-2 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827]"
-                  placeholder="İçerik başlığı"
+                  placeholder={t('İçerik başlığı')}
                   autoFocus
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[#374151] mb-1">Tür</label>
+                <label className="block text-xs font-medium text-[#374151] mb-1">{t('Tür')}</label>
                 <select
                   value={newForm.type}
                   onChange={e => setNewForm(f => ({ ...f, type: e.target.value }))}
@@ -380,13 +382,13 @@ export default function Calendar() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-[#374151] mb-1">Notlar</label>
+                <label className="block text-xs font-medium text-[#374151] mb-1">{t('Notlar')}</label>
                 <textarea
                   value={newForm.notes}
                   onChange={e => setNewForm(f => ({ ...f, notes: e.target.value }))}
                   rows={3}
                   className="w-full text-sm border border-[#D1D5DB] rounded-md px-3 py-2 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] resize-none"
-                  placeholder="İsteğe bağlı notlar"
+                  placeholder={t('İsteğe bağlı notlar')}
                 />
               </div>
               <div className="flex gap-2 justify-end pt-1">
@@ -395,14 +397,14 @@ export default function Calendar() {
                   onClick={() => setShowNew(false)}
                   className="text-xs font-medium text-[#374151] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]"
                 >
-                  İptal
+                  {t('İptal')}
                 </button>
                 <button
                   type="submit"
                   disabled={newSaving}
                   className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2"
                 >
-                  {newSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                  {newSaving ? t('Kaydediliyor...') : t('Kaydet')}
                 </button>
               </div>
             </form>
@@ -420,7 +422,7 @@ export default function Calendar() {
             className="bg-white rounded-md border border-[#E5E7EB] p-6 w-full max-w-md"
             onClick={e => e.stopPropagation()}
           >
-            <div className="text-sm font-semibold text-[#111827] mb-4">Düzenle</div>
+            <div className="text-sm font-semibold text-[#111827] mb-4">{t('Düzenle')}</div>
             <form onSubmit={handleSaveEdit} className="flex flex-col gap-3">
               {editError && (
                 <div className="text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">
@@ -428,7 +430,7 @@ export default function Calendar() {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-medium text-[#374151] mb-1">Başlık</label>
+                <label className="block text-xs font-medium text-[#374151] mb-1">{t('Başlık')}</label>
                 <input
                   value={editForm.title}
                   onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
@@ -437,19 +439,19 @@ export default function Calendar() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[#374151] mb-1">Durum</label>
+                <label className="block text-xs font-medium text-[#374151] mb-1">{t('Durum')}</label>
                 <select
                   value={editForm.status}
                   onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
                   className="w-full text-sm border border-[#D1D5DB] rounded-md px-3 py-2 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827]"
                 >
                   {STATUS_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={opt.value} value={opt.value}>{t(opt.label)}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-[#374151] mb-1">Notlar</label>
+                <label className="block text-xs font-medium text-[#374151] mb-1">{t('Notlar')}</label>
                 <textarea
                   value={editForm.notes}
                   onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
@@ -464,7 +466,7 @@ export default function Calendar() {
                   disabled={editDeleting}
                   className="text-xs font-medium text-[#DC2626] border border-[#FECACA] rounded-md px-4 py-2 hover:bg-[#FEF2F2] disabled:opacity-50"
                 >
-                  {editDeleting ? 'Siliniyor...' : 'Sil'}
+                  {editDeleting ? t('Siliniyor...') : t('Sil')}
                 </button>
                 <div className="flex gap-2">
                   <button
@@ -472,14 +474,14 @@ export default function Calendar() {
                     onClick={() => setEditItem(null)}
                     className="text-xs font-medium text-[#374151] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]"
                   >
-                    İptal
+                    {t('İptal')}
                   </button>
                   <button
                     type="submit"
                     disabled={editSaving}
                     className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2"
                   >
-                    {editSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                    {editSaving ? t('Kaydediliyor...') : t('Kaydet')}
                   </button>
                 </div>
               </div>

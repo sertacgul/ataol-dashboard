@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 export default function LeadDetail() {
+  const { t } = useT()
   const { id } = useParams()
   const navigate = useNavigate()
   const [company, setCompany] = useState(null)
@@ -21,7 +23,7 @@ export default function LeadDetail() {
   }, [id])
 
   async function handleDelete() {
-    if (!window.confirm('Bu lead\'i silmek istediğinizden emin misiniz?')) return
+    if (!window.confirm(t('Bu lead\'i silmek istediğinizden emin misiniz?'))) return
     setDeleting(true)
     try {
       await api.del(`/leads/${id}`)
@@ -32,14 +34,14 @@ export default function LeadDetail() {
   }
 
   if (loading) {
-    return <div className="text-xs text-[#9CA3AF] py-8 text-center">Yükleniyor...</div>
+    return <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yükleniyor...')}</div>
   }
 
   if (!company) {
     return (
       <div className="text-center py-12">
-        <div className="text-sm text-[#6B7280] mb-3">Firma bulunamadı.</div>
-        <Link to="/app/leads" className="text-xs text-[#2563EB] hover:underline">Leads listesine dön</Link>
+        <div className="text-sm text-[#6B7280] mb-3">{t('Firma bulunamadı.')}</div>
+        <Link to="/app/leads" className="text-xs text-[#2563EB] hover:underline">{t('Leads listesine dön')}</Link>
       </div>
     )
   }
@@ -60,43 +62,43 @@ export default function LeadDetail() {
               to={`/app/outreach/new?company=${id}`}
               className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
             >
-              Email Gönder
+              {t('Email Gönder')}
             </Link>
             <button
               onClick={handleDelete}
               disabled={deleting}
               className="text-xs font-medium text-[#DC2626] border border-[#FECACA] rounded-md px-3 py-1.5 hover:bg-[#FEF2F2] disabled:opacity-50"
             >
-              {deleting ? 'Siliniyor...' : 'Sil'}
+              {deleting ? t('Siliniyor...') : t('Sil')}
             </button>
           </div>
         </div>
 
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
           <div>
-            <dt className="text-xs text-[#9CA3AF]">Sektör</dt>
-            <dd className="text-sm text-[#111827] mt-0.5">{company.sector || '—'}</dd>
+            <dt className="text-xs text-[#9CA3AF]">{t('Sektör')}</dt>
+            <dd className="text-sm text-[#111827] mt-0.5">{company.sector || '-'}</dd>
           </div>
           <div>
-            <dt className="text-xs text-[#9CA3AF]">Ülke</dt>
-            <dd className="text-sm text-[#111827] mt-0.5">{company.country || '—'}</dd>
+            <dt className="text-xs text-[#9CA3AF]">{t('Ülke')}</dt>
+            <dd className="text-sm text-[#111827] mt-0.5">{company.country || '-'}</dd>
           </div>
           <div>
-            <dt className="text-xs text-[#9CA3AF]">Kaynak</dt>
-            <dd className="text-sm text-[#111827] mt-0.5">{company.source || '—'}</dd>
+            <dt className="text-xs text-[#9CA3AF]">{t('Kaynak')}</dt>
+            <dd className="text-sm text-[#111827] mt-0.5">{company.source || '-'}</dd>
           </div>
           <div>
-            <dt className="text-xs text-[#9CA3AF]">Web Sitesi</dt>
+            <dt className="text-xs text-[#9CA3AF]">{t('Web Sitesi')}</dt>
             <dd className="text-sm mt-0.5">
               {company.website
                 ? <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">{company.website}</a>
-                : '—'
+                : '-'
               }
             </dd>
           </div>
           {company.notes && (
             <div className="col-span-2">
-              <dt className="text-xs text-[#9CA3AF]">Notlar</dt>
+              <dt className="text-xs text-[#9CA3AF]">{t('Notlar')}</dt>
               <dd className="text-sm text-[#111827] mt-0.5">{company.notes}</dd>
             </div>
           )}
@@ -105,10 +107,10 @@ export default function LeadDetail() {
 
       <div className="bg-white border border-[#E5E7EB] rounded-md overflow-hidden">
         <div className="px-4 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
-          <h2 className="text-xs font-semibold text-[#374151]">İletişim Kişileri</h2>
+          <h2 className="text-xs font-semibold text-[#374151]">{t('İletişim Kişileri')}</h2>
         </div>
         {contacts.length === 0 ? (
-          <div className="text-xs text-[#9CA3AF] text-center py-6">Henüz kişi eklenmemiş.</div>
+          <div className="text-xs text-[#9CA3AF] text-center py-6">{t('Henüz kişi eklenmemiş.')}</div>
         ) : (
           <ul className="divide-y divide-[#E5E7EB]">
             {contacts.map(ct => (
@@ -118,7 +120,7 @@ export default function LeadDetail() {
                   {ct.email && <span className="text-xs text-[#6B7280]">{ct.email}</span>}
                   {ct.title && <span className="text-xs text-[#9CA3AF]">{ct.title}</span>}
                   {ct.seniority && (
-                    <span className="text-[10px] font-medium text-[#374151] bg-[#F3F4F6] px-1.5 py-0.5 rounded-full">
+                    <span className="text-xs font-medium text-[#374151] bg-[#F3F4F6] px-1.5 py-0.5 rounded-full">
                       {ct.seniority}
                     </span>
                   )}

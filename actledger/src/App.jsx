@@ -1,6 +1,8 @@
+import { useState, useCallback } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
+import SplashScreen from './components/SplashScreen'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -34,8 +36,13 @@ import EmailFinder from './pages/email-finder/EmailFinder'
 import Guide from './pages/Guide'
 
 function App() {
+  const [splashDone, setSplashDone] = useState(false)
+  const handleSplashFinish = useCallback(() => setSplashDone(true), [])
+
   return (
-    <Routes>
+    <>
+      {!splashDone && <SplashScreen onFinish={handleSplashFinish} />}
+      <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -69,7 +76,8 @@ function App() {
         <Route path="settings" element={<Settings />} />
         <Route path="onboarding" element={<Onboarding />} />
       </Route>
-    </Routes>
+      </Routes>
+    </>
   )
 }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 function Badge({ text, color }) {
   const styles = {
@@ -8,13 +9,13 @@ function Badge({ text, color }) {
     blue: 'bg-[#EFF6FF] text-[#2563EB]',
   }
   return (
-    <span className={`inline-block text-[11px] px-2 py-0.5 rounded mr-1 mb-1 ${styles[color]}`}>
+    <span className={`inline-block text-xs px-2 py-0.5 rounded mr-1 mb-1 ${styles[color]}`}>
       {text}
     </span>
   )
 }
 
-function CompetitorCard({ competitor, onAnalyze, onDelete, analyzing }) {
+function CompetitorCard({ competitor, onAnalyze, onDelete, analyzing, t }) {
   let analysis = null
   if (competitor.analysis) {
     try {
@@ -49,14 +50,14 @@ function CompetitorCard({ competitor, onAnalyze, onDelete, analyzing }) {
               disabled={analyzing}
               className="text-xs px-3 py-1.5 border border-[#2563EB] text-[#2563EB] rounded-md hover:bg-[#EFF6FF] disabled:opacity-50"
             >
-              {analyzing ? 'Analiz ediliyor...' : 'OperIQ ile Analiz Et'}
+              {analyzing ? t('Analiz ediliyor...') : t('OperIQ ile Analiz Et')}
             </button>
           )}
           <button
             onClick={() => onDelete(competitor.id, competitor.name)}
             className="text-xs px-2 py-1.5 border border-[#E5E7EB] text-[#9CA3AF] rounded-md hover:border-[#DC2626] hover:text-[#DC2626]"
           >
-            Sil
+            {t('Sil')}
           </button>
         </div>
       </div>
@@ -65,7 +66,7 @@ function CompetitorCard({ competitor, onAnalyze, onDelete, analyzing }) {
         <div className="space-y-2">
           {analysis.sector && (
             <div className="text-xs text-[#6B7280]">
-              <span className="font-medium text-[#374151]">Sektör:</span> {analysis.sector}
+              <span className="font-medium text-[#374151]">{t('Sektör')}:</span> {analysis.sector}
             </div>
           )}
           {analysis.description && (
@@ -73,7 +74,7 @@ function CompetitorCard({ competitor, onAnalyze, onDelete, analyzing }) {
           )}
           {analysis.strengths?.length > 0 && (
             <div>
-              <div className="text-[10px] font-semibold text-[#374151] mb-1 uppercase tracking-wide">Güçlü Yönler</div>
+              <div className="text-xs font-semibold text-[#374151] mb-1 uppercase tracking-wide">{t('Güçlü Yönler')}</div>
               <div>
                 {analysis.strengths.map((s, i) => <Badge key={i} text={s} color="green" />)}
               </div>
@@ -81,7 +82,7 @@ function CompetitorCard({ competitor, onAnalyze, onDelete, analyzing }) {
           )}
           {analysis.weaknesses?.length > 0 && (
             <div>
-              <div className="text-[10px] font-semibold text-[#374151] mb-1 uppercase tracking-wide">Zayıf Yönler</div>
+              <div className="text-xs font-semibold text-[#374151] mb-1 uppercase tracking-wide">{t('Zayıf Yönler')}</div>
               <div>
                 {analysis.weaknesses.map((w, i) => <Badge key={i} text={w} color="red" />)}
               </div>
@@ -89,7 +90,7 @@ function CompetitorCard({ competitor, onAnalyze, onDelete, analyzing }) {
           )}
           {analysis.opportunities?.length > 0 && (
             <div>
-              <div className="text-[10px] font-semibold text-[#374151] mb-1 uppercase tracking-wide">Fırsatlar</div>
+              <div className="text-xs font-semibold text-[#374151] mb-1 uppercase tracking-wide">{t('Fırsatlar')}</div>
               <div>
                 {analysis.opportunities.map((o, i) => <Badge key={i} text={o} color="blue" />)}
               </div>
@@ -102,6 +103,7 @@ function CompetitorCard({ competitor, onAnalyze, onDelete, analyzing }) {
 }
 
 export default function Competitors() {
+  const { t } = useT()
   const [competitors, setCompetitors] = useState([])
   const [loading, setLoading] = useState(true)
   const [name, setName] = useState('')
@@ -149,7 +151,7 @@ export default function Competitors() {
   }
 
   function handleDelete(id, compName) {
-    if (!window.confirm(`"${compName}" rakibini silmek istediğinizden emin misiniz?`)) return
+    if (!window.confirm(`"${compName}" ${t('rakibini silmek istediğinizden emin misiniz?')}`)) return
     api.del(`/competitors/${id}`)
       .then(() => setCompetitors(prev => prev.filter(c => c.id !== id)))
       .catch(() => {})
@@ -158,19 +160,19 @@ export default function Competitors() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-base font-semibold text-[#111827]">Rakip Analizi</h1>
-        <p className="text-xs text-[#6B7280] mt-0.5">Rakip firmalarınızı ekleyin ve OperIQ ile analiz ettirin.</p>
+        <h1 className="text-base font-semibold text-[#111827]">{t('Rakip Analizi')}</h1>
+        <p className="text-xs text-[#6B7280] mt-0.5">{t('Rakip firmalarınızı ekleyin ve OperIQ ile analiz ettirin.')}</p>
       </div>
 
       {/* Add form */}
       <div className="bg-white border border-[#E5E7EB] rounded-md p-4 mb-4">
-        <div className="text-xs font-semibold text-[#374151] mb-3">Rakip Ekle</div>
+        <div className="text-xs font-semibold text-[#374151] mb-3">{t('Rakip Ekle')}</div>
         <div className="flex gap-2">
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Firma adı"
+            placeholder={t('Firma adı')}
             className="flex-1 text-xs border border-[#E5E7EB] rounded-md px-3 py-2 focus:outline-none focus:border-[#2563EB]"
           />
           <input
@@ -185,15 +187,15 @@ export default function Competitors() {
             disabled={adding || !name.trim()}
             className="text-xs px-4 py-2 bg-[#2563EB] text-white rounded-md hover:bg-[#1D4ED8] disabled:opacity-50"
           >
-            {adding ? 'Ekleniyor...' : 'Ekle'}
+            {adding ? t('Ekleniyor...') : t('Ekle')}
           </button>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-xs text-[#9CA3AF] py-8 text-center">Yükleniyor...</div>
+        <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yükleniyor...')}</div>
       ) : competitors.length === 0 ? (
-        <div className="text-xs text-[#9CA3AF] py-8 text-center">Henüz rakip eklenmedi.</div>
+        <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Henüz rakip eklenmedi.')}</div>
       ) : (
         <div className="space-y-3">
           {competitors.map(c => (
@@ -203,6 +205,7 @@ export default function Competitors() {
               onAnalyze={handleAnalyze}
               onDelete={handleDelete}
               analyzing={analyzingId === c.id}
+              t={t}
             />
           ))}
         </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useT } from '../contexts/LanguageContext'
 
 const sections = [
   { id: 'baslangic', label: 'Baslangic' },
@@ -53,6 +54,7 @@ function Bullets({ items }) {
 }
 
 export default function Guide() {
+  const { t } = useT()
   const [active, setActive] = useState('')
 
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function Guide() {
       {/* Left nav */}
       <nav className="w-44 flex-shrink-0">
         <div className="sticky top-6">
-          <div className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2 px-2">Kilavuz</div>
+          <div className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2 px-2">{t('Kilavuz')}</div>
           <div className="space-y-0.5">
             {sections.map(s => (
               <a
@@ -108,8 +110,8 @@ export default function Guide() {
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="mb-6">
-          <h1 className="text-base font-semibold text-[#111827]">AskDesk Kilavuzu</h1>
-          <p className="text-xs text-[#6B7280] mt-0.5">Platformu etkili kullanmak icin adim adim rehber.</p>
+          <h1 className="text-base font-semibold text-[#111827]">{t('AskDesk Kılavuzu')}</h1>
+          <p className="text-xs text-[#6B7280] mt-0.5">{t('Platformu etkili kullanmak için adım adım rehber.')}</p>
         </div>
 
         <Section id="baslangic" title="Baslangic">

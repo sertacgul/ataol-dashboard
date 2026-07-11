@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { api } from '../../lib/api'
 import StatCard from '../../components/StatCard'
 import HelpButton from '../../components/HelpButton'
+import { useT } from '../../contexts/LanguageContext'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
@@ -37,6 +38,7 @@ function getDateRange(key) {
 }
 
 export default function Analytics() {
+  const { t } = useT()
   const [period, setPeriod] = useState('month')
   const [overview, setOverview] = useState(null)
   const [emailTrend, setEmailTrend] = useState([])
@@ -72,12 +74,12 @@ export default function Analytics() {
 
   const openRate = overview
     ? (overview.open_rate ?? 0) + '%'
-    : '—'
+    : '-'
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-base font-semibold text-[#111827]">Analitik</h1>
+        <h1 className="text-base font-semibold text-[#111827]">{t('Analitik')}</h1>
         <div className="flex gap-1">
           {PERIODS.map((p) => (
             <button
@@ -89,27 +91,27 @@ export default function Analytics() {
                   : 'bg-white text-[#374151] border-[#E5E7EB] hover:border-[#2563EB] hover:text-[#2563EB]'
               }`}
             >
-              {p.label}
+              {t(p.label)}
             </button>
           ))}
         </div>
       </div>
 
       {loading ? (
-        <div className="text-xs text-[#9CA3AF] py-8 text-center">Yukleniyor...</div>
+        <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yukleniyor...')}</div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-5">
-            <StatCard label="Toplam Lead" value={overview?.total_companies ?? '—'} />
-            <StatCard label="Gonderilen Email" value={overview?.sent_emails ?? '—'} />
-            <StatCard label="Acilma Orani (%)" value={openRate} />
-            <StatCard label="Donusum" value={overview?.total_companies ?? '—'} />
-            <StatCard label="Yanit" value={overview?.reply_count ?? '—'} />
+            <StatCard label={t('Toplam Lead')} value={overview?.total_companies ?? '-'} />
+            <StatCard label={t('Gonderilen Email')} value={overview?.sent_emails ?? '-'} />
+            <StatCard label={t('Acilma Orani (%)')} value={openRate} />
+            <StatCard label={t('Donusum')} value={overview?.total_companies ?? '-'} />
+            <StatCard label={t('Yanit')} value={overview?.reply_count ?? '-'} />
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-              <div className="text-sm font-semibold text-[#111827] mb-4">Email Gonderim Trendi</div>
+              <div className="text-sm font-semibold text-[#111827] mb-4">{t('Email Gönderim Trendi')}</div>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={emailTrend}>
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} />
@@ -121,7 +123,7 @@ export default function Analytics() {
             </div>
 
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-              <div className="text-sm font-semibold text-[#111827] mb-4">Sosyal Medya Dagilimi</div>
+              <div className="text-sm font-semibold text-[#111827] mb-4">{t('Sosyal Medya Dağılımı')}</div>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={socialStats}>
                   <XAxis dataKey="platform" tick={{ fontSize: 10 }} />
@@ -140,7 +142,7 @@ export default function Analytics() {
             </div>
 
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-              <div className="text-sm font-semibold text-[#111827] mb-4">Pipeline Dagilimi</div>
+              <div className="text-sm font-semibold text-[#111827] mb-4">{t('Pipeline Dağılımı')}</div>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
@@ -162,7 +164,7 @@ export default function Analytics() {
             </div>
 
             <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-              <div className="text-sm font-semibold text-[#111827] mb-4">Icerik Uretim Trendi</div>
+              <div className="text-sm font-semibold text-[#111827] mb-4">{t('İçerik Üretim Trendi')}</div>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={contentTrend}>
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} />
@@ -179,38 +181,38 @@ export default function Analytics() {
 
           <div className="bg-white border border-[#E5E7EB] rounded-md overflow-hidden">
             <div className="px-4 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
-              <h2 className="text-xs font-semibold text-[#374151]">Top Outreach</h2>
+              <h2 className="text-xs font-semibold text-[#374151]">{t('Top Outreach')}</h2>
             </div>
             {!topOutreach.length ? (
-              <div className="text-xs text-[#9CA3AF] text-center py-8">Henuz email bulunmuyor.</div>
+              <div className="text-xs text-[#9CA3AF] text-center py-8">{t('Henuz email bulunmuyor.')}</div>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[#E5E7EB]">
-                    <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Firma</th>
-                    <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Konu</th>
-                    <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Acildi</th>
-                    <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Tarih</th>
+                    <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Firma')}</th>
+                    <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Konu')}</th>
+                    <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Açıldı')}</th>
+                    <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Tarih')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {topOutreach.map((email) => (
                     <tr key={email.id} className="border-b border-[#E5E7EB] last:border-0 hover:bg-[#F9FAFB]">
-                      <td className="px-4 py-2.5 text-xs text-[#6B7280]">{email.company_name || '—'}</td>
-                      <td className="px-4 py-2.5 text-xs text-[#111827]">{email.subject || '(konu yok)'}</td>
+                      <td className="px-4 py-2.5 text-xs text-[#6B7280]">{email.company_name || '-'}</td>
+                      <td className="px-4 py-2.5 text-xs text-[#111827]">{email.subject || t('(konu yok)')}</td>
                       <td className="px-4 py-2.5">
                         {email.opened ? (
                           <span className="text-xs font-medium text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded">
-                            Acildi
+                            {t('Açıldı')}
                           </span>
                         ) : (
-                          <span className="text-xs text-[#9CA3AF]">—</span>
+                          <span className="text-xs text-[#9CA3AF]">-</span>
                         )}
                       </td>
                       <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">
                         {email.created_at
                           ? new Date(email.created_at).toLocaleDateString('tr-TR')
-                          : '—'}
+                          : '-'}
                       </td>
                     </tr>
                   ))}

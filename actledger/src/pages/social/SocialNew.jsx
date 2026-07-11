@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 const PLATFORMS = [
   { value: 'linkedin', label: 'LinkedIn', limit: 1300, limitLabel: '1300 karakter' },
@@ -20,6 +21,7 @@ const inputClass = 'w-full text-sm border border-[#E5E7EB] rounded-md px-3 py-1.
 const labelClass = 'block text-xs font-medium text-[#374151] mb-1'
 
 export default function SocialNew() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [platform, setPlatform] = useState('linkedin')
   const [content, setContent] = useState('')
@@ -99,9 +101,9 @@ export default function SocialNew() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-5">
-        <Link to="/app/social" className="text-xs text-[#6B7280] hover:text-[#111827]">Sosyal Medya</Link>
+        <Link to="/app/social" className="text-xs text-[#6B7280] hover:text-[#111827]">{t('Sosyal Medya')}</Link>
         <span className="text-[#9CA3AF]">/</span>
-        <span className="text-sm font-semibold text-[#111827]">Yeni Post</span>
+        <span className="text-sm font-semibold text-[#111827]">{t('Yeni Post')}</span>
       </div>
 
       {error && (
@@ -113,7 +115,7 @@ export default function SocialNew() {
       <div className="bg-white border border-[#E5E7EB] rounded-md p-5 mb-4">
         {/* Platform selector */}
         <div className="mb-4">
-          <label className={labelClass}>Platform</label>
+          <label className={labelClass}>{t('Platform')}</label>
           <div className="flex gap-2 flex-wrap">
             {PLATFORMS.map(p => (
               <button
@@ -139,13 +141,13 @@ export default function SocialNew() {
             disabled={aiLoading}
             className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5"
           >
-            {aiLoading ? 'Oluşturuluyor...' : 'OperIQ ile Oluştur'}
+            {aiLoading ? t('Oluşturuluyor...') : t('OperIQ ile Oluştur')}
           </button>
         </div>
 
         {/* Content textarea */}
         <div className="mb-1">
-          <label className={labelClass}>İçerik</label>
+          <label className={labelClass}>{t('İçerik')}</label>
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
@@ -157,7 +159,7 @@ export default function SocialNew() {
         <div className="flex justify-end mb-4">
           <span className={`text-xs ${overLimit ? 'text-[#DC2626] font-medium' : 'text-[#9CA3AF]'}`}>
             {charCount} / {selected.limit}
-            {overLimit && ' — karakter sınırı aşıldı'}
+            {overLimit && ' - karakter sınırı aşıldı'}
           </span>
         </div>
 
@@ -176,7 +178,7 @@ export default function SocialNew() {
               disabled={hashtagLoading}
               className="text-xs font-medium text-[#2563EB] border border-[#2563EB] hover:bg-[#EFF6FF] disabled:opacity-50 rounded-md px-3 py-1.5 whitespace-nowrap"
             >
-              {hashtagLoading ? '...' : 'OperIQ Hashtag Öner'}
+              {hashtagLoading ? '...' : t('OperIQ Hashtag Öner')}
             </button>
           </div>
         </div>
@@ -188,13 +190,13 @@ export default function SocialNew() {
             disabled={saving}
             className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5"
           >
-            {saving ? 'Kaydediliyor...' : 'Kaydet'}
+            {saving ? t('Kaydediliyor...') : t('Kaydet')}
           </button>
           <Link
             to="/app/social"
             className="text-xs text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded-md px-4 py-1.5"
           >
-            İptal
+            {t('İptal')}
           </Link>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useT } from '../contexts/LanguageContext'
 
 const navItems = [
   { to: '/app/dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4' },
@@ -38,7 +39,7 @@ function NavIcon({ d }) {
   )
 }
 
-function NavItem({ to, label, icon }) {
+function NavItem({ to, label, icon, t }) {
   return (
     <NavLink to={to}
       className={({ isActive }) =>
@@ -47,13 +48,14 @@ function NavItem({ to, label, icon }) {
         }`
       }>
       <NavIcon d={icon} />
-      {label}
+      {t ? t(label) : label}
     </NavLink>
   )
 }
 
 export default function Sidebar() {
   const { user, logout } = useAuth()
+  const { t, lang, toggleLang } = useT()
   const navigate = useNavigate()
 
   async function handleLogout() {
@@ -64,34 +66,43 @@ export default function Sidebar() {
   return (
     <aside className="w-56 bg-[#FAFBFC] border-r border-[#E5E7EB] flex flex-col min-h-screen">
       <div className="px-4 py-5 border-b border-[#E5E7EB]">
-        <div className="flex items-center gap-2">
-          <img src="/assets/logo.svg" alt="" className="w-7 h-7" />
-          <span className="text-sm font-semibold tracking-tight text-[#111827]">AskDesk</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src="/assets/logo.svg" alt="" className="w-7 h-7" />
+            <span className="text-sm font-semibold tracking-tight text-[#111827]">AskDesk</span>
+          </div>
+          <button
+            onClick={toggleLang}
+            className="text-xs font-medium px-2 py-1 rounded border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827] transition-colors"
+            title={lang === 'tr' ? 'Switch to English' : 'Turkceye gec'}
+          >
+            {lang === 'tr' ? 'EN' : 'TR'}
+          </button>
         </div>
       </div>
       <nav className="flex-1 px-2 py-3 space-y-0.5">
-        {navItems.map((item) => <NavItem key={item.to} {...item} />)}
+        {navItems.map((item) => <NavItem key={item.to} {...item} t={t} />)}
         <div className="my-3 border-t border-[#E5E7EB]" />
-        {secondaryItems.map((item) => <NavItem key={item.to} {...item} />)}
+        {secondaryItems.map((item) => <NavItem key={item.to} {...item} t={t} />)}
         <div className="my-3 border-t border-[#E5E7EB]" />
-        {contentItems.map((item) => <NavItem key={item.to} {...item} />)}
+        {contentItems.map((item) => <NavItem key={item.to} {...item} t={t} />)}
         <div className="my-3 border-t border-[#E5E7EB]" />
-        {analyticsItems.map((item) => <NavItem key={item.to} {...item} />)}
+        {analyticsItems.map((item) => <NavItem key={item.to} {...item} t={t} />)}
       </nav>
       <div className="px-3 py-3 border-t border-[#E5E7EB]">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-full bg-[#E5E7EB] flex items-center justify-center">
-            <span className="text-[10px] font-semibold text-[#6B7280]">
+            <span className="text-xs font-semibold text-[#6B7280]">
               {user?.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
             </span>
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs font-medium text-[#111827] truncate">{user?.name}</div>
-            <div className="text-[10px] text-[#9CA3AF]">
-              {user?.role === 'superadmin' ? 'Super Admin' : user?.company_name || 'Kullanıcı'}
+            <div className="text-xs text-[#9CA3AF]">
+              {user?.role === 'superadmin' ? 'Super Admin' : user?.company_name || t('Kullanıcı')}
             </div>
           </div>
-          <button onClick={handleLogout} className="text-[#9CA3AF] hover:text-[#6B7280]" title="Çıkış">
+          <button onClick={handleLogout} className="text-[#9CA3AF] hover:text-[#6B7280]" title={t('Çıkış')}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 const CATEGORY_FILTERS = [
   { value: '', label: 'Tümü' },
@@ -25,6 +26,7 @@ const CATEGORY_COLORS = {
 }
 
 export default function TemplateList() {
+  const { t } = useT()
   const [templates, setTemplates] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('')
@@ -39,15 +41,15 @@ export default function TemplateList() {
       .finally(() => setLoading(false))
   }, [activeCategory])
 
-  const filtered = templates.filter(t =>
-    !search || t.name?.toLowerCase().includes(search.toLowerCase()) || t.content?.toLowerCase().includes(search.toLowerCase())
+  const filtered = templates.filter(tpl =>
+    !search || tpl.name?.toLowerCase().includes(search.toLowerCase()) || tpl.content?.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <h1 className="text-base font-semibold text-[#111827]">Şablonlar</h1>
+          <h1 className="text-base font-semibold text-[#111827]">{t('Şablonlar')}</h1>
           <span className="text-xs text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
             {filtered.length} şablon
           </span>
@@ -56,7 +58,7 @@ export default function TemplateList() {
           to="/app/templates/new"
           className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
         >
-          + Yeni Şablon
+          + {t('Yeni Şablon')}
         </Link>
       </div>
 
@@ -72,7 +74,7 @@ export default function TemplateList() {
                   : 'text-[#6B7280] border-[#E5E7EB] hover:bg-[#F9FAFB]'
               }`}
             >
-              {f.label}
+              {t(f.label)}
             </button>
           ))}
         </div>
@@ -80,7 +82,7 @@ export default function TemplateList() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="text-xs border border-[#E5E7EB] rounded-md px-3 py-1.5 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] placeholder-[#9CA3AF] w-48"
-          placeholder="Şablon ara..."
+          placeholder={t('Şablon ara...')}
         />
       </div>
 
@@ -88,41 +90,41 @@ export default function TemplateList() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Ad</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Kategori</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Platform</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Tarih</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Ad')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Kategori')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Platform')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Tarih')}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td colSpan={4} className="text-center text-xs text-[#9CA3AF] py-8">
-                  Yükleniyor...
+                  {t('Yükleniyor...')}
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-xs text-[#9CA3AF] py-8">
-                  Şablon bulunamadı.
+                  {t('Şablon bulunamadı.')}
                 </td>
               </tr>
             ) : (
-              filtered.map(t => (
-                <tr key={t.id} className="border-b border-[#E5E7EB] last:border-0 hover:bg-[#F9FAFB]">
+              filtered.map(tpl => (
+                <tr key={tpl.id} className="border-b border-[#E5E7EB] last:border-0 hover:bg-[#F9FAFB]">
                   <td className="px-4 py-2.5">
-                    <span className="text-sm font-medium text-[#111827]">{t.name || '(Adsız)'}</span>
+                    <span className="text-sm font-medium text-[#111827]">{tpl.name || t('(Adsız)')}</span>
                   </td>
                   <td className="px-4 py-2.5">
-                    {t.category ? (
-                      <span className={`inline-flex text-[10px] font-medium px-2 py-0.5 rounded-full ${CATEGORY_COLORS[t.category] || 'bg-[#F3F4F6] text-[#374151]'}`}>
-                        {CATEGORY_LABELS[t.category] || t.category}
+                    {tpl.category ? (
+                      <span className={`inline-flex text-xs font-medium px-2 py-0.5 rounded-full ${CATEGORY_COLORS[tpl.category] || 'bg-[#F3F4F6] text-[#374151]'}`}>
+                        {t(CATEGORY_LABELS[tpl.category] || tpl.category)}
                       </span>
-                    ) : '—'}
+                    ) : '-'}
                   </td>
-                  <td className="px-4 py-2.5 text-xs text-[#6B7280]">{t.platform || '—'}</td>
+                  <td className="px-4 py-2.5 text-xs text-[#6B7280]">{tpl.platform || '-'}</td>
                   <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">
-                    {t.created_at ? new Date(t.created_at).toLocaleDateString('tr-TR') : '—'}
+                    {tpl.created_at ? new Date(tpl.created_at).toLocaleDateString('tr-TR') : '-'}
                   </td>
                 </tr>
               ))

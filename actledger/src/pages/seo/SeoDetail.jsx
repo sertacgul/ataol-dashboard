@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 const STATUS_LABELS = {
   draft: 'Taslak',
@@ -15,6 +16,7 @@ const STATUS_COLORS = {
 }
 
 export default function SeoDetail() {
+  const { t } = useT()
   const { id } = useParams()
   const navigate = useNavigate()
   const [article, setArticle] = useState(null)
@@ -46,7 +48,7 @@ export default function SeoDetail() {
   }
 
   if (loading) {
-    return <div className="text-xs text-[#9CA3AF] py-8 text-center">Yükleniyor...</div>
+    return <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yükleniyor...')}</div>
   }
 
   if (error) {
@@ -62,15 +64,15 @@ export default function SeoDetail() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-5">
-        <Link to="/app/seo" className="text-xs text-[#6B7280] hover:text-[#111827]">SEO Makaleleri</Link>
+        <Link to="/app/seo" className="text-xs text-[#6B7280] hover:text-[#111827]">{t('SEO Makaleleri')}</Link>
         <span className="text-[#9CA3AF]">/</span>
-        <span className="text-sm font-semibold text-[#111827]">{article.title || '(Başlıksız)'}</span>
+        <span className="text-sm font-semibold text-[#111827]">{article.title || t('(Başlıksız)')}</span>
       </div>
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[article.status] || 'text-[#6B7280] bg-[#F3F4F6]'}`}>
-            {STATUS_LABELS[article.status] || article.status || 'Taslak'}
+            {t(STATUS_LABELS[article.status] || article.status || 'Taslak')}
           </span>
           <span className="text-xs text-[#9CA3AF]">Aşama {article.step || 1} / 6</span>
           {article.seo_score !== null && article.seo_score !== undefined && (
@@ -89,13 +91,13 @@ export default function SeoDetail() {
             disabled={publishing}
             className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] disabled:opacity-50 rounded-md px-3 py-1.5"
           >
-            {publishing ? 'Yayinlaniyor...' : "Blog'a Yayinla"}
+            {publishing ? t('Yayinlaniyor...') : t("Blog'a Yayinla")}
           </button>
           <button
             onClick={() => navigate(`/app/seo/new?id=${id}`)}
             className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
           >
-            Düzenle
+            {t('Düzenle')}
           </button>
         </div>
       </div>
@@ -119,25 +121,25 @@ export default function SeoDetail() {
       <div className="space-y-4">
         {/* Meta */}
         <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-          <h2 className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-3">Genel Bilgiler</h2>
+          <h2 className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-3">{t('Genel Bilgiler')}</h2>
           <div className="space-y-2">
             <div>
-              <p className="text-xs text-[#9CA3AF]">Başlık</p>
-              <p className="text-sm text-[#111827] font-medium">{article.title || '—'}</p>
+              <p className="text-xs text-[#9CA3AF]">{t('Başlık')}</p>
+              <p className="text-sm text-[#111827] font-medium">{article.title || '-'}</p>
             </div>
             <div>
-              <p className="text-xs text-[#9CA3AF]">Konu</p>
-              <p className="text-sm text-[#111827]">{article.topic || '—'}</p>
+              <p className="text-xs text-[#9CA3AF]">{t('Konu')}</p>
+              <p className="text-sm text-[#111827]">{article.topic || '-'}</p>
             </div>
             {article.keywords && (
               <div>
-                <p className="text-xs text-[#9CA3AF]">Anahtar Kelimeler</p>
+                <p className="text-xs text-[#9CA3AF]">{t('Anahtar Kelimeler')}</p>
                 <p className="text-sm text-[#111827]">{article.keywords}</p>
               </div>
             )}
             {article.keyword_density != null && (
               <div>
-                <p className="text-xs text-[#9CA3AF]">Anahtar Kelime Yoğunluğu</p>
+                <p className="text-xs text-[#9CA3AF]">{t('Anahtar Kelime Yoğunluğu')}</p>
                 <p className="text-sm text-[#111827]">%{article.keyword_density}</p>
               </div>
             )}
@@ -154,9 +156,9 @@ export default function SeoDetail() {
               </div>
             )}
             <div>
-              <p className="text-xs text-[#9CA3AF]">Oluşturulma Tarihi</p>
+              <p className="text-xs text-[#9CA3AF]">{t('Oluşturulma Tarihi')}</p>
               <p className="text-sm text-[#111827]">
-                {article.created_at ? new Date(article.created_at).toLocaleDateString('tr-TR') : '—'}
+                {article.created_at ? new Date(article.created_at).toLocaleDateString('tr-TR') : '-'}
               </p>
             </div>
           </div>
@@ -165,7 +167,7 @@ export default function SeoDetail() {
         {/* TR Content */}
         {article.body_tr && (
           <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-            <h2 className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-3">Türkçe İçerik</h2>
+            <h2 className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-3">{t('Türkçe İçerik')}</h2>
             <pre className="text-xs text-[#111827] whitespace-pre-wrap font-sans leading-relaxed max-h-64 overflow-y-auto">
               {article.body_tr}
             </pre>
@@ -175,7 +177,7 @@ export default function SeoDetail() {
         {/* EN Content */}
         {article.body_en && (
           <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-            <h2 className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-3">İngilizce İçerik</h2>
+            <h2 className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-3">{t('İngilizce İçerik')}</h2>
             <pre className="text-xs text-[#111827] whitespace-pre-wrap font-sans leading-relaxed max-h-64 overflow-y-auto">
               {article.body_en}
             </pre>

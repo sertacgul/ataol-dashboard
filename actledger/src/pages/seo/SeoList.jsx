@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
 import HelpButton from '../../components/HelpButton'
+import { useT } from '../../contexts/LanguageContext'
 
 const STATUS_FILTERS = [
   { value: '', label: 'Tümü' },
@@ -23,6 +24,7 @@ const STATUS_COLORS = {
 }
 
 export default function SeoList() {
+  const { t } = useT()
   const [articles, setArticles] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeStatus, setActiveStatus] = useState('')
@@ -40,16 +42,16 @@ export default function SeoList() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <h1 className="text-base font-semibold text-[#111827]">SEO Makaleleri</h1>
+          <h1 className="text-base font-semibold text-[#111827]">{t('SEO Makaleleri')}</h1>
           <span className="text-xs text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
-            {articles.length} makale
+            {`${articles.length} ${t('makale')}`}
           </span>
         </div>
         <Link
           to="/app/seo/new"
           className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
         >
-          + Yeni Makale
+          + {t('Yeni Makale')}
         </Link>
       </div>
 
@@ -64,7 +66,7 @@ export default function SeoList() {
                 : 'text-[#6B7280] border-[#E5E7EB] hover:bg-[#F9FAFB]'
             }`}
           >
-            {f.label}
+            {t(f.label)}
           </button>
         ))}
       </div>
@@ -73,24 +75,24 @@ export default function SeoList() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Başlık</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Konu</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Aşama</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Durum</th>
-              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Tarih</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Başlık')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Konu')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Aşama')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Durum')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Tarih')}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td colSpan={5} className="text-center text-xs text-[#9CA3AF] py-8">
-                  Yükleniyor...
+                  {t('Yükleniyor...')}
                 </td>
               </tr>
             ) : articles.length === 0 ? (
               <tr>
                 <td colSpan={5} className="text-center text-xs text-[#9CA3AF] py-8">
-                  Henüz makale oluşturulmamış.
+                  {t('Henüz makale oluşturulmamış.')}
                 </td>
               </tr>
             ) : (
@@ -101,18 +103,18 @@ export default function SeoList() {
                       to={`/app/seo/${a.id}`}
                       className="text-sm font-medium text-[#2563EB] hover:underline"
                     >
-                      {a.title || '(Başlıksız)'}
+                      {a.title || t('(Başlıksız)')}
                     </Link>
                   </td>
-                  <td className="px-4 py-2.5 text-xs text-[#6B7280]">{a.topic || '—'}</td>
+                  <td className="px-4 py-2.5 text-xs text-[#6B7280]">{a.topic || '-'}</td>
                   <td className="px-4 py-2.5 text-xs text-[#6B7280]">{a.step || 1} / 6</td>
                   <td className="px-4 py-2.5">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[a.status] || 'text-[#6B7280] bg-[#F3F4F6]'}`}>
-                      {STATUS_LABELS[a.status] || a.status || 'Taslak'}
+                      {t(STATUS_LABELS[a.status] || a.status || 'Taslak')}
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">
-                    {a.created_at ? new Date(a.created_at).toLocaleDateString('tr-TR') : '—'}
+                    {a.created_at ? new Date(a.created_at).toLocaleDateString('tr-TR') : '-'}
                   </td>
                 </tr>
               ))

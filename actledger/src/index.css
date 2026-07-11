@@ -13,6 +13,11 @@
   --color-error: #DC2626;
   --color-info: #93C5FD;
   --radius-default: 6px;
+
+  /* Font size overrides - bump up for readability */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1.0625rem;
 }
 
 body {
@@ -21,4 +26,31 @@ body {
   color: var(--color-text-primary);
   background: #fff;
   -webkit-font-smoothing: antialiased;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

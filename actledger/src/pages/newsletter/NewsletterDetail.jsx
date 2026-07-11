@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../../lib/api'
 import Badge from '../../components/Badge'
+import { useT } from '../../contexts/LanguageContext'
 
 function PosterPreview({ title, body, posterRef }) {
   const excerpt = body ? body.slice(0, 180).replace(/\n/g, ' ') : ''
@@ -33,6 +34,7 @@ function PosterPreview({ title, body, posterRef }) {
 }
 
 export default function NewsletterDetail() {
+  const { t } = useT()
   const { id } = useParams()
   const [newsletter, setNewsletter] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -84,14 +86,14 @@ export default function NewsletterDetail() {
   }
 
   if (loading) {
-    return <p className="text-xs text-[#9CA3AF] py-8">Yükleniyor...</p>
+    return <p className="text-xs text-[#9CA3AF] py-8">{t('Yükleniyor...')}</p>
   }
 
   if (error || !newsletter) {
     return (
       <div>
         <p className="text-xs text-[#991B1B]">{error || 'Bülten bulunamadı.'}</p>
-        <Link to="/app/newsletter" className="text-xs text-[#2563EB] mt-2 block">Listeye Dön</Link>
+        <Link to="/app/newsletter" className="text-xs text-[#2563EB] mt-2 block">{t('Listeye Dön')}</Link>
       </div>
     )
   }
@@ -115,29 +117,29 @@ export default function NewsletterDetail() {
             onClick={handleDownloadPng}
             className="text-xs font-medium text-[#374151] border border-[#E5E7EB] hover:bg-[#F9FAFB] rounded-md px-3 py-1.5"
           >
-            Poster İndir (PNG)
+            {t('Poster İndir (PNG)')}
           </button>
           <button
             onClick={handlePrint}
             className="text-xs font-medium text-[#374151] border border-[#E5E7EB] hover:bg-[#F9FAFB] rounded-md px-3 py-1.5"
           >
-            PDF İndir
+            {t('PDF İndir')}
           </button>
           <button
             onClick={handleSaveTemplate}
             disabled={savingTemplate}
             className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-3 py-1.5"
           >
-            {savingTemplate ? '...' : 'Şablon Olarak Kaydet'}
+            {savingTemplate ? '...' : t('Şablon Olarak Kaydet')}
           </button>
         </div>
       </div>
 
       {/* Body */}
       <div className="bg-white border border-[#E5E7EB] rounded-md p-5 mb-4">
-        <h2 className="text-xs font-medium text-[#374151] mb-3">İçerik</h2>
+        <h2 className="text-xs font-medium text-[#374151] mb-3">{t('İçerik')}</h2>
         <div className="text-sm text-[#111827] leading-relaxed whitespace-pre-wrap">
-          {newsletter.body || '—'}
+          {newsletter.body || '-'}
         </div>
       </div>
 
@@ -154,7 +156,7 @@ export default function NewsletterDetail() {
       </div>
 
       <div className="text-xs text-[#9CA3AF]">
-        Oluşturulma: {newsletter.created_at ? new Date(newsletter.created_at).toLocaleDateString('tr-TR') : '—'}
+        Oluşturulma: {newsletter.created_at ? new Date(newsletter.created_at).toLocaleDateString('tr-TR') : '-'}
       </div>
     </div>
   )

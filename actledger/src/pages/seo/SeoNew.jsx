@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { useT } from '../../contexts/LanguageContext'
 
 const STEP_LABELS = [
   'Trend Araştırması',
@@ -61,6 +62,7 @@ function calcKeywordDensity(text, keywords) {
 }
 
 export default function SeoNew() {
+  const { t } = useT()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const editId = searchParams.get('id')
@@ -265,9 +267,9 @@ export default function SeoNew() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-5">
-        <Link to="/app/seo" className="text-xs text-[#6B7280] hover:text-[#111827]">SEO Makaleleri</Link>
+        <Link to="/app/seo" className="text-xs text-[#6B7280] hover:text-[#111827]">{t('SEO Makaleleri')}</Link>
         <span className="text-[#9CA3AF]">/</span>
-        <span className="text-sm font-semibold text-[#111827]">{editId ? 'Makale Düzenle' : 'Yeni Makale'}</span>
+        <span className="text-sm font-semibold text-[#111827]">{editId ? t('Makale Düzenle') : t('Yeni Makale')}</span>
       </div>
 
       <StepIndicator currentStep={step} />
@@ -283,9 +285,9 @@ export default function SeoNew() {
         {/* Step 1: Trend Araştırması */}
         {step === 1 && (
           <div>
-            <h2 className="text-sm font-semibold text-[#111827] mb-4">Trend Araştırması</h2>
+            <h2 className="text-sm font-semibold text-[#111827] mb-4">{t('Trend Araştırması')}</h2>
             <div className="mb-3">
-              <label className={labelClass}>Sektör / Konu Alanı</label>
+              <label className={labelClass}>{t('Sektör / Konu Alanı')}</label>
               <input
                 value={researchSector}
                 onChange={e => setResearchSector(e.target.value)}
@@ -298,12 +300,12 @@ export default function SeoNew() {
               disabled={researchLoading}
               className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5 mb-4"
             >
-              {researchLoading ? 'Araştırılıyor...' : 'OperIQ ile Araştır'}
+              {researchLoading ? t('Araştırılıyor...') : t('OperIQ ile Araştır')}
             </button>
 
             {trendResults.length > 0 && (
               <div>
-                <p className="text-xs text-[#6B7280] mb-2">Trend konulardan birini seçin:</p>
+                <p className="text-xs text-[#6B7280] mb-2">{t('Trend konulardan birini seçin:')}</p>
                 <div className="space-y-2">
                   {trendResults.map((topic, i) => (
                     <button
@@ -333,7 +335,7 @@ export default function SeoNew() {
         {/* Step 2: Konu Seçimi */}
         {step === 2 && (
           <div>
-            <h2 className="text-sm font-semibold text-[#111827] mb-4">Konu Seçimi</h2>
+            <h2 className="text-sm font-semibold text-[#111827] mb-4">{t('Konu Seçimi')}</h2>
             {selectedTopic && (
               <div className="mb-3 p-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-md">
                 <p className="text-xs text-[#6B7280] mb-1">Seçilen trend konu:</p>
@@ -341,7 +343,7 @@ export default function SeoNew() {
               </div>
             )}
             <div className="mb-3">
-              <label className={labelClass}>Makale Başlığı</label>
+              <label className={labelClass}>{t('Makale Başlığı')}</label>
               <input
                 value={title}
                 onChange={e => setTitle(e.target.value)}
@@ -367,19 +369,19 @@ export default function SeoNew() {
         {/* Step 3: TR İçerik */}
         {step === 3 && (
           <div>
-            <h2 className="text-sm font-semibold text-[#111827] mb-4">Türkçe İçerik</h2>
+            <h2 className="text-sm font-semibold text-[#111827] mb-4">{t('Türkçe İçerik')}</h2>
             <div className="flex items-center gap-2 mb-3">
               <button
                 onClick={handleGenerateTr}
                 disabled={contentLoading}
                 className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5"
               >
-                {contentLoading ? 'İçerik oluşturuluyor...' : 'OperIQ ile İçerik Oluştur'}
+                {contentLoading ? t('İçerik oluşturuluyor...') : t('OperIQ ile İçerik Oluştur')}
               </button>
               <span className="text-xs text-[#9CA3AF]">veya kendiniz yazın</span>
             </div>
             <div className="mb-3">
-              <label className={labelClass}>Türkçe İçerik</label>
+              <label className={labelClass}>{t('Türkçe İçerik')}</label>
               <textarea
                 value={bodyTr}
                 onChange={e => {
@@ -392,7 +394,7 @@ export default function SeoNew() {
               />
             </div>
             <div className="mb-3">
-              <label className={labelClass}>Anahtar Kelimeler (virgülle ayırın)</label>
+              <label className={labelClass}>{t('Anahtar Kelimeler (virgülle ayırın)')}</label>
               <input
                 value={keywords}
                 onChange={e => {
@@ -414,19 +416,19 @@ export default function SeoNew() {
         {/* Step 4: EN Çeviri */}
         {step === 4 && (
           <div>
-            <h2 className="text-sm font-semibold text-[#111827] mb-4">İngilizce Çeviri</h2>
+            <h2 className="text-sm font-semibold text-[#111827] mb-4">{t('İngilizce Çeviri')}</h2>
             <div className="flex items-center gap-2 mb-3">
               <button
                 onClick={handleTranslate}
                 disabled={translateLoading}
                 className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5"
               >
-                {translateLoading ? 'Çevriliyor...' : 'OperIQ ile Çevir'}
+                {translateLoading ? t('Çevriliyor...') : t('OperIQ ile Çevir')}
               </button>
               <span className="text-xs text-[#9CA3AF]">veya kendiniz çevirin</span>
             </div>
             <div>
-              <label className={labelClass}>İngilizce İçerik</label>
+              <label className={labelClass}>{t('İngilizce İçerik')}</label>
               <textarea
                 value={bodyEn}
                 onChange={e => setBodyEn(e.target.value)}
@@ -441,13 +443,13 @@ export default function SeoNew() {
         {/* Step 5: SEO Kontrol */}
         {step === 5 && (
           <div>
-            <h2 className="text-sm font-semibold text-[#111827] mb-4">SEO Analizi</h2>
+            <h2 className="text-sm font-semibold text-[#111827] mb-4">{t('SEO Analizi')}</h2>
             <button
               onClick={handleSeoCheck}
               disabled={checkLoading}
               className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5 mb-4"
             >
-              {checkLoading ? 'Analiz ediliyor...' : 'OperIQ Analiz Et'}
+              {checkLoading ? t('Analiz ediliyor...') : t('OperIQ Analiz Et')}
             </button>
 
             {seoScore !== null && (
@@ -489,7 +491,7 @@ export default function SeoNew() {
         {/* Step 6: Yayın */}
         {step === 6 && (
           <div>
-            <h2 className="text-sm font-semibold text-[#111827] mb-4">Yayın</h2>
+            <h2 className="text-sm font-semibold text-[#111827] mb-4">{t('Yayın')}</h2>
 
             {seoScore !== null && (
               <div className="flex items-center gap-2 mb-4">
@@ -502,12 +504,12 @@ export default function SeoNew() {
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className={labelClass}>Türkçe İçerik (Markdown)</label>
+                  <label className={labelClass}>{t('Türkçe İçerik')} (Markdown)</label>
                   <button
                     onClick={() => copyToClipboard(bodyTr)}
                     className="text-xs text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded px-2 py-0.5"
                   >
-                    Kopyala
+                    {t('Kopyala')}
                   </button>
                 </div>
                 <textarea
@@ -521,12 +523,12 @@ export default function SeoNew() {
               {bodyEn && (
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className={labelClass}>İngilizce İçerik (Markdown)</label>
+                    <label className={labelClass}>{t('İngilizce İçerik')} (Markdown)</label>
                     <button
                       onClick={() => copyToClipboard(bodyEn)}
                       className="text-xs text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded px-2 py-0.5"
                     >
-                      Kopyala
+                      {t('Kopyala')}
                     </button>
                   </div>
                   <textarea
@@ -545,7 +547,7 @@ export default function SeoNew() {
                 disabled={saving}
                 className="text-xs font-medium text-white bg-[#059669] hover:bg-[#047857] disabled:opacity-50 rounded-md px-4 py-1.5"
               >
-                {saving ? 'Kaydediliyor...' : 'Tamamlandı Olarak İşaretle'}
+                {saving ? t('Kaydediliyor...') : t('Tamamlandı Olarak İşaretle')}
               </button>
             </div>
           </div>
@@ -560,7 +562,7 @@ export default function SeoNew() {
             disabled={saving}
             className="text-xs text-[#6B7280] border border-[#E5E7EB] rounded-md px-4 py-1.5 hover:bg-[#F9FAFB] disabled:opacity-50"
           >
-            Önceki
+            {t('Önceki')}
           </button>
         )}
         {step < 6 && (
@@ -569,14 +571,14 @@ export default function SeoNew() {
             disabled={saving}
             className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-1.5"
           >
-            {saving ? 'Kaydediliyor...' : 'Sonraki'}
+            {saving ? t('Kaydediliyor...') : t('Sonraki')}
           </button>
         )}
         <Link
           to="/app/seo"
           className="text-xs text-[#6B7280] hover:text-[#111827] ml-2"
         >
-          Listeye Dön
+          {t('Listeye Dön')}
         </Link>
       </div>
     </div>

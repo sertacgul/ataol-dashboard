@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../lib/api'
 import HelpButton from '../components/HelpButton'
+import { useT } from '../contexts/LanguageContext'
 
 const EMPTY_EMAIL_SETTINGS = {
   smtp_host: '', smtp_port: '587', smtp_user: '', smtp_pass: '', from_name: '', from_email: '',
@@ -57,6 +58,7 @@ function profileToForm(p) {
 }
 
 export default function Settings() {
+  const { t } = useT()
   const { user } = useAuth()
 
   const [profile, setProfile] = useState(null)
@@ -231,32 +233,32 @@ export default function Settings() {
 
   return (
     <div>
-      <h1 className="text-base font-semibold text-[#111827] mb-4">Ayarlar</h1>
+      <h1 className="text-base font-semibold text-[#111827] mb-4">{t('Ayarlar')}</h1>
 
       {/* Hesap Bilgileri */}
       <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-md mb-6">
-        <div className="text-xs font-semibold text-[#374151] mb-4">Hesap Bilgileri</div>
+        <div className="text-xs font-semibold text-[#374151] mb-4">{t('Hesap Bilgileri')}</div>
         <div className="flex flex-col gap-3">
           <div>
-            <div className="text-xs text-[#6B7280] mb-0.5">Ad</div>
-            <div className="text-sm text-[#111827]">{user?.name || '—'}</div>
+            <div className="text-xs text-[#6B7280] mb-0.5">{t('Ad')}</div>
+            <div className="text-sm text-[#111827]">{user?.name || '-'}</div>
           </div>
           <div>
-            <div className="text-xs text-[#6B7280] mb-0.5">Email</div>
-            <div className="text-sm text-[#111827]">{user?.email || '—'}</div>
+            <div className="text-xs text-[#6B7280] mb-0.5">{t('Email')}</div>
+            <div className="text-sm text-[#111827]">{user?.email || '-'}</div>
           </div>
           <div>
-            <div className="text-xs text-[#6B7280] mb-0.5">Şirket</div>
-            <div className="text-sm text-[#111827]">{user?.company_name || '—'}</div>
+            <div className="text-xs text-[#6B7280] mb-0.5">{t('Şirket')}</div>
+            <div className="text-sm text-[#111827]">{user?.company_name || '-'}</div>
           </div>
           <div>
-            <div className="text-xs text-[#6B7280] mb-0.5">Rol</div>
-            <div className="text-sm text-[#111827]">{user?.role || '—'}</div>
+            <div className="text-xs text-[#6B7280] mb-0.5">{t('Rol')}</div>
+            <div className="text-sm text-[#111827]">{user?.role || '-'}</div>
           </div>
           <div>
-            <div className="text-xs text-[#6B7280] mb-0.5">Kayıt Tarihi</div>
+            <div className="text-xs text-[#6B7280] mb-0.5">{t('Kayıt Tarihi')}</div>
             <div className="text-sm text-[#111827]">
-              {user?.created_at ? new Date(user.created_at).toLocaleDateString('tr-TR') : '—'}
+              {user?.created_at ? new Date(user.created_at).toLocaleDateString('tr-TR') : '-'}
             </div>
           </div>
         </div>
@@ -265,18 +267,18 @@ export default function Settings() {
       {/* Email Ayarları */}
       <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-md mb-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-xs font-semibold text-[#374151]">Email Ayarları</div>
+          <div className="text-xs font-semibold text-[#374151]">{t('Email Ayarları')}</div>
           {!emailLoading && emailSettings && !emailEditMode && (
             <button
               onClick={() => { setEmailEditMode(true); setEmailError(''); setEmailSuccess('') }}
               className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
             >
-              Düzenle
+              {t('Düzenle')}
             </button>
           )}
         </div>
         {emailLoading ? (
-          <div className="text-xs text-[#9CA3AF]">Yükleniyor...</div>
+          <div className="text-xs text-[#9CA3AF]">{t('Yükleniyor...')}</div>
         ) : !emailSettings || emailEditMode ? (
           <form onSubmit={handleEmailSave} className="flex flex-col gap-3">
             {emailError && (
@@ -284,36 +286,36 @@ export default function Settings() {
             )}
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <label className={labelCls}>SMTP Sunucu</label>
+                <label className={labelCls}>{t('SMTP Sunucu')}</label>
                 <input value={emailForm.smtp_host} onChange={e => setEmailForm(p => ({ ...p, smtp_host: e.target.value }))} className={inputCls} placeholder="smtp.gmail.com" />
               </div>
               <div>
-                <label className={labelCls}>Port</label>
+                <label className={labelCls}>{t('Port')}</label>
                 <input value={emailForm.smtp_port} onChange={e => setEmailForm(p => ({ ...p, smtp_port: e.target.value }))} className={inputCls} placeholder="587" type="number" />
               </div>
               <div>
-                <label className={labelCls}>Kullanıcı Adı</label>
+                <label className={labelCls}>{t('Kullanıcı Adı')}</label>
                 <input value={emailForm.smtp_user} onChange={e => setEmailForm(p => ({ ...p, smtp_user: e.target.value }))} className={inputCls} placeholder="user@domain.com" />
               </div>
               <div className="col-span-2">
-                <label className={labelCls}>Şifre</label>
+                <label className={labelCls}>{t('Şifre')}</label>
                 <input type="password" value={emailForm.smtp_pass} onChange={e => setEmailForm(p => ({ ...p, smtp_pass: e.target.value }))} className={inputCls} placeholder="••••••••" />
               </div>
               <div>
-                <label className={labelCls}>Gönderici Adı</label>
+                <label className={labelCls}>{t('Gönderici Adı')}</label>
                 <input value={emailForm.from_name} onChange={e => setEmailForm(p => ({ ...p, from_name: e.target.value }))} className={inputCls} placeholder="Firma Adı" />
               </div>
               <div>
-                <label className={labelCls}>Gönderici Email</label>
+                <label className={labelCls}>{t('Gönderici Email')}</label>
                 <input value={emailForm.from_email} onChange={e => setEmailForm(p => ({ ...p, from_email: e.target.value }))} className={inputCls} placeholder="hello@firma.com" />
               </div>
             </div>
             <div className="flex gap-2 justify-end pt-1">
               {emailEditMode && (
-                <button type="button" onClick={() => setEmailEditMode(false)} className="text-xs font-medium text-[#374151] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]">İptal</button>
+                <button type="button" onClick={() => setEmailEditMode(false)} className="text-xs font-medium text-[#374151] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]">{t('İptal')}</button>
               )}
               <button type="submit" disabled={emailSaving} className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2">
-                {emailSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                {emailSaving ? t('Kaydediliyor...') : t('Kaydet')}
               </button>
             </div>
           </form>
@@ -324,28 +326,28 @@ export default function Settings() {
             )}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">SMTP Sunucu</div>
-                <div className="text-sm text-[#111827]">{emailSettings.smtp_host || '—'}</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('SMTP Sunucu')}</div>
+                <div className="text-sm text-[#111827]">{emailSettings.smtp_host || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">Port</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('Port')}</div>
                 <div className="text-sm text-[#111827]">{emailSettings.smtp_port || 587}</div>
               </div>
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">Kullanıcı Adı</div>
-                <div className="text-sm text-[#111827]">{emailSettings.smtp_user || '—'}</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('Kullanıcı Adı')}</div>
+                <div className="text-sm text-[#111827]">{emailSettings.smtp_user || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">Şifre</div>
-                <div className="text-sm text-[#111827]">{emailSettings.smtp_pass || '—'}</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('Şifre')}</div>
+                <div className="text-sm text-[#111827]">{emailSettings.smtp_pass || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">Gönderici Adı</div>
-                <div className="text-sm text-[#111827]">{emailSettings.from_name || '—'}</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('Gönderici Adı')}</div>
+                <div className="text-sm text-[#111827]">{emailSettings.from_name || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">Gönderici Email</div>
-                <div className="text-sm text-[#111827]">{emailSettings.from_email || '—'}</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('Gönderici Email')}</div>
+                <div className="text-sm text-[#111827]">{emailSettings.from_email || '-'}</div>
               </div>
             </div>
             <div className="pt-2">
@@ -354,7 +356,7 @@ export default function Settings() {
                 disabled={emailTesting}
                 className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] disabled:opacity-50 rounded-md px-3 py-1.5"
               >
-                {emailTesting ? 'Gönderiliyor...' : 'Test Emaili Gönder'}
+                {emailTesting ? t('Gönderiliyor...') : t('Test Emaili Gönder')}
               </button>
               {emailError && <div className="text-xs text-[#991B1B] mt-2">{emailError}</div>}
               {emailSuccess && <div className="text-xs text-[#065F46] mt-2">{emailSuccess}</div>}
@@ -366,50 +368,50 @@ export default function Settings() {
       {/* Blog Ayarları */}
       <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-md mb-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-xs font-semibold text-[#374151]">Blog Ayarları</div>
+          <div className="text-xs font-semibold text-[#374151]">{t('Blog Ayarları')}</div>
           {!blogLoading && blogSettings && !blogEditMode && (
             <button
               onClick={() => { setBlogEditMode(true); setBlogError(''); setBlogSuccess('') }}
               className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
             >
-              Düzenle
+              {t('Düzenle')}
             </button>
           )}
         </div>
         {blogLoading ? (
-          <div className="text-xs text-[#9CA3AF]">Yükleniyor...</div>
+          <div className="text-xs text-[#9CA3AF]">{t('Yükleniyor...')}</div>
         ) : !blogSettings || blogEditMode ? (
           <form onSubmit={handleBlogSave} className="flex flex-col gap-3">
             {blogError && (
               <div className="text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">{blogError}</div>
             )}
             <div>
-              <label className={labelCls}>Platform</label>
+              <label className={labelCls}>{t('Platform')}</label>
               <select value={blogForm.platform} onChange={e => setBlogForm(p => ({ ...p, platform: e.target.value }))} className={inputCls}>
                 <option value="wordpress">WordPress</option>
               </select>
             </div>
             <div>
-              <label className={labelCls}>Blog URL</label>
+              <label className={labelCls}>{t('Blog URL')}</label>
               <input value={blogForm.blog_url} onChange={e => setBlogForm(p => ({ ...p, blog_url: e.target.value }))} className={inputCls} placeholder="https://blogunuz.com" />
             </div>
             <div>
-              <label className={labelCls}>API Kullanıcı Adı</label>
+              <label className={labelCls}>{t('API Kullanıcı Adı')}</label>
               <input value={blogForm.api_username} onChange={e => setBlogForm(p => ({ ...p, api_username: e.target.value }))} className={inputCls} placeholder="WordPress kullanıcı adı" />
             </div>
             <div>
-              <label className={labelCls}>API Şifresi (Uygulama Şifresi)</label>
+              <label className={labelCls}>{t('API Şifresi (Uygulama Şifresi)')}</label>
               <input type="password" value={blogForm.api_password} onChange={e => setBlogForm(p => ({ ...p, api_password: e.target.value }))} className={inputCls} placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" />
             </div>
             <div className="text-xs text-[#6B7280] bg-[#F9FAFB] border border-[#E5E7EB] rounded-md px-3 py-2">
-              WordPress icin Uygulama Sifresi kullanin. Kullanici Profili sayfasindan Uygulama Sifreleri bolumunden olusturabilirsiniz.
+              {t('WordPress icin Uygulama Sifresi kullanin. Kullanici Profili sayfasindan Uygulama Sifreleri bolumunden olusturabilirsiniz.')}
             </div>
             <div className="flex gap-2 justify-end pt-1">
               {blogEditMode && (
-                <button type="button" onClick={() => setBlogEditMode(false)} className="text-xs font-medium text-[#374151] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]">İptal</button>
+                <button type="button" onClick={() => setBlogEditMode(false)} className="text-xs font-medium text-[#374151] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]">{t('İptal')}</button>
               )}
               <button type="submit" disabled={blogSaving} className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2">
-                {blogSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                {blogSaving ? t('Kaydediliyor...') : t('Kaydet')}
               </button>
             </div>
           </form>
@@ -420,20 +422,20 @@ export default function Settings() {
             )}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">Platform</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('Platform')}</div>
                 <div className="text-sm text-[#111827]">{blogSettings.platform || 'WordPress'}</div>
               </div>
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">Blog URL</div>
-                <div className="text-sm text-[#111827]">{blogSettings.blog_url || '—'}</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('Blog URL')}</div>
+                <div className="text-sm text-[#111827]">{blogSettings.blog_url || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">API Kullanıcı Adı</div>
-                <div className="text-sm text-[#111827]">{blogSettings.api_username || '—'}</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('API Kullanıcı Adı')}</div>
+                <div className="text-sm text-[#111827]">{blogSettings.api_username || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">API Şifresi</div>
-                <div className="text-sm text-[#111827]">{blogSettings.api_password || '—'}</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('API Şifresi (Uygulama Şifresi)')}</div>
+                <div className="text-sm text-[#111827]">{blogSettings.api_password || '-'}</div>
               </div>
             </div>
           </div>
@@ -443,24 +445,24 @@ export default function Settings() {
       {/* Firma Profili */}
       <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-2xl">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-xs font-semibold text-[#374151]">Firma Profili</div>
+          <div className="text-xs font-semibold text-[#374151]">{t('Firma Profili')}</div>
           {!profileLoading && profile && !editMode && (
             <button
               onClick={handleEdit}
               className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
             >
-              Düzenle
+              {t('Düzenle')}
             </button>
           )}
         </div>
 
         {profileLoading ? (
-          <div className="text-xs text-[#9CA3AF]">Yükleniyor...</div>
+          <div className="text-xs text-[#9CA3AF]">{t('Yükleniyor...')}</div>
         ) : !profile ? (
           <div className="text-sm text-[#6B7280]">
-            Henüz firma profili oluşturulmamış.{' '}
+            {t('Henüz firma profili oluşturulmamış.')}{' '}
             <Link to="/app/onboarding" className="text-[#2563EB] hover:underline">
-              Profil oluştur
+              {t('Profil oluştur')}
             </Link>
           </div>
         ) : !editMode ? (
@@ -468,56 +470,56 @@ export default function Settings() {
           <div className="flex flex-col gap-3">
             {saveSuccess && (
               <div className="text-xs text-[#065F46] bg-[#D1FAE5] border border-[#6EE7B7] rounded-md px-3 py-2">
-                Profil güncellendi.
+                {t('Profil güncellendi.')}
               </div>
             )}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">Firma Adı</div>
-                <div className={readValCls}>{profile.company_name || '—'}</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('Firma Adı')}</div>
+                <div className={readValCls}>{profile.company_name || '-'}</div>
               </div>
               <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">Web Sitesi</div>
-                <div className={readValCls}>{profile.website || '—'}</div>
+                <div className="text-xs text-[#6B7280] mb-0.5">{t('Web Sitesi')}</div>
+                <div className={readValCls}>{profile.website || '-'}</div>
               </div>
             </div>
             <div>
-              <div className="text-xs text-[#6B7280] mb-0.5">Sektör</div>
-              <div className={readValCls}>{profile.sector || '—'}</div>
+              <div className="text-xs text-[#6B7280] mb-0.5">{t('Sektör')}</div>
+              <div className={readValCls}>{profile.sector || '-'}</div>
             </div>
             <div>
-              <div className="text-xs text-[#6B7280] mb-0.5">Açıklama</div>
-              <div className={readValCls + ' whitespace-pre-line'}>{profile.description || '—'}</div>
+              <div className="text-xs text-[#6B7280] mb-0.5">{t('Açıklama')}</div>
+              <div className={readValCls + ' whitespace-pre-line'}>{profile.description || '-'}</div>
             </div>
             <div>
-              <div className="text-xs text-[#6B7280] mb-0.5">Değer Önerisi</div>
-              <div className={readValCls + ' whitespace-pre-line'}>{profile.value_proposition || '—'}</div>
+              <div className="text-xs text-[#6B7280] mb-0.5">{t('Değer Önerisi')}</div>
+              <div className={readValCls + ' whitespace-pre-line'}>{profile.value_proposition || '-'}</div>
             </div>
             <div>
-              <div className="text-xs text-[#6B7280] mb-0.5">Hedef Kitle</div>
-              <div className={readValCls + ' whitespace-pre-line'}>{profile.target_audience || '—'}</div>
+              <div className="text-xs text-[#6B7280] mb-0.5">{t('Hedef Kitle')}</div>
+              <div className={readValCls + ' whitespace-pre-line'}>{profile.target_audience || '-'}</div>
             </div>
             <div>
-              <div className="text-xs text-[#6B7280] mb-0.5">Ürünler / Hizmetler</div>
-              <div className={readValCls + ' whitespace-pre-line'}>{arrToLines(profile.products_services) || '—'}</div>
+              <div className="text-xs text-[#6B7280] mb-0.5">{t('Ürünler / Hizmetler')}</div>
+              <div className={readValCls + ' whitespace-pre-line'}>{arrToLines(profile.products_services) || '-'}</div>
             </div>
             <div>
-              <div className="text-xs text-[#6B7280] mb-0.5">Rakipler</div>
-              <div className={readValCls + ' whitespace-pre-line'}>{arrToLines(profile.competitors) || '—'}</div>
+              <div className="text-xs text-[#6B7280] mb-0.5">{t('Rakipler')}</div>
+              <div className={readValCls + ' whitespace-pre-line'}>{arrToLines(profile.competitors) || '-'}</div>
             </div>
             <div>
-              <div className="text-xs text-[#6B7280] mb-0.5">Ayırt Edici Özellikler (USP)</div>
-              <div className={readValCls + ' whitespace-pre-line'}>{arrToLines(profile.usps) || '—'}</div>
+              <div className="text-xs text-[#6B7280] mb-0.5">{t('Ayırt Edici Özellikler (USP)')}</div>
+              <div className={readValCls + ' whitespace-pre-line'}>{arrToLines(profile.usps) || '-'}</div>
             </div>
             <div>
-              <div className="text-xs text-[#6B7280] mb-0.5">İçerik Tonu</div>
+              <div className="text-xs text-[#6B7280] mb-0.5">{t('İçerik Tonu')}</div>
               <div className={readValCls}>
-                {TONE_OPTIONS.find(t => t.value === profile.tone)?.label || profile.tone || '—'}
+                {t(TONE_OPTIONS.find(o => o.value === profile.tone)?.label || profile.tone || '-')}
               </div>
             </div>
             <div>
-              <div className="text-xs text-[#6B7280] mb-0.5">Örnek İçerik</div>
-              <div className={readValCls + ' whitespace-pre-line'}>{profile.sample_content || '—'}</div>
+              <div className="text-xs text-[#6B7280] mb-0.5">{t('Örnek İçerik')}</div>
+              <div className={readValCls + ' whitespace-pre-line'}>{profile.sample_content || '-'}</div>
             </div>
           </div>
         ) : (
@@ -530,63 +532,63 @@ export default function Settings() {
             )}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelCls}>Firma Adı</label>
+                <label className={labelCls}>{t('Firma Adı')}</label>
                 <input value={form.company_name} onChange={e => setField('company_name', e.target.value)} className={inputCls} placeholder="ActLedger" />
               </div>
               <div>
-                <label className={labelCls}>Web Sitesi</label>
+                <label className={labelCls}>{t('Web Sitesi')}</label>
                 <input value={form.website} onChange={e => setField('website', e.target.value)} className={inputCls} placeholder="https://firmaniz.com" />
               </div>
             </div>
             <div>
-              <label className={labelCls}>Sektör</label>
+              <label className={labelCls}>{t('Sektör')}</label>
               <input value={form.sector} onChange={e => setField('sector', e.target.value)} className={inputCls} placeholder="SaaS, E-ticaret, Fintech..." />
             </div>
             <div>
-              <label className={labelCls}>Açıklama</label>
+              <label className={labelCls}>{t('Açıklama')}</label>
               <textarea value={form.description} onChange={e => setField('description', e.target.value)} rows={3} className={textareaCls} placeholder="Firmanız hakkında kısa bir açıklama" />
             </div>
             <div>
-              <label className={labelCls}>Değer Önerisi</label>
+              <label className={labelCls}>{t('Değer Önerisi')}</label>
               <textarea value={form.value_proposition} onChange={e => setField('value_proposition', e.target.value)} rows={2} className={textareaCls} placeholder="Müşterilerinize sunduğunuz temel değer" />
             </div>
             <div>
-              <label className={labelCls}>Hedef Kitle</label>
+              <label className={labelCls}>{t('Hedef Kitle')}</label>
               <textarea value={form.target_audience} onChange={e => setField('target_audience', e.target.value)} rows={2} className={textareaCls} placeholder="Hedef müşteri kitlenizi tanımlayın" />
             </div>
             <div>
               <label className={labelCls}>
-                Ürünler / Hizmetler
-                <span className="text-[#9CA3AF] font-normal ml-1">— her satıra bir ürün/hizmet</span>
+                {t('Ürünler / Hizmetler')}
+                <span className="text-[#9CA3AF] font-normal ml-1">{t('- her satıra bir ürün/hizmet')}</span>
               </label>
               <textarea value={form.products_services} onChange={e => setField('products_services', e.target.value)} rows={3} className={textareaCls} placeholder={'CRM yazılımı\nMobil uygulama'} />
             </div>
             <div>
               <label className={labelCls}>
-                Rakipler
-                <span className="text-[#9CA3AF] font-normal ml-1">— her satıra bir rakip</span>
+                {t('Rakipler')}
+                <span className="text-[#9CA3AF] font-normal ml-1">{t('- her satıra bir rakip')}</span>
               </label>
               <textarea value={form.competitors} onChange={e => setField('competitors', e.target.value)} rows={2} className={textareaCls} placeholder={'Rakip A\nRakip B'} />
             </div>
             <div>
               <label className={labelCls}>
-                Ayırt Edici Özellikler (USP)
-                <span className="text-[#9CA3AF] font-normal ml-1">— her satıra bir USP</span>
+                {t('Ayırt Edici Özellikler (USP)')}
+                <span className="text-[#9CA3AF] font-normal ml-1">{t('- her satıra bir USP')}</span>
               </label>
               <textarea value={form.usps} onChange={e => setField('usps', e.target.value)} rows={2} className={textareaCls} placeholder={'7/24 destek\nKurulum gerektirmez'} />
             </div>
             <div>
-              <label className={labelCls}>İçerik Tonu</label>
+              <label className={labelCls}>{t('İçerik Tonu')}</label>
               <select value={form.tone} onChange={e => setField('tone', e.target.value)} className={inputCls}>
                 {TONE_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value}>{t(opt.label)}</option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelCls}>
-                Örnek İçerik
-                <span className="text-[#9CA3AF] font-normal ml-1">— isteğe bağlı</span>
+                {t('Örnek İçerik')}
+                <span className="text-[#9CA3AF] font-normal ml-1">{t('- isteğe bağlı')}</span>
               </label>
               <textarea value={form.sample_content} onChange={e => setField('sample_content', e.target.value)} rows={3} className={textareaCls} placeholder="Markanızı en iyi yansıtan bir içerik örneği" />
             </div>
@@ -596,14 +598,14 @@ export default function Settings() {
                 onClick={handleCancel}
                 className="text-xs font-medium text-[#374151] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]"
               >
-                İptal
+                {t('İptal')}
               </button>
               <button
                 type="submit"
                 disabled={saving}
                 className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2"
               >
-                {saving ? 'Kaydediliyor...' : 'Kaydet'}
+                {saving ? t('Kaydediliyor...') : t('Kaydet')}
               </button>
             </div>
           </form>
