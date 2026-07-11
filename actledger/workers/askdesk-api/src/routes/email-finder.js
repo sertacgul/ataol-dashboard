@@ -412,4 +412,208 @@ JSON formatinda don:
   })
 })
 
+// ─── POST /reveal ── Reveal a single person ──────────────────
+
+router.post('/reveal', async (c) => {
+  const userId = c.get('userId')
+  const user = await c.env.DB.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
+  const plan = user?.plan || 'free'
+
+  const { person_id, domain } = await c.req.json()
+  if (!person_id || !domain) return c.json({ error: 'person_id ve domain gerekli' }, 400)
+
+  // Check if already revealed
+  const idx = parseInt(person_id.split('-').pop())
+  const cached = await getCachedDomain(c.env.DB, domain)
+  if (!cached || !cached.people[idx]) return c.json({ error: 'Kisi bulunamadi. Tekrar arama yapin.' }, 404)
+
+  const person = cached.people[idx]
+  const email = person.emails?.[0]
+  if (!email) return c.json({ error: 'Bu kisi icin email adresi bulunamadi' }, 404)
+
+  // Check if already revealed by this user
+  const existing = await c.env.DB.prepare(
+    'SELECT * FROM email_reveals WHERE user_id = ? AND email = ?'
+  ).bind(userId, email).first()
+
+  if (existing) {
+    const credits = await getOrCreateCredits(c.env.DB, userId, plan)
+    return c.json({
+      person_name: existing.person_name,
+      person_title: existing.person_title,
+      email: existing.email,
+      verification_status: existing.verification_status,
+      confidence_score: existing.confidence_score,
+      source: existing.source,
+      credits_remaining: credits.monthly_limit - credits.used_this_month,
+      already_revealed: true,
+    })
+  }
+
+  // Credit check
+  const credits = await getOrCreateCredits(c.env.DB, userId, plan)
+  if (credits.used_this_month >= credits.monthly_limit) {
+    return c.json({
+      error: 'Aylik krediniz doldu. Paketinizi yukseltin.',
+      credits_remaining: 0,
+      monthly_limit: credits.monthly_limit,
+    }, 403)
+  }
+
+  // Compute verification
+  const v = computeVerification(email, cached.emails_raw, !!cached.mx_provider, cached.has_catchall)
+
+  // Save reveal
+  const revealId = crypto.randomUUID()
+  await c.env.DB.prepare(
+    `INSERT INTO email_reveals (id, user_id, domain, person_name, person_title, email, verification_status, confidence_score, source)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(revealId, userId, domain, person.name, person.title || '', email, v.status, v.confidence, v.source).run()
+
+  // Deduct credit
+  await deductCredit(c.env.DB, userId)
+
+  return c.json({
+    person_name: person.name,
+    person_title: person.title,
+    email,
+    verification_status: v.status,
+    confidence_score: v.confidence,
+    source: v.source,
+    credits_remaining: credits.monthly_limit - credits.used_this_month - 1,
+    already_revealed: false,
+  })
+})
+
+// ─── POST /bulk-reveal ── Reveal multiple people ─────────────
+
+router.post('/bulk-reveal', async (c) => {
+  const userId = c.get('userId')
+  const user = await c.env.DB.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
+  const plan = user?.plan || 'free'
+
+  const { person_ids, domain } = await c.req.json()
+  if (!Array.isArray(person_ids) || !domain) return c.json({ error: 'person_ids ve domain gerekli' }, 400)
+
+  const cached = await getCachedDomain(c.env.DB, domain)
+  if (!cached) return c.json({ error: 'Once arama yapin' }, 404)
+
+  const credits = await getOrCreateCredits(c.env.DB, userId, plan)
+
+  // Filter out already revealed and no-email persons
+  const toReveal = []
+  for (const pid of person_ids) {
+    const idx = parseInt(pid.split('-').pop())
+    const person = cached.people[idx]
+    if (!person || !person.emails?.[0]) continue
+    const existing = await c.env.DB.prepare('SELECT id FROM email_reveals WHERE user_id = ? AND email = ?')
+      .bind(userId, person.emails[0]).first()
+    if (!existing) toReveal.push({ idx, person, email: person.emails[0] })
+  }
+
+  const available = credits.monthly_limit - credits.used_this_month
+  if (toReveal.length > available) {
+    return c.json({
+      error: `Yetersiz kredi. ${toReveal.length} reveal icin krediniz yok (kalan: ${available}).`,
+      credits_remaining: available,
+    }, 403)
+  }
+
+  const revealed = []
+  for (const item of toReveal) {
+    const v = computeVerification(item.email, cached.emails_raw, !!cached.mx_provider, cached.has_catchall)
+    await c.env.DB.prepare(
+      `INSERT INTO email_reveals (id, user_id, domain, person_name, person_title, email, verification_status, confidence_score, source)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(crypto.randomUUID(), userId, domain, item.person.name, item.person.title || '',
+      item.email, v.status, v.confidence, v.source).run()
+    await deductCredit(c.env.DB, userId)
+    revealed.push({
+      person_id: `${domain}-${item.idx}`,
+      person_name: item.person.name,
+      person_title: item.person.title,
+      email: item.email,
+      verification_status: v.status,
+      confidence_score: v.confidence,
+    })
+  }
+
+  return c.json({
+    revealed,
+    credits_used: revealed.length,
+    credits_remaining: available - revealed.length,
+  })
+})
+
+// ─── GET /credits ────────────────────────────────────────────
+
+router.get('/credits', async (c) => {
+  const userId = c.get('userId')
+  const user = await c.env.DB.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
+  const credits = await getOrCreateCredits(c.env.DB, userId, user?.plan || 'free')
+  return c.json({
+    monthly_limit: credits.monthly_limit,
+    used_this_month: credits.used_this_month,
+    remaining: credits.monthly_limit - credits.used_this_month,
+    reset_date: credits.reset_date,
+    plan: user?.plan || 'free',
+  })
+})
+
+// ─── GET /reveals ── User's reveal history ───────────────────
+
+router.get('/reveals', async (c) => {
+  const userId = c.get('userId')
+  const page = parseInt(c.req.query('page') || '1')
+  const limit = parseInt(c.req.query('limit') || '25')
+  const domainFilter = c.req.query('domain') || null
+  const offset = (page - 1) * limit
+
+  let query = 'SELECT * FROM email_reveals WHERE user_id = ?'
+  let countQuery = 'SELECT COUNT(*) as total FROM email_reveals WHERE user_id = ?'
+  const params = [userId]
+
+  if (domainFilter) {
+    query += ' AND domain = ?'
+    countQuery += ' AND domain = ?'
+    params.push(domainFilter)
+  }
+
+  query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?'
+
+  const [rows, countRow] = await Promise.all([
+    c.env.DB.prepare(query).bind(...params, limit, offset).all(),
+    c.env.DB.prepare(countQuery).bind(...params).all(),
+  ])
+
+  return c.json({
+    reveals: rows.results || [],
+    total: countRow.results?.[0]?.total || 0,
+    page,
+    limit,
+  })
+})
+
+// ─── POST /export ── CSV export of reveals ───────────────────
+
+router.post('/export', async (c) => {
+  const userId = c.get('userId')
+  const rows = await c.env.DB.prepare(
+    'SELECT * FROM email_reveals WHERE user_id = ? ORDER BY created_at DESC'
+  ).bind(userId).all()
+
+  const results = rows.results || []
+  let csv = 'Name,Title,Email,Domain,Status,Confidence,Source,Date\n'
+  for (const r of results) {
+    csv += `"${r.person_name}","${r.person_title || ''}","${r.email}","${r.domain}","${r.verification_status}",${r.confidence_score},"${r.source}","${r.created_at}"\n`
+  }
+
+  return new Response(csv, {
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="askdesk-email-reveals.csv"',
+    },
+  })
+})
+
 export default router
