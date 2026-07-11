@@ -253,9 +253,21 @@ router.post('/search', async (c) => {
   }
   if (!domain && query) {
     // Try to use query as domain if it looks like one
-    if (query.includes('.') && !query.includes(' ')) domain = query.toLowerCase().replace(/^www\./, '')
+    if (query.includes('.') && !query.includes(' ')) {
+      domain = query.toLowerCase().replace(/^www\./, '')
+    } else if (c.env.GEMINI_API_KEY) {
+      // Use Gemini to find the company domain
+      try {
+        const domainPrompt = `"${query}" firmasinin web sitesi domain adresini bul. SADECE domain adresini yaz, baska hicbir sey yazma. Ornek: getir.com`
+        const domainGuess = await callGemini(domainPrompt, c.env.GEMINI_API_KEY)
+        const cleaned = domainGuess.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].split('\n')[0].trim()
+        if (cleaned && cleaned.includes('.') && cleaned.length < 50) {
+          domain = cleaned
+        }
+      } catch {}
+    }
   }
-  if (!domain) return c.json({ error: 'Domain gerekli' }, 400)
+  if (!domain) return c.json({ error: 'Domain bulunamadi. Lutfen domain adresini girin (ornek: firma.com)' }, 400)
   domain = domain.toLowerCase().replace(/^www\./, '')
 
   // Check cache first
@@ -305,7 +317,7 @@ router.post('/search', async (c) => {
   const hasCatchAll = detectCatchAll(mx.mxHosts)
 
   // Extract company info + people via Gemini
-  let companyInfo = { name: query || domain, domain, sector: '', location: '', employee_count: '' }
+  let companyInfo = { name: query || domain, domain, sector: '', location: '', employee_count: '', mx_valid: mx.hasMx }
   let people = []
 
   if (scrapeResult.text.length > 200 && c.env.GEMINI_API_KEY) {
@@ -347,6 +359,39 @@ JSON formatinda don:
         }
       }
     } catch (e) { /* Gemini failed, continue with scrape data */ }
+  } else if (c.env.GEMINI_API_KEY) {
+    // Website scraping failed/insufficient, ask Gemini about the company directly
+    try {
+      const fallbackPrompt = `"${query || domain}" firmasi hakkinda bilgi ver.
+
+KURALLAR:
+- Bildiklerini yaz, bilmiyorsan null yaz
+- Tahmin etme
+
+JSON formatinda don:
+{
+  "company_name": "...",
+  "description": "1-2 cumle" veya null,
+  "sector": "..." veya null,
+  "location": "..." veya null,
+  "employee_count": "..." veya null,
+  "people": []
+}`
+      const raw = await callGemini(fallbackPrompt, c.env.GEMINI_API_KEY)
+      const jsonMatch = raw.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0])
+        companyInfo = {
+          name: parsed.company_name || companyInfo.name,
+          domain,
+          description: parsed.description || '',
+          sector: parsed.sector || '',
+          location: parsed.location || '',
+          employee_count: parsed.employee_count || '',
+          mx_valid: mx.hasMx,
+        }
+      }
+    } catch {}
   }
 
   // Generate emails for each person
@@ -614,6 +659,66 @@ router.post('/export', async (c) => {
       'Content-Disposition': 'attachment; filename="askdesk-email-reveals.csv"',
     },
   })
+})
+
+// ─── POST /compose ── Generate personalized outreach email ───
+
+router.post('/compose', async (c) => {
+  const userId = c.get('userId')
+  const { person_name, person_title, email, company_name, company_domain, company_sector, company_description } = await c.req.json()
+
+  if (!email || !company_name) return c.json({ error: 'Email ve firma adi gerekli' }, 400)
+
+  const apiKey = c.env.GEMINI_API_KEY
+  if (!apiKey) return c.json({ error: 'AI servisi yapilandirilmamis' }, 500)
+
+  // Get user's company profile for value proposition
+  const profile = await c.env.DB.prepare('SELECT * FROM company_profiles WHERE user_id = ?').bind(userId).first()
+
+  const senderInfo = profile ? `
+Gonderen Firma: ${profile.company_name || ''}
+Sektor: ${profile.sector || ''}
+Deger Onerisi: ${profile.value_proposition || ''}
+Urunler/Hizmetler: ${profile.products_services || ''}
+Hedef Kitle: ${profile.target_audience || ''}
+Ton: ${profile.tone || 'professional'}` : ''
+
+  const prompt = `Asagidaki bilgilere gore kisa, profesyonel ve kisisellestirilmis bir satis/outreach emaili yaz.
+
+Alici:
+- Isim: ${person_name || 'Yetkili'}
+- Unvan: ${person_title || ''}
+- Firma: ${company_name}
+- Sektor: ${company_sector || ''}
+- Firma Aciklamasi: ${company_description || ''}
+${senderInfo}
+
+KURALLAR:
+- Email Turkce olsun
+- Konu satiri + email govdesi yaz
+- Alicinin firmasina ozel deger onerisi sun
+- Kisa ve net ol (max 150 kelime govde)
+- Satis jargonu kullanma, samimi ama profesyonel ol
+- Kesinlikle markdown kullanma (# * ** gibi isaret kullanma)
+- CTA olarak kisa bir gorusme talebi ekle
+
+JSON formatinda don:
+{
+  "subject": "Konu satiri",
+  "body": "Email govdesi"
+}`
+
+  try {
+    const raw = await callGemini(prompt, apiKey)
+    const jsonMatch = raw.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0])
+      return c.json({ subject: parsed.subject || '', body: parsed.body || '' })
+    }
+    return c.json({ error: 'Email olusturulamadi' }, 500)
+  } catch {
+    return c.json({ error: 'AI servisi hatasi' }, 500)
+  }
 })
 
 export default router

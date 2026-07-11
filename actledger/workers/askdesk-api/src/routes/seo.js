@@ -142,7 +142,7 @@ seo.post('/:id/translate', async (c) => {
 
   const profileContext = await getProfileContext(c.env.DB, userId)
 
-  const prompt = `Aşağıdaki Türkçe blog yazısını İngilizce'ye çevir. Çeviri profesyonel, akıcı ve SEO uyumlu olsun. Başlık dahil tüm içeriği çevir. Markdown formatını koru.${profileContext ? `\n\nFirma Bağlamı:\n${profileContext}` : ''}\n\nÇevirilecek Türkçe İçerik:\n${article.body_tr}`
+  const prompt = `Aşağıdaki Türkçe blog yazısını İngilizce'ye çevir. Çeviri profesyonel, akıcı ve SEO uyumlu olsun. Başlık dahil tüm içeriği çevir. Kesinlikle markdown kullanma (# * ** __ gibi isaret kullanma).${profileContext ? `\n\nFirma Bağlamı:\n${profileContext}` : ''}\n\nÇevirilecek Türkçe İçerik:\n${article.body_tr}`
 
   const body_en = await callGemini(prompt, apiKey)
 

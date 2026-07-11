@@ -105,6 +105,11 @@ export default function EmailFinder() {
   const [revealingId, setRevealingId] = useState(null)
   const [bulkRevealing, setBulkRevealing] = useState(false)
 
+  // Compose email
+  const [composePerson, setComposePerson] = useState(null)
+  const [composeLoading, setComposeLoading] = useState(false)
+  const [composeResult, setComposeResult] = useState(null)
+
   // Load credits on mount
   useEffect(() => { loadCredits() }, [])
 
@@ -197,6 +202,30 @@ export default function EmailFinder() {
       a.href = url; a.download = 'askdesk-emails.csv'; a.click()
       URL.revokeObjectURL(url)
     } catch {}
+  }
+
+  // Compose email
+  async function handleCompose(person) {
+    setComposePerson(person)
+    setComposeLoading(true)
+    setComposeResult(null)
+    try {
+      const data = await api.post('/email-finder/compose', {
+        person_name: person.full_name,
+        person_title: person.title,
+        email: person.full_email,
+        company_name: company?.name,
+        company_domain: company?.domain,
+        company_sector: company?.sector,
+        company_description: company?.description,
+      })
+      setComposeResult(data)
+    } catch (err) {
+      setError(err.message)
+      setComposePerson(null)
+    } finally {
+      setComposeLoading(false)
+    }
   }
 
   // Filter logic
@@ -437,6 +466,13 @@ export default function EmailFinder() {
                             <div className="flex items-center gap-2">
                               <VerificationBadge status={person.verification_status} />
                               <CopyBtn text={person.full_email} />
+                              <button
+                                onClick={() => handleCompose(person)}
+                                className="text-[10px] text-[#6B7280] hover:text-[#2563EB] transition-colors whitespace-nowrap"
+                                title="Mail Yaz"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                              </button>
                             </div>
                           ) : (
                             <button
@@ -460,6 +496,67 @@ export default function EmailFinder() {
           )}
         </div>
       </div>
+
+      {/* Compose Email Modal */}
+      {composePerson && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => { setComposePerson(null); setComposeResult(null) }}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="border-b border-[#E5E7EB] px-5 py-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-[#111827]">Mail Yaz - {composePerson.full_name}</h3>
+              <button onClick={() => { setComposePerson(null); setComposeResult(null) }} className="text-[#9CA3AF] hover:text-[#111827]">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-5">
+              {composeLoading && (
+                <div className="flex flex-col items-center py-8 text-[#6B7280]">
+                  <svg className="w-6 h-6 animate-spin mb-2 text-[#2563EB]" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <p className="text-xs">{t('Kisisellestirilmis mail hazirlaniyor...')}</p>
+                </div>
+              )}
+              {composeResult && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-[#374151] mb-1">{t('Alici')}</label>
+                    <p className="text-xs text-[#6B7280]">{composePerson.full_email}</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#374151] mb-1">{t('Konu')}</label>
+                    <input type="text" defaultValue={composeResult.subject} className="w-full px-3 py-2 text-xs border border-[#D1D5DB] rounded-md" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#374151] mb-1">{t('Mesaj')}</label>
+                    <textarea defaultValue={composeResult.body} rows={10} className="w-full px-3 py-2 text-xs border border-[#D1D5DB] rounded-md resize-y" />
+                  </div>
+                  <div className="flex items-center gap-2 pt-2">
+                    <button
+                      onClick={() => {
+                        const subject = encodeURIComponent(composeResult.subject)
+                        const body = encodeURIComponent(composeResult.body)
+                        window.open(`mailto:${composePerson.full_email}?subject=${subject}&body=${body}`)
+                      }}
+                      className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-4 py-2"
+                    >
+                      Mail Uygulamasinda Ac
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`Konu: ${composeResult.subject}\n\n${composeResult.body}`)
+                      }}
+                      className="text-xs font-medium text-[#6B7280] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]"
+                    >
+                      {t('Kopyala')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

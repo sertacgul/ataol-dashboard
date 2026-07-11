@@ -458,6 +458,9 @@ export const en = {
   'Likely': 'Likely',
   'Risky': 'Risky',
   'Unknown': 'Unknown',
+  'Kisisellestirilmis mail hazirlaniyor...': 'Generating personalized email...',
+  'Alici': 'Recipient',
+  'Mesaj': 'Message',
 
   // Guide
   'AskDesk Kılavuzu': 'AskDesk Guide',

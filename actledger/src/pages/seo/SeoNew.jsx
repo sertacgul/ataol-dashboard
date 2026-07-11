@@ -204,7 +204,7 @@ export default function SeoNew() {
     setContentLoading(true)
     setError('')
     try {
-      const prompt = `Aşağıdaki konu hakkında 2000-5000 kelimelik profesyonel bir Türkçe blog yazısı oluştur. SEO uyumlu olsun, H2 başlıklar kullan, somut veriler içersin. Yasaklı ifadeler kullanma: 'yapay zeka çağında', 'devrim niteliğinde', 'paradigma değişimi'.\n\nKonu: ${topic}\n\n${profileContext}`
+      const prompt = `Aşağıdaki konu hakkında 2000-5000 kelimelik profesyonel bir Türkçe blog yazısı oluştur. SEO uyumlu olsun, somut veriler içersin. Yasaklı ifadeler kullanma: 'yapay zeka çağında', 'devrim niteliğinde', 'paradigma değişimi'.\n\nONEMLI FORMAT KURALLARI:\n- Kesinlikle markdown kullanma (# * ** __ gibi isaret kullanma)\n- Basliklari buyuk harfle yaz, baska isaret ekleme\n- Madde isaretleri icin - kullan, * kullanma\n- Kalin veya italik metin yapma\n\nKonu: ${topic}\n\n${profileContext}`
       const data = await api.post('/ai/generate', { prompt })
       setBodyTr(data.text || '')
       if (keywords) {
@@ -504,7 +504,7 @@ export default function SeoNew() {
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className={labelClass}>{t('Türkçe İçerik')} (Markdown)</label>
+                  <label className={labelClass}>{t('Türkçe İçerik')}</label>
                   <button
                     onClick={() => copyToClipboard(bodyTr)}
                     className="text-xs text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded px-2 py-0.5"
@@ -523,7 +523,7 @@ export default function SeoNew() {
               {bodyEn && (
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className={labelClass}>{t('İngilizce İçerik')} (Markdown)</label>
+                    <label className={labelClass}>{t('İngilizce İçerik')}</label>
                     <button
                       onClick={() => copyToClipboard(bodyEn)}
                       className="text-xs text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded px-2 py-0.5"

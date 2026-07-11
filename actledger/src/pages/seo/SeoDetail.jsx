@@ -115,6 +115,11 @@ export default function SeoDetail() {
       {publishError && (
         <div className="mb-4 text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">
           {publishError}
+          {publishError.includes('ayar') && (
+            <Link to="/app/settings" className="ml-2 underline font-medium text-[#2563EB]">
+              Ayarlar sayfasina git
+            </Link>
+          )}
         </div>
       )}
 
@@ -169,7 +174,7 @@ export default function SeoDetail() {
           <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
             <h2 className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-3">{t('Türkçe İçerik')}</h2>
             <pre className="text-xs text-[#111827] whitespace-pre-wrap font-sans leading-relaxed max-h-64 overflow-y-auto">
-              {article.body_tr}
+              {(article.body_tr || '').replace(/^#{1,6}\s+/gm, '').replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1').replace(/_{1,2}([^_]+)_{1,2}/g, '$1')}
             </pre>
           </div>
         )}
@@ -179,7 +184,7 @@ export default function SeoDetail() {
           <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
             <h2 className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-3">{t('İngilizce İçerik')}</h2>
             <pre className="text-xs text-[#111827] whitespace-pre-wrap font-sans leading-relaxed max-h-64 overflow-y-auto">
-              {article.body_en}
+              {(article.body_en || '').replace(/^#{1,6}\s+/gm, '').replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1').replace(/_{1,2}([^_]+)_{1,2}/g, '$1')}
             </pre>
           </div>
         )}
