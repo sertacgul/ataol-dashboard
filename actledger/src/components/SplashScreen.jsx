@@ -35,7 +35,7 @@ export default function SplashScreen({ onFinish }) {
 
         {/* Brand */}
         <h1 className="text-2xl font-bold text-white tracking-tight mb-2">AskDesk</h1>
-        <p className="text-sm text-white/70">Powered by OperIQ AI</p>
+        <p className="text-sm text-white/70">Powered by ATAOL AI Techs</p>
 
         {/* Loading dots */}
         <div className="flex gap-1.5 mt-6">
