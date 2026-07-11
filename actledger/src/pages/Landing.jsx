@@ -116,6 +116,9 @@ export default function Landing() {
           <span className="text-base font-bold text-[#111827]">AskDesk</span>
         </div>
         <div className="flex items-center gap-4">
+          <a href="#pricing" className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors">
+            {isEn ? 'Pricing' : 'Fiyatlandırma'}
+          </a>
           <button
             onClick={toggleLang}
             className="text-xs font-medium text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded-md px-2.5 py-1.5 transition-colors"
@@ -234,6 +237,160 @@ export default function Landing() {
                 <p className="text-xs text-[#6B7280] leading-relaxed">{isEn ? s.descEn : s.descTr}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="px-6 py-16 bg-[#F9FAFB]" id="pricing">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-[#111827] mb-3">
+              {isEn ? 'Simple, Transparent Pricing' : 'Basit ve Şeffaf Fiyatlandırma'}
+            </h2>
+            <p className="text-sm text-[#6B7280] max-w-xl mx-auto">
+              {isEn
+                ? 'Start free, upgrade as you grow. No hidden fees.'
+                : 'Ücretsiz başlayın, büyüdükçe yükseltin. Gizli ücret yok.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+            {/* Free */}
+            <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
+              <div className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-2">
+                {isEn ? 'Starter' : 'Başlangıç'}
+              </div>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-3xl font-bold text-[#111827]">$0</span>
+                <span className="text-sm text-[#6B7280]">/{isEn ? 'mo' : 'ay'}</span>
+              </div>
+              <p className="text-xs text-[#6B7280] mb-5">
+                {isEn ? 'Perfect for getting started' : 'Başlamak için ideal'}
+              </p>
+              <ul className="space-y-2.5 mb-6">
+                {[
+                  isEn ? '20 leads' : '20 lead',
+                  isEn ? '20 emails/month' : '20 email/ay',
+                  isEn ? '2 SEO articles/month' : '2 SEO makale/ay',
+                  isEn ? 'CRM Pipeline' : 'CRM Pipeline',
+                  isEn ? 'Analytics & BMC' : 'Analytics ve BMC',
+                  isEn ? 'Financial Simulator' : 'Finansal Simülatör',
+                  isEn ? '5 AI uses/day' : 'Günlük 5 AI kullanım',
+                  isEn ? '1 user' : '1 kullanıcı',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-[#374151]">
+                    <svg className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to="/register"
+                className="block text-center text-sm font-medium text-[#2563EB] border border-[#2563EB] rounded-md py-2.5 hover:bg-[#EFF6FF] transition-colors"
+              >
+                {t('Ücretsiz Başla')}
+              </Link>
+            </div>
+
+            {/* Pro */}
+            <div className="bg-white border-2 border-[#2563EB] rounded-lg p-6 relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-medium text-white bg-[#2563EB] rounded-full px-3 py-0.5">
+                {isEn ? 'Most Popular' : 'En Popüler'}
+              </div>
+              <div className="text-xs font-medium text-[#2563EB] uppercase tracking-wide mb-2">Pro</div>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-3xl font-bold text-[#111827]">$25</span>
+                <span className="text-sm text-[#6B7280]">/{isEn ? 'mo' : 'ay'}</span>
+              </div>
+              <p className="text-xs text-[#6B7280] mb-1">
+                {isEn ? 'For growing startups' : 'Büyüyen startup\'lar için'}
+              </p>
+              <p className="text-xs text-[#10B981] font-medium mb-5">
+                {isEn ? '$250/year (save $50)' : '$250/yıl ($50 tasarruf)'}
+              </p>
+              <ul className="space-y-2.5 mb-6">
+                {[
+                  isEn ? '500 leads' : '500 lead',
+                  isEn ? '200 emails/month' : '200 email/ay',
+                  isEn ? '10 SEO articles/month' : '10 SEO makale/ay',
+                  isEn ? 'Unlimited AI usage' : 'Sınırsız AI kullanımı',
+                  isEn ? 'Email Finder' : 'Email Bulucu',
+                  isEn ? 'Competitor Analysis' : 'Rakip Analizi',
+                  isEn ? 'Social Media Management' : 'Sosyal Medya Yönetimi',
+                  isEn ? 'Up to 3 users' : '3 kullanıcıya kadar',
+                  isEn ? 'Priority support' : 'Öncelikli destek',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-[#374151]">
+                    <svg className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to="/register"
+                className="block text-center text-sm font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md py-2.5 transition-colors"
+              >
+                {isEn ? 'Start Free Trial' : 'Denemeye Başla'}
+              </Link>
+            </div>
+
+            {/* Growth */}
+            <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
+              <div className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-2">Growth</div>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-3xl font-bold text-[#111827]">$49</span>
+                <span className="text-sm text-[#6B7280]">/{isEn ? 'mo' : 'ay'}</span>
+              </div>
+              <p className="text-xs text-[#6B7280] mb-1">
+                {isEn ? 'For scaling teams' : 'Ölçeklenen ekipler için'}
+              </p>
+              <p className="text-xs text-[#10B981] font-medium mb-5">
+                {isEn ? '$490/year (save $98)' : '$490/yıl ($98 tasarruf)'}
+              </p>
+              <ul className="space-y-2.5 mb-6">
+                {[
+                  isEn ? 'Unlimited leads' : 'Sınırsız lead',
+                  isEn ? 'Unlimited emails' : 'Sınırsız email',
+                  isEn ? 'Unlimited SEO articles' : 'Sınırsız SEO makale',
+                  isEn ? 'Unlimited AI usage' : 'Sınırsız AI kullanımı',
+                  isEn ? 'All Pro features' : 'Tüm Pro özellikleri',
+                  isEn ? 'API access' : 'API erişimi',
+                  isEn ? 'Up to 10 users' : '10 kullanıcıya kadar',
+                  isEn ? 'Custom onboarding' : 'Özel onboarding',
+                  isEn ? 'Dedicated support' : 'Özel destek',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-[#374151]">
+                    <svg className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to="/register"
+                className="block text-center text-sm font-medium text-[#2563EB] border border-[#2563EB] rounded-md py-2.5 hover:bg-[#EFF6FF] transition-colors"
+              >
+                {isEn ? 'Start Free Trial' : 'Denemeye Başla'}
+              </Link>
+            </div>
+          </div>
+
+          {/* Secure payment badge */}
+          <div className="flex items-center justify-center gap-2 text-xs text-[#6B7280]">
+            <svg className="w-4 h-4 text-[#10B981]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>
+              {isEn
+                ? 'Secure payment with 256-bit SSL encryption. Payments processed by Lemon Squeezy.'
+                : '256-bit SSL şifreleme ile güvenli ödeme. Ödemeler Lemon Squeezy tarafından işlenir.'}
+            </span>
           </div>
         </div>
       </section>
