@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { createToken } from '../middleware/auth.js'
+import { sendEmail, passwordResetEmail, welcomeEmail } from '../lib/mail.js'
 
 const auth = new Hono()
 
@@ -73,6 +74,11 @@ auth.post('/register', async (c) => {
 
   const token = await createToken(id, 'member', c.env.JWT_SECRET)
   c.header('Set-Cookie', `askdesk_token=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=604800`)
+
+  // Send welcome email (non-blocking)
+  const welcome = welcomeEmail(name, trialExpires)
+  c.executionCtx.waitUntil(sendEmail(c.env, { to: email, ...welcome }))
+
   return c.json({ id, email, name, company_name, role: 'member', plan: 'free', trial_expires_at: trialExpires }, 201)
 })
 
@@ -135,9 +141,12 @@ auth.post('/forgot-password', async (c) => {
     'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?'
   ).bind(resetToken, expires, user.id).run()
 
-  // TODO: Send email with reset token when SMTP is configured
-  // For now return the token in response (will be removed in production)
-  return c.json({ ok: true, message: 'Sıfırlama kodu oluşturuldu.', reset_code: resetToken })
+  // Send reset code via email
+  const userInfo = await c.env.DB.prepare('SELECT name FROM users WHERE id = ?').bind(user.id).first()
+  const resetEmail = passwordResetEmail(userInfo?.name || 'Kullanıcı', resetToken)
+  c.executionCtx.waitUntil(sendEmail(c.env, { to: email, ...resetEmail }))
+
+  return c.json({ ok: true, message: 'Sıfırlama kodu email adresinize gönderildi.' })
 })
 
 // Password reset - verify token and set new password

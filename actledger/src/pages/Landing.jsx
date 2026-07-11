@@ -264,8 +264,11 @@ export default function Landing() {
               <div className="flex items-baseline gap-1 mb-1">
                 <span className="text-3xl font-bold text-[#111827]">$0</span>
               </div>
-              <p className="text-xs text-[#F59E0B] font-medium mb-5">
+              <p className="text-xs text-[#F59E0B] font-medium mb-1">
                 {isEn ? '14-day free trial' : '14 gün ücretsiz deneme'}
+              </p>
+              <p className="text-xs text-[#9CA3AF] mb-5">
+                {isEn ? 'Credit card required. Charged after trial.' : 'Kredi kartı gerekli. 14 gün sonunda ödeme alınır.'}
               </p>
               <ul className="space-y-2.5 mb-6">
                 {[
@@ -339,11 +342,11 @@ export default function Landing() {
             <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
               <div className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-2">Growth</div>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-3xl font-bold text-[#111827]">$35</span>
+                <span className="text-3xl font-bold text-[#111827]">$40</span>
                 <span className="text-sm text-[#6B7280]">/{isEn ? 'mo' : 'ay'}</span>
               </div>
               <p className="text-xs text-[#10B981] font-medium mb-5">
-                {isEn ? '$350/year (save $70)' : '$350/yıl ($70 tasarruf)'}
+                {isEn ? '$400/year (save $80)' : '$400/yıl ($80 tasarruf)'}
               </p>
               <ul className="space-y-2.5 mb-6">
                 {[
@@ -377,11 +380,11 @@ export default function Landing() {
             <div className="bg-white border border-[#E5E7EB] rounded-lg p-6">
               <div className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-2">Team</div>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-3xl font-bold text-[#111827]">$30</span>
+                <span className="text-3xl font-bold text-[#111827]">$35</span>
                 <span className="text-sm text-[#6B7280]">/{isEn ? 'user/mo' : 'kullanıcı/ay'}</span>
               </div>
               <p className="text-xs text-[#10B981] font-medium mb-5">
-                {isEn ? 'Min. 3 users ($90/mo)' : 'Min. 3 kullanıcı ($90/ay)'}
+                {isEn ? 'Min. 3 users ($105/mo)' : 'Min. 3 kullanıcı ($105/ay)'}
               </p>
               <ul className="space-y-2.5 mb-6">
                 {[

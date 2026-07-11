@@ -13,6 +13,7 @@ CORS_ORIGIN = "https://askdesk.app"
 # Gemini API key is set via: wrangler secret put GEMINI_API_KEY
 # Google Maps API key is set via: wrangler secret put GOOGLE_MAPS_API_KEY
 # JWT secret is set via: wrangler secret put JWT_SECRET
+# Resend email API key: wrangler secret put RESEND_API_KEY
 
 [[d1_databases]]
 binding = "DB"
