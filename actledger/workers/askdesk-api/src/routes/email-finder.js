@@ -3,7 +3,7 @@ import { authMiddleware } from '../middleware/auth.js'
 import {
   callGemini, cleanDomain, checkMxRecords, detectCatchAll,
   scrapeWebsite, maskName, maskEmail, maskPhone, classifySeniority, classifyDepartment,
-  getLearnedPattern, saveLearnedPattern,
+  saveLearnedPattern,
 } from '../lib/enrichment/free.js'
 import { createEnrichment } from '../lib/enrichment/index.js'
 
@@ -313,6 +313,7 @@ router.post('/bulk-reveal', async (c) => {
       phone: item.person.phone || null,
       verification_status: vStatus,
       confidence_score: vConfidence,
+      source: item.person.source || 'pattern',
     })
   }
 
@@ -404,7 +405,8 @@ router.post('/export', async (c) => {
   const results = rows.results || []
   let csv = 'Name,Title,Email,Phone,Domain,Status,Confidence,Source,Date\n'
   for (const r of results) {
-    csv += `"${r.person_name}","${r.person_title || ''}","${r.email}","${r.phone || ''}","${r.domain}","${r.verification_status}",${r.confidence_score},"${r.source}","${r.created_at}"\n`
+    const src = r.source === 'website' ? 'website' : 'directory'
+    csv += `"${r.person_name}","${r.person_title || ''}","${r.email}","${r.phone || ''}","${r.domain}","${r.verification_status}",${r.confidence_score},"${src}","${r.created_at}"\n`
   }
 
   return new Response(csv, {
