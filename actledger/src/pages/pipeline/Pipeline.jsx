@@ -95,7 +95,7 @@ export default function Pipeline() {
                       <button
                         onClick={() => handleDelete(item.id)}
                         className="text-[#9CA3AF] hover:text-[#EF4444] text-xs leading-none flex-shrink-0"
-                        title="Sil"
+                        title={t('Sil')}
                       >
                         ×
                       </button>

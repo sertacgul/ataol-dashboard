@@ -116,6 +116,7 @@ export default {
 
   // Dashboard
   'Toplam Lead': 'Total Leads',
+  'Toplam Email': 'Total Emails',
   'Gönderilen Email': 'Sent Emails',
   'Açılma Oranı (%)': 'Open Rate (%)',
   'Dönüşüm': 'Conversion',
@@ -123,6 +124,7 @@ export default {
   'Son Emailler': 'Recent Emails',
   'Son Pipeline': 'Recent Pipeline',
   'Tümünü Gör': 'View All',
+  'Analitik': 'Analytics',
 
   // Settings
   'Hesap Bilgileri': 'Account Information',
@@ -298,6 +300,34 @@ export default {
   'Yeni Plan': 'New Plan',
   'İçerik başlığı': 'Content title',
   'Tür': 'Type',
+  'İsteğe bağlı notlar': 'Optional notes',
+  'Planlandı': 'Planned',
+  'Siliniyor...': 'Deleting...',
+  'Başlık gerekli': 'Title is required',
+  'Kayıt başarısız': 'Save failed',
+  'Güncelleme başarısız': 'Update failed',
+  'Silme başarısız': 'Delete failed',
+  // Month names
+  'Ocak': 'January',
+  'Şubat': 'February',
+  'Mart': 'March',
+  'Nisan': 'April',
+  'Mayıs': 'May',
+  'Haziran': 'June',
+  'Temmuz': 'July',
+  'Ağustos': 'August',
+  'Eylül': 'September',
+  'Ekim': 'October',
+  'Kasım': 'November',
+  'Aralık': 'December',
+  // Day abbreviations
+  'Pzt': 'Mon',
+  'Sal': 'Tue',
+  'Çar': 'Wed',
+  'Per': 'Thu',
+  'Cum': 'Fri',
+  'Cmt': 'Sat',
+  'Paz': 'Sun',
 
   // Analytics
   'Bu Hafta': 'This Week',
@@ -312,7 +342,9 @@ export default {
   'Henüz email bulunmuyor.': 'No emails found yet.',
 
   // Simulator
+  'Finansal Simülasyon Raporu': 'Financial Simulation Report',
   'Finansal Simülatör': 'Financial Simulator',
+  'Analiz yapılırken hata oluştu: ': 'Error during analysis: ',
   '3 senaryo ile 12 aylık projeksiyon ve birim ekonomi analizi.': '12-month projection with 3 scenarios and unit economics analysis.',
   'Rapor İndir (PDF)': 'Download Report (PDF)',
   'OperIQ Sektör Analizi': 'OperIQ Sector Analysis',
@@ -481,6 +513,11 @@ export default {
   // Guide
   'AskDesk Kılavuzu': 'AskDesk Guide',
   'Platformu etkili kullanmak için adım adım rehber.': 'Step-by-step guide to use the platform effectively.',
+  'Başlangıç': 'Getting Started',
+  'Lead Yönetimi': 'Lead Management',
+  'İçerik Üretimi': 'Content Creation',
+  'Analitik ve Strateji': 'Analytics & Strategy',
+  'Şablonlar ve Takvim': 'Templates & Calendar',
 
   // Splash
   'Powered by OperIQ AI': 'Powered by OperIQ AI',

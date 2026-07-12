@@ -4,12 +4,12 @@ import { api } from '../../lib/api'
 import HelpButton from '../../components/HelpButton'
 import { useT } from '../../contexts/LanguageContext'
 
-const TR_MONTHS = [
+const MONTHS = [
   'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
   'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
 ]
 
-const DAY_LABELS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
+const DAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
 
 const TYPE_COLORS = {
   seo: '#2563EB',
@@ -141,7 +141,7 @@ export default function Calendar() {
 
   async function handleSaveNew(e) {
     e.preventDefault()
-    if (!newForm.title.trim()) { setNewError('Başlık gerekli'); return }
+    if (!newForm.title.trim()) { setNewError(t('Başlık gerekli')); return }
     setNewSaving(true)
     setNewError('')
     try {
@@ -155,7 +155,7 @@ export default function Calendar() {
       setShowNew(false)
       fetchItems()
     } catch (err) {
-      setNewError(err.message || 'Kayıt başarısız')
+      setNewError(err.message || t('Kayıt başarısız'))
     } finally {
       setNewSaving(false)
     }
@@ -172,7 +172,7 @@ export default function Calendar() {
 
   async function handleSaveEdit(e) {
     e.preventDefault()
-    if (!editForm.title.trim()) { setEditError('Başlık gerekli'); return }
+    if (!editForm.title.trim()) { setEditError(t('Başlık gerekli')); return }
     setEditSaving(true)
     setEditError('')
     try {
@@ -184,7 +184,7 @@ export default function Calendar() {
       setEditItem(null)
       fetchItems()
     } catch (err) {
-      setEditError(err.message || 'Güncelleme başarısız')
+      setEditError(err.message || t('Güncelleme başarısız'))
     } finally {
       setEditSaving(false)
     }
@@ -197,7 +197,7 @@ export default function Calendar() {
       setEditItem(null)
       fetchItems()
     } catch (err) {
-      setEditError(err.message || 'Silme başarısız')
+      setEditError(err.message || t('Silme başarısız'))
       setEditDeleting(false)
     }
   }
@@ -238,7 +238,7 @@ export default function Calendar() {
               &lt;
             </button>
             <span className="text-sm font-medium text-[#111827] min-w-[120px] text-center">
-              {TR_MONTHS[month]} {year}
+              {t(MONTHS[month])} {year}
             </span>
             <button
               onClick={nextMonth}
@@ -257,16 +257,16 @@ export default function Calendar() {
                 className="inline-block w-2 h-2 rounded-full"
                 style={{ backgroundColor: TYPE_COLORS[type] }}
               />
-              <span className="text-xs text-[#6B7280]">{label}</span>
+              <span className="text-xs text-[#6B7280]">{t(label)}</span>
             </div>
           ))}
         </div>
 
         {/* Grid header */}
         <div className="grid grid-cols-7 border-l border-t border-[#E5E7EB]">
-          {DAY_LABELS.map(d => (
+          {DAYS.map(d => (
             <div key={d} className="border-r border-b border-[#E5E7EB] px-2 py-1.5 text-xs font-medium text-[#6B7280] bg-[#F9FAFB]">
-              {d}
+              {t(d)}
             </div>
           ))}
         </div>
@@ -377,7 +377,7 @@ export default function Calendar() {
                   className="w-full text-sm border border-[#D1D5DB] rounded-md px-3 py-2 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827]"
                 >
                   {Object.entries(TYPE_LABELS).map(([v, l]) => (
-                    <option key={v} value={v}>{l}</option>
+                    <option key={v} value={v}>{t(l)}</option>
                   ))}
                 </select>
               </div>

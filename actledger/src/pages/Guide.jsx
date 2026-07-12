@@ -100,7 +100,7 @@ export default function Guide() {
                     : 'text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6]'
                 }`}
               >
-                {s.label}
+                {t(s.label)}
               </a>
             ))}
           </div>

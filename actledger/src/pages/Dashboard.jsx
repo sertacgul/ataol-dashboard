@@ -31,10 +31,10 @@ export default function Dashboard() {
       <h1 className="text-base font-semibold text-[#111827] mb-4">Dashboard</h1>
 
       <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-4">
-        <StatCard label="Toplam Lead" value={stats?.total_companies ?? '-'} />
-        <StatCard label="Gönderilen Email" value={stats?.total_sent ?? '-'} />
-        <StatCard label="Açılma Oranı (%)" value={openRate} />
-        <StatCard label="Toplam Email" value={stats?.total_emails ?? '-'} />
+        <StatCard label={t('Toplam Lead')} value={stats?.total_companies ?? '-'} />
+        <StatCard label={t('Gönderilen Email')} value={stats?.total_sent ?? '-'} />
+        <StatCard label={t('Açılma Oranı (%)')} value={openRate} />
+        <StatCard label={t('Toplam Email')} value={stats?.total_emails ?? '-'} />
       </div>
 
       <div className="bg-white border border-[#E5E7EB] rounded-md overflow-hidden">

@@ -98,15 +98,15 @@ export default function Analytics() {
       </div>
 
       {loading ? (
-        <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yukleniyor...')}</div>
+        <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yükleniyor...')}</div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-5">
             <StatCard label={t('Toplam Lead')} value={overview?.total_companies ?? '-'} />
-            <StatCard label={t('Gonderilen Email')} value={overview?.sent_emails ?? '-'} />
-            <StatCard label={t('Acilma Orani (%)')} value={openRate} />
-            <StatCard label={t('Donusum')} value={overview?.total_companies ?? '-'} />
-            <StatCard label={t('Yanit')} value={overview?.reply_count ?? '-'} />
+            <StatCard label={t('Gönderilen Email')} value={overview?.sent_emails ?? '-'} />
+            <StatCard label={t('Açılma Oranı (%)')} value={openRate} />
+            <StatCard label={t('Dönüşüm')} value={overview?.total_companies ?? '-'} />
+            <StatCard label={t('Yanıt')} value={overview?.reply_count ?? '-'} />
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -184,7 +184,7 @@ export default function Analytics() {
               <h2 className="text-xs font-semibold text-[#374151]">{t('Top Outreach')}</h2>
             </div>
             {!topOutreach.length ? (
-              <div className="text-xs text-[#9CA3AF] text-center py-8">{t('Henuz email bulunmuyor.')}</div>
+              <div className="text-xs text-[#9CA3AF] text-center py-8">{t('Henüz email bulunmuyor.')}</div>
             ) : (
               <table className="w-full text-sm">
                 <thead>

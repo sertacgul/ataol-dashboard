@@ -5,81 +5,81 @@ import { useT } from '../contexts/LanguageContext'
 const FEATURES = [
   {
     icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-    titleTr: 'AI Destekli Outreach',
-    titleEn: 'AI-Powered Outreach',
-    descTr: 'Yapay zeka ile kişiselleştirilmiş email kampanyaları oluşturun. Email açılma takibi, otomatik şablon üretimi ve firma bazlı içerik optimizasyonu.',
-    descEn: 'Create personalized email campaigns with AI. Email open tracking, automatic template generation, and company-based content optimization.',
+    titleTr: 'Tam Otomatik Outreach',
+    titleEn: 'Fully Automated Outreach',
+    descTr: 'Firma adını girin, AI sektör analizi yapsın, karar vericileri bulsun ve 300-500 kelimelik sektöre özel kişiselleştirilmiş email otomatik oluştursun. Açılma takibi dahil.',
+    descEn: 'Enter a company name. AI analyzes the sector, finds decision-makers, and auto-composes a 300-500 word sector-specific personalized email. Open tracking included.',
+  },
+  {
+    icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7',
+    titleTr: 'Kişi ve Email Bulucu',
+    titleEn: 'People & Email Finder',
+    descTr: 'Firma web sitesini ve AI bilgi tabanını tarayarak gerçek kişileri bulun: isim, unvan, email, telefon. MX doğrulama, toplu reveal ve CSV dışa aktarma.',
+    descEn: 'Scan company websites and AI knowledge base to find real people: name, title, email, phone. MX verification, bulk reveal, and CSV export.',
   },
   {
     icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
     titleTr: 'Lead Generation',
     titleEn: 'Lead Generation',
-    descTr: 'Google Maps entegrasyonu ile hedef sektörünüzdeki firmaları bulun, yorumlarını analiz edin ve tek tıkla lead listesine ekleyin.',
-    descEn: 'Find companies in your target sector with Google Maps integration, analyze reviews, and add to lead list in one click.',
+    descTr: 'Google Maps entegrasyonu ile hedef sektörünüzdeki firmaları bulun, müşteri yorumlarını analiz edin ve tek tıkla lead listesine ekleyin.',
+    descEn: 'Find companies in your target sector with Google Maps, analyze customer reviews, and add to your lead list in one click.',
   },
   {
     icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7',
     titleTr: 'CRM Pipeline',
     titleEn: 'CRM Pipeline',
-    descTr: 'Sürükle-bırak kanban ile satış sürecini görselleştirin. Leadlerinizi aşamalar arasında yönetin.',
-    descEn: 'Visualize your sales process with drag-and-drop kanban. Manage leads across pipeline stages.',
+    descTr: 'Sürükle-bırak kanban ile satış sürecini görselleştirin. Leadlerinizi aşamalar arasında yönetin, dönüşüm oranlarını takip edin.',
+    descEn: 'Visualize your sales process with drag-and-drop kanban. Manage leads across stages and track conversion rates.',
   },
   {
     icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
     titleTr: 'SEO İçerik Üretimi',
     titleEn: 'SEO Content Creation',
-    descTr: '6 adımlı SEO makale süreci: trend araştırması, konu seçimi, içerik, çeviri, SEO skoru ve WordPress yayını.',
-    descEn: '6-step SEO article workflow: trend research, topic selection, content, translation, SEO score, and WordPress publishing.',
-  },
-  {
-    icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7',
-    titleTr: 'Email Bulucu',
-    titleEn: 'Email Finder',
-    descTr: 'Firma web sitesini tarayarak gerçek email adreslerini bulun. MX kayıt doğrulama ve kalıp bazlı email tahmini.',
-    descEn: 'Find real email addresses by scanning company websites. MX record verification and pattern-based email estimation.',
+    descTr: '6 adımlı SEO makale süreci: trend araştırması, konu seçimi, Türkçe içerik, İngilizce çeviri, SEO skoru ve WordPress yayını.',
+    descEn: '6-step SEO article workflow: trend research, topic selection, content writing, translation, SEO scoring, and WordPress publishing.',
   },
   {
     icon: 'M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z',
     titleTr: 'Sosyal Medya Yönetimi',
     titleEn: 'Social Media Management',
-    descTr: 'LinkedIn, Twitter/X, Instagram ve Facebook için platforma özel içerik üretimi ve AI destekli post oluşturma.',
-    descEn: 'Platform-specific content for LinkedIn, Twitter/X, Instagram and Facebook with AI-powered post creation.',
+    descTr: 'LinkedIn, Twitter/X, Instagram ve Facebook için platforma özel içerik üretimi. Karakter limiti kontrolü ve AI hashtag önerisi.',
+    descEn: 'Platform-specific content for LinkedIn, Twitter/X, Instagram and Facebook. Character limit control and AI hashtag suggestions.',
   },
   {
     icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
     titleTr: 'Analytics Dashboard',
     titleEn: 'Analytics Dashboard',
-    descTr: 'Email trendi, sosyal medya dağılımı, pipeline aşamaları ve içerik üretim istatistikleri.',
-    descEn: 'Email trends, social media distribution, pipeline stages, and content production statistics.',
+    descTr: 'Email gönderim trendi, açılma oranları, sosyal medya dağılımı, pipeline aşamaları ve içerik üretim istatistikleri.',
+    descEn: 'Email sending trends, open rates, social media distribution, pipeline stages, and content production statistics.',
   },
   {
     icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
     titleTr: 'Finansal Simülasyon',
     titleEn: 'Financial Simulation',
-    descTr: '3 senaryo ile 12 aylık gelir/gider projeksiyonu. Birim ekonomi analizi ve nakit akış grafikleri.',
-    descEn: '12-month revenue/expense projection with 3 scenarios. Unit economics analysis and cash flow charts.',
+    descTr: '3 senaryo ile 12 aylık gelir/gider projeksiyonu. LTV/CAC, churn rate, EBITDA ve nakit akış grafikleri.',
+    descEn: '12-month revenue/expense projection with 3 scenarios. LTV/CAC, churn rate, EBITDA margin, and cash flow charts.',
   },
   {
     icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
     titleTr: 'Rakip Analizi',
     titleEn: 'Competitor Analysis',
-    descTr: 'Rakip firmaların web sitelerini analiz edin. SWOT raporu ile stratejik konumlanmanızı belirleyin.',
-    descEn: 'Analyze competitor websites. Determine strategic positioning with SWOT reports.',
+    descTr: 'Rakip firmaların web sitelerini AI ile analiz edin. SWOT raporu ile stratejik konumlanmanızı belirleyin.',
+    descEn: 'Analyze competitor websites with AI. Determine strategic positioning with SWOT reports.',
   },
 ]
 
 const STATS = [
   { value: '14+', labelTr: 'Entegre Modül', labelEn: 'Integrated Modules' },
-  { value: '4', labelTr: 'Sosyal Medya Platformu', labelEn: 'Social Platforms' },
-  { value: '3', labelTr: 'Senaryo Simülasyonu', labelEn: 'Scenario Simulations' },
+  { value: '28', labelTr: 'Dil Desteği', labelEn: 'Languages Supported' },
+  { value: '1-Click', labelTr: 'Otomatik Outreach', labelEn: 'Auto Outreach' },
   { value: '6', labelTr: 'Adımlı SEO Süreci', labelEn: 'Step SEO Workflow' },
 ]
 
 const STEPS = [
-  { num: '01', titleTr: 'Kayıt Olun', titleEn: 'Sign Up', descTr: 'Ücretsiz hesap oluşturun ve firma profilinizi doldurun.', descEn: 'Create a free account and fill your company profile.' },
-  { num: '02', titleTr: 'Leadlerinizi Bulun', titleEn: 'Find Your Leads', descTr: 'Google Maps, email bulucu veya manuel giriş ile potansiyel müşterilerinizi ekleyin.', descEn: 'Add potential customers via Google Maps, email finder, or manual entry.' },
-  { num: '03', titleTr: 'Kampanya Oluşturun', titleEn: 'Create Campaigns', descTr: 'AI ile kişiselleştirilmiş email, SEO makale ve sosyal medya içeriği üretin.', descEn: 'Create personalized emails, SEO articles, and social media content with AI.' },
-  { num: '04', titleTr: 'Büyümeyi Takip Edin', titleEn: 'Track Growth', descTr: 'Analytics ve finansal simülasyon ile performansınızı ölçün.', descEn: 'Measure performance with analytics and financial simulation.' },
+  { num: '01', titleTr: 'Firma Adını Girin', titleEn: 'Enter a Company', descTr: 'Hedef firma adı veya domain girin. AI firmayı analiz edip sektör, karar vericiler ve iletişim bilgilerini otomatik bulsun.', descEn: 'Enter a target company name or domain. AI analyzes the company, finds sector, decision-makers, and contact info automatically.' },
+  { num: '02', titleTr: 'AI Email Yazsın', titleEn: 'AI Writes the Email', descTr: 'Sektöre özel sorunları tespit eden, çözüm sunan ve ticaret odası referansı içeren 300-500 kelimelik profesyonel email otomatik oluşturulsun.', descEn: 'Auto-generate a 300-500 word professional email that identifies sector-specific pain points, proposes solutions, and includes trade chamber references.' },
+  { num: '03', titleTr: 'Gönderin ve Takip Edin', titleEn: 'Send & Track', descTr: 'Emaili onaylayıp gönderin. Açılma takibi ile kimin okuduğunu, ne zaman açtığını görün.', descEn: 'Approve and send. Track who opened your email and when with real-time open tracking.' },
+  { num: '04', titleTr: 'Pipeline ile Yönetin', titleEn: 'Manage with Pipeline', descTr: 'Yanıt alan leadleri CRM pipeline ile takip edin. Analytics ile kampanya performansını ölçün.', descEn: 'Follow up on responding leads with CRM pipeline. Measure campaign performance with analytics.' },
 ]
 
 const DEMO_SCREENS = [
@@ -197,40 +197,46 @@ function ScreenLeads() {
 }
 
 function ScreenOutreach() {
+  const steps = [
+    { icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9', label: 'acmetech.com', sub: 'Domain entered', done: true },
+    { icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z', label: 'AI Sector Analysis', sub: 'SaaS / B2B identified', done: true },
+    { icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', label: '3 Decision-Makers', sub: 'CEO, CTO, Sales Dir.', done: true },
+    { icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', label: 'AI Composing Email', sub: '478 words, personalized', active: true },
+    { icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', label: 'Send & Track', sub: 'Open tracking ready' },
+  ]
   return (
     <div className="p-5">
-      <div className="flex items-center justify-between mb-5">
-        <div className="text-sm font-semibold text-[#111827]">Outreach Campaigns</div>
-        <div className="text-xs text-white bg-[#2563EB] rounded-md px-3 py-1.5 font-medium">+ New Campaign</div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm font-semibold text-[#111827]">Outreach Automation</div>
+        <span className="text-[10px] font-medium text-[#2563EB] bg-[#EFF6FF] px-2 py-0.5 rounded-full">1-Click Flow</span>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-        {[
-          { name: 'Q3 SaaS Outreach', sent: 342, opened: 128, replied: 34, status: 'Active' },
-          { name: 'Tech Startup Series', sent: 215, opened: 89, replied: 21, status: 'Active' },
-        ].map((c, i) => (
-          <div key={i} className="border border-[#F3F4F6] rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-xs font-semibold text-[#111827]">{c.name}</div>
-              <span className="text-[10px] font-medium text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full">{c.status}</span>
+      <div className="space-y-2 mb-4">
+        {steps.map((s, i) => (
+          <div key={i} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 border ${s.active ? 'border-[#2563EB] bg-[#EFF6FF]' : s.done ? 'border-[#F3F4F6] bg-white' : 'border-[#F3F4F6] bg-[#F9FAFB] opacity-60'}`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${s.done ? 'bg-[#059669]' : s.active ? 'bg-[#2563EB]' : 'bg-[#E5E7EB]'}`}>
+              {s.done ? <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                : <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d={s.icon} /></svg>}
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div><div className="text-lg font-bold text-[#111827]">{c.sent}</div><div className="text-[10px] text-[#9CA3AF]">Sent</div></div>
-              <div><div className="text-lg font-bold text-[#2563EB]">{c.opened}</div><div className="text-[10px] text-[#9CA3AF]">Opened</div></div>
-              <div><div className="text-lg font-bold text-[#059669]">{c.replied}</div><div className="text-[10px] text-[#9CA3AF]">Replied</div></div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-medium text-[#111827]">{s.label}</div>
+              <div className="text-[10px] text-[#6B7280]">{s.sub}</div>
             </div>
+            {s.active && <div className="w-4 h-4 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin shrink-0" />}
           </div>
         ))}
       </div>
-      <div className="border border-[#F3F4F6] rounded-lg p-4">
-        <div className="text-xs font-medium text-[#111827] mb-3">Email Template Preview</div>
-        <div className="bg-[#F9FAFB] rounded-md p-3 text-xs text-[#374151] leading-relaxed">
-          <div className="text-[10px] text-[#9CA3AF] mb-2">Subject: Partnership Opportunity with {'{{company_name}}'}</div>
-          <p>Hi {'{{first_name}}'},</p>
-          <p className="mt-2">I noticed that {'{{company_name}}'} has been growing rapidly in the {'{{industry}}'} space. We help companies like yours streamline their outreach...</p>
-          <div className="mt-2 flex gap-1">
-            <span className="text-[10px] bg-[#EFF6FF] text-[#2563EB] px-1.5 py-0.5 rounded">AI Generated</span>
-            <span className="text-[10px] bg-[#F3F4F6] text-[#6B7280] px-1.5 py-0.5 rounded">Personalized</span>
+      <div className="border border-[#F3F4F6] rounded-lg p-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[10px] font-medium text-[#6B7280]">AI-Generated Preview</div>
+          <div className="flex gap-1">
+            <span className="text-[10px] bg-[#EFF6FF] text-[#2563EB] px-1.5 py-0.5 rounded">478 words</span>
+            <span className="text-[10px] bg-[#ECFDF5] text-[#059669] px-1.5 py-0.5 rounded">Personalized</span>
           </div>
+        </div>
+        <div className="bg-[#F9FAFB] rounded-md p-2.5 text-[11px] text-[#374151] leading-relaxed">
+          <div className="text-[10px] text-[#9CA3AF] mb-1.5">Subject: SaaS Growth Partnership - AcmeTech</div>
+          <p>Dear Mehmet Bey,</p>
+          <p className="mt-1.5 text-[#6B7280]">As a rapidly growing B2B SaaS company, AcmeTech's recent expansion into enterprise markets presents both exciting opportunities and operational challenges...</p>
         </div>
       </div>
     </div>
@@ -371,40 +377,53 @@ function ScreenAnalytics() {
 
 function ScreenEmailFinder() {
   const results = [
-    { name: 'Mehmet Yilmaz', email: 'mehmet@acmetech.com', title: 'CEO', conf: 96, verified: true },
-    { name: 'Ayse Kara', email: 'ayse.kara@acmetech.com', title: 'CTO', conf: 92, verified: true },
-    { name: 'Can Demir', email: 'can.demir@acmetech.com', title: 'Head of Sales', conf: 78, verified: false },
-    { name: 'Elif Ozturk', email: 'elif.ozturk@acmetech.com', title: 'Marketing Dir.', conf: 88, verified: true },
+    { name: 'Mehmet Yilmaz', email: 'mehmet@acmetech.com', phone: '+90 532 *** **12', title: 'CEO', conf: 96, verified: true, revealed: true },
+    { name: 'Ayse Kara', email: 'ayse.kara@acmetech.com', phone: '+90 541 *** **89', title: 'CTO', conf: 92, verified: true, revealed: true },
+    { name: 'Can Demir', email: 'can.demir@acmetech.com', phone: '+90 505 *** **34', title: 'Head of Sales', conf: 78, verified: false, revealed: false },
+    { name: 'Elif Ozturk', email: 'elif.o@acmetech.com', phone: '+90 553 *** **67', title: 'Marketing Dir.', conf: 88, verified: true, revealed: true },
   ]
   return (
     <div className="p-5">
-      <div className="flex items-center justify-between mb-5">
-        <div className="text-sm font-semibold text-[#111827]">Email Finder</div>
-        <div className="text-xs text-white bg-[#2563EB] rounded-md px-3 py-1.5 font-medium">Find Emails</div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm font-semibold text-[#111827]">People & Email Finder</div>
+        <div className="flex gap-2">
+          <div className="text-xs text-[#6B7280] border border-[#E5E7EB] rounded-md px-2.5 py-1.5">CSV Export</div>
+          <div className="text-xs text-white bg-[#2563EB] rounded-md px-2.5 py-1.5 font-medium">Reveal All</div>
+        </div>
       </div>
-      <div className="border border-[#F3F4F6] rounded-lg p-3 mb-4 flex items-center gap-3">
+      <div className="border border-[#F3F4F6] rounded-lg p-3 mb-3 flex items-center gap-3">
         <svg className="w-4 h-4 text-[#9CA3AF]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
         <span className="text-xs text-[#374151]">acmetech.com</span>
-        <span className="ml-auto text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full">4 found</span>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full">4 people found</span>
+          <span className="text-[10px] text-[#2563EB] bg-[#EFF6FF] px-2 py-0.5 rounded-full">MX Verified</span>
+        </div>
       </div>
       <div className="border border-[#F3F4F6] rounded-lg overflow-hidden">
         <table className="w-full text-xs">
           <thead><tr className="bg-[#F9FAFB] border-b border-[#F3F4F6]">
-            <th className="text-left py-2.5 px-3 font-medium text-[#6B7280]">Name</th>
-            <th className="text-left py-2.5 px-3 font-medium text-[#6B7280] hidden sm:table-cell">Email</th>
-            <th className="text-left py-2.5 px-3 font-medium text-[#6B7280] hidden md:table-cell">Title</th>
-            <th className="text-left py-2.5 px-3 font-medium text-[#6B7280]">Status</th>
+            <th className="text-left py-2 px-3 font-medium text-[#6B7280]">Person</th>
+            <th className="text-left py-2 px-3 font-medium text-[#6B7280] hidden sm:table-cell">Contact</th>
+            <th className="text-left py-2 px-3 font-medium text-[#6B7280]">Status</th>
           </tr></thead>
           <tbody>
             {results.map((r, i) => (
               <tr key={i} className="border-b border-[#F3F4F6] last:border-0">
-                <td className="py-2.5 px-3 font-medium text-[#111827]">{r.name}</td>
-                <td className="py-2.5 px-3 text-[#2563EB] hidden sm:table-cell">{r.email}</td>
-                <td className="py-2.5 px-3 text-[#6B7280] hidden md:table-cell">{r.title}</td>
-                <td className="py-2.5 px-3">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${r.verified ? 'bg-[#ECFDF5] text-[#059669]' : 'bg-[#FEF3C7] text-[#D97706]'}`}>
-                    {r.verified ? 'Verified' : 'Estimated'} {r.conf}%
-                  </span>
+                <td className="py-2 px-3">
+                  <div className="font-medium text-[#111827]">{r.name}</div>
+                  <div className="text-[10px] text-[#6B7280]">{r.title}</div>
+                </td>
+                <td className="py-2 px-3 hidden sm:table-cell">
+                  <div className="text-[#2563EB]">{r.email}</div>
+                  <div className="text-[10px] text-[#6B7280]">{r.phone}</div>
+                </td>
+                <td className="py-2 px-3">
+                  <div className="flex flex-col gap-0.5">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium inline-block w-fit ${r.verified ? 'bg-[#ECFDF5] text-[#059669]' : 'bg-[#FEF3C7] text-[#D97706]'}`}>
+                      {r.verified ? 'Verified' : 'Estimated'} {r.conf}%
+                    </span>
+                    {r.revealed && <span className="text-[10px] text-[#2563EB]">Revealed</span>}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -1012,13 +1031,13 @@ export default function Landing() {
           </a>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-[#2563EB] mb-5 leading-[1.15] tracking-tight">
             {isEn
-              ? <>The Growth Platform<br />Built for Startups</>
-              : <>Startup'lar İçin<br />Büyüme Platformu</>}
+              ? <>Automated Outreach<br />& Growth Platform</>
+              : <>Otomatik Outreach<br />ve Büyüme Platformu</>}
           </h1>
           <p className="text-base text-[#6B7280] mb-8 max-w-xl mx-auto leading-relaxed">
             {isEn
-              ? 'Find customers, run outreach campaigns, manage your pipeline, and make data-driven decisions in one platform.'
-              : 'Tek platformda müşteri bulun, outreach kampanyaları yürütün, pipeline yönetin ve veriye dayalı kararlar alın.'}
+              ? 'Enter a company name, AI finds decision-makers, writes personalized emails, and tracks opens. Lead generation, CRM pipeline, and analytics all in one platform.'
+              : 'Firma adını girin, AI karar vericileri bulsun, kişiselleştirilmiş email yazsın ve açılmaları takip etsin. Lead bulma, CRM pipeline ve analitik tek platformda.'}
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link

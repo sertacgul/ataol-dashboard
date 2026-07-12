@@ -8,7 +8,7 @@ import { useT } from '../../contexts/LanguageContext'
 const STORAGE_KEY = 'askdesk_simulator_v2'
 
 const SCENARIO_KEYS = ['iyimser', 'gercekci', 'kotumser']
-const SCENARIO_LABELS = { iyimser: 'Iyimser', gercekci: 'Gercekci', kotumser: 'Kotumser' }
+const SCENARIO_LABELS = { iyimser: 'İyimser', gercekci: 'Gerçekçi', kotumser: 'Kötümser' }
 
 const DEFAULT_INPUTS = {
   projeSayisi: 0,
@@ -188,7 +188,7 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
       const data = await api.post('/ai/generate', { prompt })
       setAiAnalysis(data.text || '')
     } catch (e) {
-      setAiAnalysis(t('Analiz yapilirken hata olustu: ') + (e.message || ''))
+      setAiAnalysis(t('Analiz yapılırken hata oluştu: ') + (e.message || ''))
     } finally {
       setAiLoading(false)
     }
@@ -219,16 +219,16 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
         .print-header { display: none; }
       `}</style>
 
-      <div className="print-header text-lg font-semibold text-[#111827] mb-4">{t('Finansal Simulasyon Raporu')}</div>
+      <div className="print-header text-lg font-semibold text-[#111827] mb-4">{t('Finansal Simülasyon Raporu')}</div>
 
       <div className="mb-4 flex items-center justify-between no-print">
         <div>
-          <h1 className="text-base font-semibold text-[#111827]">{t('Finansal Simulatör')}</h1>
-          <p className="text-xs text-[#6B7280] mt-0.5">{t('3 senaryo ile 12 aylik projeksiyon ve birim ekonomi analizi.')}</p>
+          <h1 className="text-base font-semibold text-[#111827]">{t('Finansal Simülatör')}</h1>
+          <p className="text-xs text-[#6B7280] mt-0.5">{t('3 senaryo ile 12 aylık projeksiyon ve birim ekonomi analizi.')}</p>
         </div>
         <div className="flex gap-2">
           <button onClick={handlePrint} className="text-xs px-3 py-1.5 border border-[#E5E7EB] rounded-md text-[#374151] hover:bg-[#F3F4F6]">
-            {t('Rapor Indir (PDF)')}
+            {t('Rapor İndir (PDF)')}
           </button>
           <button
             onClick={handleAiAnalysis}
@@ -260,65 +260,65 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
       <div className="grid grid-cols-3 gap-4 mb-6 no-print">
         {/* Card 1: Gelir Suruculeri */}
         <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-          <div className="text-xs font-semibold text-[#111827] mb-3">{t('Gelir Suruculeri')}</div>
+          <div className="text-xs font-semibold text-[#111827] mb-3">{t('Gelir Sürücüleri')}</div>
           <div className="space-y-3">
             <InputRow
-              label1={t('Proje sayisi')}
+              label1={t('Proje sayısı')}
               value1={s.projeSayisi} onChange1={update('projeSayisi')}
-              label2={t('Proje basina gelir')}
+              label2={t('Proje başına gelir')}
               value2={s.projeGelir} onChange2={update('projeGelir')} suffix2="TL"
             />
             <div className="border-t border-[#F3F4F6]" />
             <InputRow
-              label1={t('SaaS uye sayisi')}
+              label1={t('SaaS üye sayısı')}
               value1={s.saasUye} onChange1={update('saasUye')}
-              label2={t('Aylik uyelik ucreti')}
+              label2={t('Aylık üyelik ücreti')}
               value2={s.aylikUcret} onChange2={update('aylikUcret')} suffix2="TL"
             />
             <div className="border-t border-[#F3F4F6]" />
             <InputRow
-              label1={t('Egitim sinifi sayisi')}
+              label1={t('Eğitim sınıfı sayısı')}
               value1={s.egitimSinif} onChange1={update('egitimSinif')}
-              label2={t('Sinif basina gelir')}
+              label2={t('Sınıf başına gelir')}
               value2={s.sinifGelir} onChange2={update('sinifGelir')} suffix2="TL"
             />
             <div className="border-t border-[#F3F4F6]" />
             <InputRow
-              label1={t('Danismanlik (saat/ay)')}
+              label1={t('Danışmanlık (saat/ay)')}
               value1={s.danismanlikSaat} onChange1={update('danismanlikSaat')}
-              label2={t('Saatlik ucret')}
+              label2={t('Saatlik ücret')}
               value2={s.saatlikUcret} onChange2={update('saatlikUcret')} suffix2="TL"
             />
             <div className="border-t border-[#F3F4F6]" />
             <InputRow
-              label1={t('White-label lisans sayisi')}
+              label1={t('White-label lisans sayısı')}
               value1={s.whiteLabelSayisi} onChange1={update('whiteLabelSayisi')}
-              label2={t('Lisans ucreti/ay')}
+              label2={t('Lisans ücreti/ay')}
               value2={s.lisansUcret} onChange2={update('lisansUcret')} suffix2="TL"
             />
             <div className="border-t border-[#F3F4F6]" />
-            <NumberInput label={t('Diger gelir (yillik)')} value={s.digerGelir} onChange={update('digerGelir')} suffix="TL" />
+            <NumberInput label={t('Diğer gelir (yıllık)')} value={s.digerGelir} onChange={update('digerGelir')} suffix="TL" />
           </div>
         </div>
 
         {/* Card 2: Maliyet Suruculeri */}
         <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-          <div className="text-xs font-semibold text-[#111827] mb-3">{t('Maliyet Suruculeri')}</div>
+          <div className="text-xs font-semibold text-[#111827] mb-3">{t('Maliyet Sürücüleri')}</div>
           <div className="space-y-3">
-            <NumberInput label={t('Altyapi maliyeti/ay')} value={s.altyapi} onChange={update('altyapi')} suffix="TL" />
+            <NumberInput label={t('Altyapı maliyeti/ay')} value={s.altyapi} onChange={update('altyapi')} suffix="TL" />
             <NumberInput label={t('API giderleri/ay')} value={s.apiGider} onChange={update('apiGider')} suffix="TL" />
-            <NumberInput label={t('Pazarlama butcesi/ay')} value={s.pazarlama} onChange={update('pazarlama')} suffix="TL" />
+            <NumberInput label={t('Pazarlama bütçesi/ay')} value={s.pazarlama} onChange={update('pazarlama')} suffix="TL" />
             <div className="border-t border-[#F3F4F6]" />
             <InputRow
-              label1={t('Calisan sayisi')}
+              label1={t('Çalışan sayısı')}
               value1={s.calisanSayisi} onChange1={update('calisanSayisi')}
-              label2={t('Ortalama maas/ay')}
+              label2={t('Ortalama maaş/ay')}
               value2={s.ortMaas} onChange2={update('ortMaas')} suffix2="TL"
             />
             <div className="border-t border-[#F3F4F6]" />
             <NumberInput label={t('Ofis/kira/ay')} value={s.ofisKira} onChange={update('ofisKira')} suffix="TL" />
             <NumberInput label={t('Hukuk-muhasebe/ay')} value={s.hukuk} onChange={update('hukuk')} suffix="TL" />
-            <NumberInput label={t('Diger giderler/ay')} value={s.digerGider} onChange={update('digerGider')} suffix="TL" />
+            <NumberInput label={t('Diğer giderler/ay')} value={s.digerGider} onChange={update('digerGider')} suffix="TL" />
           </div>
         </div>
 
@@ -326,9 +326,9 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
         <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
           <div className="text-xs font-semibold text-[#111827] mb-3">{t('Birim Ekonomi')}</div>
           <div className="space-y-3">
-            <NumberInput label={t('CAC (Musteri Edinme Maliyeti)')} value={s.cac} onChange={update('cac')} suffix="TL" />
-            <NumberInput label={t('LTV (Yasam Boyu Degeri)')} value={s.ltv} onChange={update('ltv')} suffix="TL" />
-            <NumberInput label={t('Churn Rate (aylik)')} value={s.churnRate} onChange={update('churnRate')} suffix="%" />
+            <NumberInput label={t('CAC (Müşteri Edinme Maliyeti)')} value={s.cac} onChange={update('cac')} suffix="TL" />
+            <NumberInput label={t('LTV (Yaşam Boyu Değeri)')} value={s.ltv} onChange={update('ltv')} suffix="TL" />
+            <NumberInput label={t('Churn Rate (aylık)')} value={s.churnRate} onChange={update('churnRate')} suffix="%" />
             <div className="border-t border-[#F3F4F6] pt-2">
               <div className="text-xs text-[#9CA3AF] mb-1">{t('MRR (otomatik hesap)')}</div>
               <div className="text-sm font-semibold text-[#2563EB]">{fmtShort(metrics.mrr)}</div>
@@ -352,22 +352,22 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
       {/* Results Row 1: 4 metric cards */}
       <div className="grid grid-cols-4 gap-3 mb-4">
         <MetricCard
-          label={t('Yillik Gelir')}
+          label={t('Yıllık Gelir')}
           value={fmtShort(metrics.yillikGelir)}
           color="text-[#2563EB]"
         />
         <MetricCard
-          label={t('Yillik Gider')}
+          label={t('Yıllık Gider')}
           value={fmtShort(metrics.yillikGider)}
           color="text-[#6B7280]"
         />
         <MetricCard
-          label={t('Net Kar')}
+          label={t('Net Kâr')}
           value={fmtShort(metrics.netKar)}
           color={metrics.netKar >= 0 ? 'text-[#059669]' : 'text-[#DC2626]'}
         />
         <MetricCard
-          label={t('EBITDA Marji')}
+          label={t('EBITDA Marjı')}
           value={`%${metrics.ebitdaMarji}`}
           color={metrics.netKar >= 0 ? 'text-[#059669]' : 'text-[#DC2626]'}
         />
@@ -376,16 +376,16 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
       {/* Results Row 2: Birim Ekonomi cards */}
       <div className="grid grid-cols-4 gap-3 mb-4">
         <MetricCard
-          label={t('LTV/CAC Orani')}
+          label={t('LTV/CAC Oranı')}
           value={`${metrics.ltvCacRatio}x`}
           color={metrics.ltvCacRatio >= 3 ? 'text-[#059669]' : 'text-[#D97706]'}
-          sub={metrics.ltvCacRatio >= 3 ? t('Saglikli') : t('Gelistirilmeli')}
+          sub={metrics.ltvCacRatio >= 3 ? t('Sağlıklı') : t('Geliştirilmeli')}
         />
         <MetricCard
-          label={t('Aylik Churn')}
+          label={t('Aylık Churn')}
           value={`%${s.churnRate}`}
           color={s.churnRate <= 5 ? 'text-[#059669]' : 'text-[#DC2626]'}
-          sub={s.churnRate <= 5 ? t('Kabul edilebilir') : t('Yuksek')}
+          sub={s.churnRate <= 5 ? t('Kabul edilebilir') : t('Yüksek')}
         />
         <MetricCard
           label="MRR"
@@ -402,10 +402,10 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
       {/* Results Row 3: 12-ay projeksiyon tablosu */}
       <div className="bg-white border border-[#E5E7EB] rounded-md overflow-hidden mb-4">
         <div className="px-4 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
-          <span className="text-xs font-semibold text-[#374151]">{t('12 Aylik Projeksiyon')}</span>
+          <span className="text-xs font-semibold text-[#374151]">{t('12 Aylık Projeksiyon')}</span>
           {breakEvenMonth >= 0 && (
             <span className="ml-3 text-xs text-[#059669]">
-              {t('Kara gecis')}: {breakEvenMonth + 1}. {t('ay')}
+              {t('Kâra geçiş:')}: {breakEvenMonth + 1}. {t('ay')}
             </span>
           )}
         </div>
@@ -417,7 +417,7 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
                 <th className="text-right font-medium text-[#6B7280] px-4 py-2">{t('Gelir')}</th>
                 <th className="text-right font-medium text-[#6B7280] px-4 py-2">{t('Gider')}</th>
                 <th className="text-right font-medium text-[#6B7280] px-4 py-2">Net</th>
-                <th className="text-right font-medium text-[#6B7280] px-4 py-2">{t('Kumulatif')}</th>
+                <th className="text-right font-medium text-[#6B7280] px-4 py-2">{t('Kümülatif')}</th>
               </tr>
             </thead>
             <tbody>
@@ -428,7 +428,7 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
                     key={m.ay}
                     className={`border-b border-[#E5E7EB] last:border-0 ${isBreakeven ? 'bg-[#F0FDF4]' : 'hover:bg-[#F9FAFB]'}`}
                   >
-                    <td className="px-4 py-2 text-[#374151] font-medium">{m.ay}. {t('Ay')} {isBreakeven && <span className="text-[#059669] ml-1">({t('Kara gecis')})</span>}</td>
+                    <td className="px-4 py-2 text-[#374151] font-medium">{m.ay}. {t('Ay')} {isBreakeven && <span className="text-[#059669] ml-1">{t('(Kâra geçiş)')}</span>}</td>
                     <td className="px-4 py-2 text-right text-[#374151]">{m.gelir.toLocaleString('tr-TR')}</td>
                     <td className="px-4 py-2 text-right text-[#6B7280]">{m.gider.toLocaleString('tr-TR')}</td>
                     <td className={`px-4 py-2 text-right font-medium ${m.net >= 0 ? 'text-[#059669]' : 'text-[#DC2626]'}`}>
@@ -448,7 +448,7 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
       {/* Results Row 4: Charts */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-          <div className="text-xs font-semibold text-[#111827] mb-3">{t('Nakit Akis Grafigi (12 Ay)')}</div>
+          <div className="text-xs font-semibold text-[#111827] mb-3">{t('Nakit Akış Grafiği (12 Ay)')}</div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={metrics.months}>
               <XAxis dataKey="ay" tick={{ fontSize: 10 }} tickFormatter={v => `${v}.Ay`} />
@@ -463,7 +463,7 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
         </div>
 
         <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
-          <div className="text-xs font-semibold text-[#111827] mb-3">{t('Senaryo Karsilastirmasi (Yillik)')}</div>
+          <div className="text-xs font-semibold text-[#111827] mb-3">{t('Senaryo Karşılaştırması (Yıllık)')}</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={scenarioComparison} barSize={20}>
               <XAxis dataKey="name" tick={{ fontSize: 10 }} />
