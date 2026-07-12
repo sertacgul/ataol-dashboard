@@ -40,9 +40,10 @@ function NavIcon({ d }) {
   )
 }
 
-function NavItem({ to, label, icon, t }) {
+function NavItem({ to, label, icon, t, onNavigate }) {
   return (
     <NavLink to={to}
+      onClick={onNavigate}
       className={({ isActive }) =>
         `flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
           isActive ? 'bg-[#EFF6FF] text-[#2563EB]' : 'text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827]'
@@ -54,18 +55,23 @@ function NavItem({ to, label, icon, t }) {
   )
 }
 
-export default function Sidebar() {
+export default function Sidebar({ open = false, onClose = () => {} }) {
   const { user, logout } = useAuth()
   const { t, lang, changeLang, languages } = useT()
   const navigate = useNavigate()
 
   async function handleLogout() {
+    onClose()
     await logout()
     navigate('/login')
   }
 
   return (
-    <aside className="w-56 bg-[#FAFBFC] border-r border-[#E5E7EB] flex flex-col min-h-screen">
+    <aside
+      className={`w-56 bg-[#FAFBFC] border-r border-[#E5E7EB] flex flex-col fixed md:static inset-y-0 left-0 z-50 h-screen md:h-auto md:min-h-screen transform transition-transform duration-300 ease-out md:translate-x-0 ${
+        open ? 'translate-x-0' : '-translate-x-full'
+      }`}
+    >
       <div className="px-4 py-5 border-b border-[#E5E7EB]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -83,16 +89,16 @@ export default function Sidebar() {
           </select>
         </div>
       </div>
-      <nav className="flex-1 px-2 py-3 space-y-0.5">
-        {navItems.map((item) => <NavItem key={item.to} {...item} t={t} />)}
+      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
+        {navItems.map((item) => <NavItem key={item.to} {...item} t={t} onNavigate={onClose} />)}
         <div className="my-3 border-t border-[#E5E7EB]" />
-        {secondaryItems.map((item) => <NavItem key={item.to} {...item} t={t} />)}
+        {secondaryItems.map((item) => <NavItem key={item.to} {...item} t={t} onNavigate={onClose} />)}
         <div className="my-3 border-t border-[#E5E7EB]" />
-        {contentItems.map((item) => <NavItem key={item.to} {...item} t={t} />)}
+        {contentItems.map((item) => <NavItem key={item.to} {...item} t={t} onNavigate={onClose} />)}
         <div className="my-3 border-t border-[#E5E7EB]" />
-        {analyticsItems.map((item) => <NavItem key={item.to} {...item} t={t} />)}
+        {analyticsItems.map((item) => <NavItem key={item.to} {...item} t={t} onNavigate={onClose} />)}
         <div className="my-3 border-t border-[#E5E7EB]" />
-        <NavItem {...settingsItem} t={t} />
+        <NavItem {...settingsItem} t={t} onNavigate={onClose} />
       </nav>
       <div className="px-3 py-3 border-t border-[#E5E7EB]">
         <div className="flex items-center gap-2">
