@@ -4,117 +4,471 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schedule a Meeting - ATAOL AI Techs</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 40px 16px; }
-        .card { background: #fff; border-radius: 16px; width: 480px; max-width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0f2460 100%); padding: 24px 30px 20px; }
-        .header img { height: 40px; }
-        .header .line { margin-top: 10px; height: 3px; background: linear-gradient(90deg, #4fc3f7, #22d3ee, #1976d2, transparent); border-radius: 2px; }
-        .body { padding: 30px; }
-        .company-name { font-size: 14px; color: #888; margin-bottom: 4px; }
-        h1 { font-size: 20px; color: #1a1a2e; margin-bottom: 20px; font-weight: 700; }
-        label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; margin-top: 16px; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle at 10% 20%, rgba(10, 15, 40, 1) 0%, rgba(2, 2, 8, 1) 90%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 16px;
+            color: #f1f5f9;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            width: 1000px;
+            max-width: 100%;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* When no company parameters, center the form container and make it narrower */
+        .container.form-only {
+            width: 500px;
+        }
+        .container.form-only .pitch-section {
+            display: none;
+        }
+
+        /* Left Column: Personalized Pitch */
+        .pitch-section {
+            flex: 1.1;
+            padding: 45px;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(135deg, rgba(255,255,255,0.01) 0%, rgba(0,0,0,0.2) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        /* Right Column: Form */
+        .form-section {
+            flex: 0.9;
+            padding: 45px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .header {
+            margin-bottom: 24px;
+        }
+        .header img {
+            height: 44px;
+            display: block;
+        }
+        .header .line {
+            margin-top: 12px;
+            height: 3px;
+            background: linear-gradient(90deg, #22d3ee, #1976d2, transparent);
+            border-radius: 2px;
+        }
+
+        .welcome-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #22d3ee;
+            margin-bottom: 16px;
+        }
+
+        .pitch-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.3;
+            margin-bottom: 18px;
+        }
+        .pitch-title span {
+            background: linear-gradient(135deg, #22d3ee 0%, #1976d2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .summary-text {
+            font-size: 14px;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .pitch-card {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .pitch-card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pain-list {
+            list-style: none;
+        }
+        .pain-list li {
+            font-size: 13px;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        .pain-list li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .solution-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .solution-tag {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .solution-tag.strategythrust { border-color: rgba(252, 228, 236, 0.3); color: #f48fb1; }
+        .solution-tag.actledger { border-color: rgba(224, 247, 250, 0.3); color: #80deea; }
+        .solution-tag.institute { border-color: rgba(243, 229, 245, 0.3); color: #ce93d8; }
+        .solution-tag.ailab { border-color: rgba(255, 243, 224, 0.3); color: #ffcc80; }
+
+        .pdf-section {
+            margin-top: auto;
+        }
+        .pdf-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        .pdf-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #cbd5e1;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .pdf-button:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* Form styling */
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            color: #ffffff;
+            margin-bottom: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            margin-top: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         input[type="date"], input[type="time"], input[type="text"], input[type="email"], textarea, select {
-            width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px;
-            font-size: 14px; font-family: inherit; background: #f8f9fc; transition: border 0.2s;
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: rgba(255, 255, 255, 0.02);
+            color: #ffffff;
+            transition: all 0.2s;
         }
-        input:focus, textarea:focus, select:focus { outline: none; border-color: #1976d2; background: #fff; }
-        textarea { resize: vertical; min-height: 80px; }
-        .time-row { display: flex; gap: 12px; }
-        .time-row > div { flex: 1; }
-        .tz-note { font-size: 11px; color: #888; margin-top: 4px; }
+        /* Style standard options */
+        select option {
+            background: #0d111d;
+            color: #fff;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #22d3ee;
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.25);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .time-row {
+            display: flex;
+            gap: 12px;
+        }
+        .time-row > div {
+            flex: 1;
+        }
+        .tz-note {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
         .submit-btn {
-            display: block; width: 100%; padding: 14px; margin-top: 24px;
-            background: linear-gradient(135deg, #1a1a2e, #0f3460); color: #fff; border: none;
-            border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;
-            transition: opacity 0.2s;
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-top: 24px;
+            background: linear-gradient(135deg, #22d3ee 0%, #1976d2 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
         }
-        .submit-btn:hover { opacity: 0.9; }
-        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .footer { background: #f8f9fa; padding: 16px 30px; border-top: 1px solid #eee; }
-        .footer p { font-size: 11px; color: #888; }
-        .footer a { color: #1976d2; text-decoration: none; }
-        .success { display: none; text-align: center; padding: 40px 30px; }
-        .success h2 { color: #2e7d32; margin-bottom: 8px; }
-        .success p { color: #666; font-size: 14px; }
-        .error-msg { display: none; text-align: center; padding: 20px 30px; }
-        .error-msg h2 { color: #c62828; margin-bottom: 8px; font-size: 18px; }
-        .error-msg p { color: #666; font-size: 14px; }
+        .submit-btn:hover {
+            opacity: 0.95;
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+            transform: translateY(-1px);
+        }
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .footer {
+            margin-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 16px;
+        }
+        .footer p {
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+        }
+        .footer a {
+            color: #22d3ee;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .success, .error-msg {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .success h2 {
+            font-family: 'Outfit', sans-serif;
+            color: #4ade80;
+            margin-bottom: 12px;
+            font-size: 24px;
+        }
+        .success p {
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .error-msg h2 {
+            font-family: 'Outfit', sans-serif;
+            color: #f87171;
+            margin-bottom: 12px;
+            font-size: 22px;
+        }
+        .error-msg p {
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 960px) {
+            body {
+                padding: 16px 8px;
+            }
+            .container {
+                flex-direction: column;
+                width: 500px;
+            }
+            .pitch-section {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                padding: 30px 24px;
+            }
+            .form-section {
+                padding: 30px 24px;
+            }
+            .pitch-title {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="header">
-            <img src="ataol-logo.png" alt="ATAOL AI Techs" />
-            <div class="line"></div>
-        </div>
+    <div class="container" id="mainContainer">
+        <!-- Left Column: Personalized Sales Pitch -->
+        <div class="pitch-section">
+            <span class="welcome-badge" id="welcomeBadge">Custom Pitch</span>
+            <h2 class="pitch-title" id="pitchTitle">Transforming Operations at <span>Company</span></h2>
+            <p class="summary-text" id="summaryText">We analyzed your industry and operational profile to map our specialized software capabilities to your business challenges.</p>
 
-        <div class="body" id="formView">
-            <p class="company-name" id="companyLabel"></p>
-            <h1 id="pageTitle">Schedule a Meeting</h1>
-
-            <label id="labelName">Your Name</label>
-            <input type="text" id="meetName" placeholder="">
-
-            <label id="labelEmail">Your Email</label>
-            <input type="email" id="meetEmail" placeholder="">
-
-            <label id="labelDate">Preferred Date</label>
-            <input type="date" id="meetDate" />
-
-            <div class="time-row">
-                <div>
-                    <label id="labelTime">Preferred Time</label>
-                    <select id="meetTime">
-                        <option value="09:00">09:00</option>
-                        <option value="09:30">09:30</option>
-                        <option value="10:00" selected>10:00</option>
-                        <option value="10:30">10:30</option>
-                        <option value="11:00">11:00</option>
-                        <option value="11:30">11:30</option>
-                        <option value="12:00">12:00</option>
-                        <option value="13:00">13:00</option>
-                        <option value="13:30">13:30</option>
-                        <option value="14:00">14:00</option>
-                        <option value="14:30">14:30</option>
-                        <option value="15:00">15:00</option>
-                        <option value="15:30">15:30</option>
-                        <option value="16:00">16:00</option>
-                        <option value="16:30">16:30</option>
-                        <option value="17:00">17:00</option>
-                    </select>
+            <div class="pitch-card" id="painCard">
+                <div class="pitch-card-title">
+                    <span style="color:#ef4444;">✦</span> Focus Gaps Identified
                 </div>
-                <div>
-                    <label id="labelDuration">Duration</label>
-                    <select id="meetDuration">
-                        <option value="30">30 min</option>
-                        <option value="45">45 min</option>
-                        <option value="60">60 min</option>
-                    </select>
+                <ul class="pain-list" id="painList">
+                    <!-- Dynamic List -->
+                </ul>
+            </div>
+
+            <div class="pitch-card" id="solutionCard">
+                <div class="pitch-card-title">
+                    <span style="color:#22d3ee;">✦</span> Matched Solutions
+                </div>
+                <div class="solution-tags" id="solutionTags">
+                    <!-- Dynamic Tags -->
                 </div>
             </div>
-            <p class="tz-note" id="tzNote"></p>
 
-            <label id="labelTopic">Meeting Topic</label>
-            <textarea id="meetTopic" placeholder=""></textarea>
-
-            <button class="submit-btn" id="submitBtn" onclick="submitForm()">Send Request</button>
+            <div class="pdf-section" id="pdfSection">
+                <div class="pdf-title">Tanıtım Sunumu / Pitch Deck</div>
+                <a href="#" target="_blank" class="pdf-button" id="pdfLink">
+                    <span>📄</span> Download Pitch Deck (PDF)
+                </a>
+            </div>
         </div>
 
-        <div class="success" id="successView">
-            <h2 id="successTitle">Request Sent!</h2>
-            <p id="successMsg">Your meeting request has been sent. We will confirm shortly via email.</p>
-        </div>
+        <!-- Right Column: Booking Form -->
+        <div class="form-section">
+            <div class="header">
+                <img src="ataol-logo.png" alt="ATAOL AI Techs" />
+                <div class="line"></div>
+            </div>
 
-        <div class="error-msg" id="errorView">
-            <h2 id="errorTitle">Something went wrong</h2>
-            <p id="errorMsg">Please try again or contact us directly at support@strategythrust.com</p>
-            <button class="submit-btn" style="margin-top:16px;" id="retryBtn" onclick="retryForm()">Try Again</button>
-        </div>
+            <div class="body" id="formView">
+                <h1 id="pageTitle">Schedule a Meeting</h1>
 
-        <div class="footer">
-            <p>ATAOL AI Techs - <a href="https://www.ataolai.tech">ataolai.tech</a> | <a href="https://strategythrust.com">strategythrust.com</a> | <a href="https://actledger.com">actledger.com</a></p>
+                <label id="labelName">Your Name</label>
+                <input type="text" id="meetName" placeholder="Your full name">
+
+                <label id="labelEmail">Your Email</label>
+                <input type="email" id="meetEmail" placeholder="you@company.com">
+
+                <label id="labelDate">Preferred Date</label>
+                <input type="date" id="meetDate" />
+
+                <div class="time-row">
+                    <div>
+                        <label id="labelTime">Preferred Time</label>
+                        <select id="meetTime">
+                            <option value="09:00">09:00</option>
+                            <option value="09:30">09:30</option>
+                            <option value="10:00" selected>10:00</option>
+                            <option value="10:30">10:30</option>
+                            <option value="11:00">11:00</option>
+                            <option value="11:30">11:30</option>
+                            <option value="12:00">12:00</option>
+                            <option value="13:00">13:00</option>
+                            <option value="13:30">13:30</option>
+                            <option value="14:00">14:00</option>
+                            <option value="14:30">14:30</option>
+                            <option value="15:00">15:00</option>
+                            <option value="15:30">15:30</option>
+                            <option value="16:00">16:00</option>
+                            <option value="16:30">16:30</option>
+                            <option value="17:00">17:00</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label id="labelDuration">Duration</label>
+                        <select id="meetDuration">
+                            <option value="30">30 min</option>
+                            <option value="45">45 min</option>
+                            <option value="60">60 min</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="tz-note" id="tzNote"></p>
+
+                <label id="labelTopic">Meeting Topic</label>
+                <textarea id="meetTopic" placeholder="Briefly describe what you would like to discuss..."></textarea>
+
+                <button class="submit-btn" id="submitBtn" onclick="submitForm()">Send Request</button>
+            </div>
+
+            <div class="success" id="successView">
+                <h2 id="successTitle">Request Sent!</h2>
+                <p id="successMsg">Your meeting request has been sent. We will confirm shortly via email.</p>
+            </div>
+
+            <div class="error-msg" id="errorView">
+                <h2 id="errorTitle">Something went wrong</h2>
+                <p id="errorMsg">Please try again or contact us directly at support@strategythrust.com</p>
+                <button class="submit-btn" style="margin-top:16px;" id="retryBtn" onclick="retryForm()">Try Again</button>
+            </div>
+
+            <div class="footer">
+                <p>ATAOL AI Techs - <a href="https://www.ataolai.tech" target="_blank">ataolai.tech</a> | <a href="https://strategythrust.com" target="_blank">strategythrust.com</a> | <a href="https://actledger.com" target="_blank">actledger.com</a></p>
+            </div>
         </div>
     </div>
 
@@ -125,11 +479,101 @@ const contactEmail = params.get('email') || '';
 const contactName = params.get('name') || '';
 const tz = parseInt(params.get('tz') || '0', 10);
 const lang = params.get('lang') || 'en';
+const summary = params.get('summary') || '';
+const painPointsRaw = params.get('pain_points') || '[]';
+const servicesRaw = params.get('services') || '[]';
+
 const isTR = lang === 'tr';
 
-// Pre-fill from query params
+// Parse arrays
+let painPoints = [];
+let services = [];
+try { painPoints = JSON.parse(painPointsRaw); } catch(e) { painPoints = []; }
+try { services = JSON.parse(servicesRaw); } catch(e) { services = []; }
+
+// Configure Layout & Content
+const mainContainer = document.getElementById('mainContainer');
+if (!company) {
+    mainContainer.classList.add('form-only');
+} else {
+    // Fill dynamic content
+    document.getElementById('welcomeBadge').textContent = isTR ? 'Size Özel Sunum' : 'Personalized Pitch';
+    document.getElementById('pitchTitle').innerHTML = isTR 
+        ? `<span>${company}</span> İçin Özel Değerlendirme` 
+        : `Special Assessment for <span>${company}</span>`;
+    
+    if (summary) {
+        document.getElementById('summaryText').textContent = summary;
+    } else {
+        document.getElementById('summaryText').textContent = isTR
+            ? 'Şirketinizin sektör profili ve operasyonel yapısı incelenerek oluşturulan eşleşmeleri aşağıdan inceleyebilirsiniz.'
+            : 'Explore the matched solutions engineered based on your industry profile and operations below.';
+    }
+
+    // Pain points
+    const painList = document.getElementById('painList');
+    if (painPoints && painPoints.length > 0) {
+        painList.innerHTML = painPoints.map(p => `<li>${p}</li>`).join('');
+    } else {
+        document.getElementById('painCard').style.display = 'none';
+    }
+
+    // Services
+    const tagsContainer = document.getElementById('solutionTags');
+    const serviceLabels = {
+        strategythrust: 'StrategyThrust',
+        actledger: 'ActLedger',
+        aiinstitute: 'AI Institute',
+        institute: 'AI Institute',
+        ailab: 'AI Lab'
+    };
+    if (services && services.length > 0) {
+        tagsContainer.innerHTML = services.map(s => {
+            const lower = s.toLowerCase();
+            let cls = 'ailab';
+            if (lower.includes('strategy')) cls = 'strategythrust';
+            else if (lower.includes('ledger')) cls = 'actledger';
+            else if (lower.includes('institute')) cls = 'institute';
+            
+            const label = serviceLabels[cls] || s;
+            return `<span class="solution-tag ${cls}">✦ ${label}</span>`;
+        }).join('');
+    } else {
+        document.getElementById('solutionCard').style.display = 'none';
+    }
+
+    // PDF Tanıtım Sunumu
+    const pdfSection = document.getElementById('pdfSection');
+    const pdfTitle = pdfSection.querySelector('.pdf-title');
+    const pdfLink = document.getElementById('pdfLink');
+    pdfTitle.textContent = isTR ? 'Tanıtım Dosyası / Sunum' : 'Download Resources';
+    pdfLink.querySelector('span:last-child').textContent = isTR ? 'Özel Sunumu İndir (PDF)' : 'Download Pitch Deck (PDF)';
+    
+    // Choose PDF based on services matched
+    let matchedPdf = 'presentations/ATAOL_AI_Carousel_EN.pdf';
+    const hasStrategy = services.some(s => s.toLowerCase().includes('strategy'));
+    const hasAct = services.some(s => s.toLowerCase().includes('ledger'));
+
+    if (isTR) {
+        if (hasStrategy && !hasAct) matchedPdf = 'presentations/StrategyThrust_Carousel_TR.pdf';
+        else if (hasAct && !hasStrategy) matchedPdf = 'presentations/ActLedger_Carousel_TR.pdf';
+        else matchedPdf = 'presentations/ATAOL_AI_Carousel_TR.pdf';
+    } else {
+        if (hasStrategy && !hasAct) matchedPdf = 'presentations/StrategyThrust_Carousel_EN.pdf';
+        else if (hasAct && !hasStrategy) matchedPdf = 'presentations/ActLedger_Carousel_EN.pdf';
+        else matchedPdf = 'presentations/ATAOL_AI_Carousel_EN.pdf';
+    }
+    pdfLink.href = matchedPdf;
+}
+
+// Pre-fill form from query params
 if (contactName) document.getElementById('meetName').value = contactName;
 if (contactEmail) document.getElementById('meetEmail').value = contactEmail;
+if (company) {
+    document.getElementById('meetTopic').value = isTR 
+        ? `${company} firması için özel tanışma ve iş birliği görüşmesi.` 
+        : `Introduction and business discussion for ${company}.`;
+}
 
 // Set min date to tomorrow
 const tomorrow = new Date();
@@ -140,23 +584,23 @@ document.getElementById('meetDate').value = tomorrow.toISOString().split('T')[0]
 
 // Localize
 if (isTR) {
-    document.title = 'G\u00f6r\u00fc\u015fme Planla - ATAOL AI Techs';
-    document.getElementById('pageTitle').textContent = 'G\u00f6r\u00fc\u015fme Planla';
-    document.getElementById('labelName').textContent = 'Ad\u0131n\u0131z';
+    document.title = 'Görüşme Planla - ATAOL AI Techs';
+    document.getElementById('pageTitle').textContent = 'Görüşme Planla';
+    document.getElementById('labelName').textContent = 'Adınız';
     document.getElementById('labelEmail').textContent = 'Email Adresiniz';
     document.getElementById('labelDate').textContent = 'Tercih Edilen Tarih';
     document.getElementById('labelTime').textContent = 'Tercih Edilen Saat';
-    document.getElementById('labelDuration').textContent = 'S\u00fcre';
-    document.getElementById('labelTopic').textContent = 'G\u00f6r\u00fc\u015fme Konusu';
-    document.getElementById('meetName').placeholder = 'Ad\u0131n\u0131z Soyad\u0131n\u0131z';
+    document.getElementById('labelDuration').textContent = 'Süre';
+    document.getElementById('labelTopic').textContent = 'Görüşme Konusu';
+    document.getElementById('meetName').placeholder = 'Adınız Soyadınız';
     document.getElementById('meetEmail').placeholder = 'ornek@firma.com';
-    document.getElementById('meetTopic').placeholder = 'G\u00f6r\u00fc\u015fmek istedi\u011finiz konuyu k\u0131saca belirtin...';
-    document.getElementById('submitBtn').textContent = 'G\u00f6r\u00fc\u015fme Talebi G\u00f6nder';
-    document.getElementById('tzNote').textContent = 'Saatler T\u00fcrkiye saatine g\u00f6redir (UTC+3)';
-    document.getElementById('successTitle').textContent = 'Talebiniz G\u00f6nderildi!';
-    document.getElementById('successMsg').textContent = 'G\u00f6r\u00fc\u015fme talebiniz iletildi. En k\u0131sa s\u00fcrede email ile d\u00f6n\u00fc\u015f yapaca\u011f\u0131z.';
-    document.getElementById('errorTitle').textContent = 'Bir hata olu\u015ftu';
-    document.getElementById('errorMsg').textContent = 'L\u00fctfen tekrar deneyin veya support@strategythrust.com adresinden bize ula\u015f\u0131n.';
+    document.getElementById('meetTopic').placeholder = 'Görüşmek istediğiniz konuyu kısaca belirtin...';
+    document.getElementById('submitBtn').textContent = 'Görüşme Talebi Görüntüle & Gönder';
+    document.getElementById('tzNote').textContent = 'Saatler Türkiye saatine göredir (UTC+3)';
+    document.getElementById('successTitle').textContent = 'Talebiniz Gönderildi!';
+    document.getElementById('successMsg').textContent = 'Görüşme talebiniz iletildi. En kısa sürede email ile dönüş yapacağız.';
+    document.getElementById('errorTitle').textContent = 'Bir hata oluştu';
+    document.getElementById('errorMsg').textContent = 'Lütfen tekrar deneyin veya support@strategythrust.com adresinden bize ulaşın.';
     document.getElementById('retryBtn').textContent = 'Tekrar Dene';
     document.querySelectorAll('#meetDuration option').forEach(function(o) {
         o.textContent = o.value + ' dk';
@@ -167,10 +611,6 @@ if (isTR) {
     document.getElementById('meetTopic').placeholder = 'Briefly describe what you would like to discuss...';
     var tzLabel = tz >= 0 ? 'UTC+' + tz : 'UTC' + tz;
     document.getElementById('tzNote').textContent = 'Times shown in your local timezone (' + tzLabel + ')';
-}
-
-if (company) {
-    document.getElementById('companyLabel').textContent = company;
 }
 
 function retryForm() {
@@ -186,16 +626,16 @@ async function submitForm() {
     var duration = document.getElementById('meetDuration').value;
     var topic = document.getElementById('meetTopic').value.trim();
 
-    if (!name) { alert(isTR ? 'L\u00fctfen ad\u0131n\u0131z\u0131 girin.' : 'Please enter your name.'); return; }
-    if (!email) { alert(isTR ? 'L\u00fctfen email adresinizi girin.' : 'Please enter your email.'); return; }
-    if (!date) { alert(isTR ? 'L\u00fctfen tarih se\u00e7in.' : 'Please select a date.'); return; }
-    if (!topic) { alert(isTR ? 'L\u00fctfen g\u00f6r\u00fc\u015fme konusunu belirtin.' : 'Please describe the meeting topic.'); return; }
+    if (!name) { alert(isTR ? 'Lütfen adınızı girin.' : 'Please enter your name.'); return; }
+    if (!email) { alert(isTR ? 'Lütfen email adresinizi girin.' : 'Please enter your email.'); return; }
+    if (!date) { alert(isTR ? 'Lütfen tarih seçin.' : 'Please select a date.'); return; }
+    if (!topic) { alert(isTR ? 'Lütfen görüşme konusunu belirtin.' : 'Please describe the meeting topic.'); return; }
 
     var btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.textContent = isTR ? 'G\u00f6nderiliyor...' : 'Sending...';
+    btn.textContent = isTR ? 'Gönderiliyor...' : 'Sending...';
 
-    var tzStr = isTR ? 'T\u00fcrkiye saati' : (tz >= 0 ? 'UTC+' + tz : 'UTC' + tz);
+    var tzStr = isTR ? 'Türkiye saati' : (tz >= 0 ? 'UTC+' + tz : 'UTC' + tz);
     var durationLabel = isTR ? duration + ' dakika' : duration + ' minutes';
 
     try {
@@ -230,7 +670,7 @@ async function submitForm() {
         document.getElementById('errorView').style.display = 'block';
     } finally {
         btn.disabled = false;
-        btn.textContent = isTR ? 'G\u00f6r\u00fc\u015fme Talebi G\u00f6nder' : 'Send Request';
+        btn.textContent = isTR ? 'Görüşme Talebi Gönder' : 'Send Request';
     }
 }
 </script>

@@ -23,24 +23,23 @@ if (!GEMINI_KEY || !GIST_TOKEN) {
 // ---- ATAOL company info (same as dashboard) ----
 const ATAOL_INFO = `ATAOL AI Techs - teknoloji ve yazilim cozumleri sirketi:
 
-Kendi platformlarimiz:
+Piramit Platform ve Hizmetlerimiz:
 1. StrategyThrust - Stratejik Karar Destek Platformu:
-- 72 saat icinde geleneksel danismanligin 3-6 aylik isini tamamlar
-- Geleneksel yonetim danismanliginin yaklasik 150'de 1 fiyatina ayni kalitede cikti
-- Sektor analizi, rekabet konumlandirmasi, pazar dinamikleri ve stratejik projeksiyonlar
+- Geleneksel yonetim danismanliginin aylar suren isini (sektor analizi, rekabet konumlandirmasi, pazar dinamikleri, stratejik projeksiyonlar) cok daha kisa surede tamamlar.
+- Geleneksel yonetim danismanliginin yaklasik 150'de 1 fiyatina ayni kalitede cikti sunar.
+- Yonetim kurulunun karar alma sureclerini hizlandirir, stratejik riskleri minimize eder.
 
 2. ActLedger - Operasyonel Mukemmellik Sistem Platformu:
-- 15 sektor, 576+ departman, 7800+ hazir KPI - dunyanin en kapsamli sektor-spesifik KPI kutuphanesi
-- 5 katmanli performans olcum cercevesi (Performance, Quality, Time, Risk, AI Insight)
-- Dakikalar icinde tam operasyonel cerceve kurulumu
-- Saha operasyonlari, envanter, is akislari, otomasyon, IoT entegrasyonu
-- Mobil-first: iOS native app + PWA
-- Kampanya: 3 aylik lisans alanlara +1 ay ucretsiz | Yillik lisans alanlara %15 indirim
+- 15 sektor, 576+ departman, 7800+ hazir KPI ile dunyanin en kapsamli sektor-spesifik performans olcum ve takip sistemidir.
+- Mobil-first: iOS + Android + PWA. Saha operasyonlari, envanter, is akislari ve IoT entegrasyonu saglar.
+- Kampanya: 3 aylik lisans alanlara +1 ay ucretsiz | Yillik lisans alanlara %10 indirim.
 
-Kurumsal hizmetlerimiz:
-- Otomasyon cozumleri, mobil uygulama gelistirme (iOS/Android), web uygulama gelistirme
+3. ATAOL AI Lab - Yapay Zeka Entegrasyonu ve Dijital Donusum Hizmetleri:
+- Buyuk Dil Modelleri (LLM) ve uretken yapay zeka araclarinin sirketlerin is akislarina ve B2B yazilim sureclerine entegrasyonu.
+- Sirkete ozel yapay zeka cozumleri, otomasyon sistemleri, mobil ve web uygulamalari gelistirme.
 
-ATAOL AI Institute - Kurumsal egitim programlari
+4. ATAOL AI Institute - Kurumsal Yapay Zeka Egitimleri:
+- Sirketlerin yonetici ve calisan kadrolarina yonelik kurumsal yapay zeka egitimi, yapay zeka okuryazarligi ve dijital donusum adaptasyon programlari.
 
 Kurucu: Sertac Gul | ataolai.tech | strategythrust.com | actledger.com`;
 
@@ -66,7 +65,7 @@ const TEMPLATE_L10N = {
     al_label: 'Operasyonel M\u00fckemmellik Sistem Platformu',
     innov_label: '\u0130novasyon ve D\u00fcnya \u0130lkleri',
     svc_label: 'Otomasyon, Mobil & Web Uygulama, \u00d6zel Yaz\u0131l\u0131m \u00c7\u00f6z\u00fcmleri',
-    promo: '3 ayl\u0131k lisans alanlara +1 ay \u00fccretsiz kullan\u0131m | Y\u0131ll\u0131k lisans alanlara %15 indirim',
+    promo: '3 ayl\u0131k lisans alanlara +1 ay \u00fccretsiz kullan\u0131m | Y\u0131ll\u0131k lisans alanlara %10 indirim',
     unsub: 'Bu e-postay\u0131 almak istemiyorsan\u0131z, l\u00fctfen \'abonelikten \u00e7\u0131k\' yazarak yan\u0131t verin.',
     eng_note: ''
   },
@@ -75,7 +74,7 @@ const TEMPLATE_L10N = {
     al_label: 'Operationale Exzellenz Plattform',
     innov_label: 'Innovation und Weltpremieren',
     svc_label: 'Automatisierung, Mobile & Web Apps, individuelle Softwarel\u00f6sungen',
-    promo: '3-Monats-Lizenz: +1 Monat kostenlos | Jahreslizenz: 15% Rabatt',
+    promo: '3-Monats-Lizenz: +1 Monat kostenlos | Jahreslizenz: 10% Rabatt',
     unsub: 'Wenn Sie diese E-Mails nicht mehr erhalten m\u00f6chten, antworten Sie einfach mit \'abmelden\'.',
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -84,7 +83,7 @@ const TEMPLATE_L10N = {
     al_label: "Plateforme d'excellence op\u00e9rationnelle",
     innov_label: 'Innovation et premi\u00e8res mondiales',
     svc_label: 'Automatisation, applications mobiles & web, solutions logicielles sur mesure',
-    promo: 'Licence 3 mois : +1 mois offert | Licence annuelle : 15% de r\u00e9duction',
+    promo: 'Licence 3 mois : +1 mois offert | Licence annuelle : 10% de r\u00e9duction',
     unsub: "Si vous ne souhaitez plus recevoir ces e-mails, r\u00e9pondez simplement 'se d\u00e9sabonner'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -93,7 +92,7 @@ const TEMPLATE_L10N = {
     al_label: 'Plataforma de excelencia operacional',
     innov_label: 'Innovaci\u00f3n y primicias mundiales',
     svc_label: 'Automatizaci\u00f3n, apps m\u00f3viles & web, soluciones de software a medida',
-    promo: 'Licencia 3 meses: +1 mes gratis | Licencia anual: 15% de descuento',
+    promo: 'Licencia 3 meses: +1 mes gratis | Licencia anual: 10% de descuento',
     unsub: "Si no desea recibir estos correos, simplemente responda con 'cancelar suscripci\u00f3n'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -102,7 +101,7 @@ const TEMPLATE_L10N = {
     al_label: 'Piattaforma di eccellenza operativa',
     innov_label: 'Innovazione e primati mondiali',
     svc_label: 'Automazione, app mobile & web, soluzioni software personalizzate',
-    promo: 'Licenza 3 mesi: +1 mese gratuito | Licenza annuale: sconto del 15%',
+    promo: 'Licenza 3 mesi: +1 mese gratuito | Licenza annuale: sconto del 10%',
     unsub: "Se non desideri pi\u00f9 ricevere queste e-mail, rispondi semplicemente con 'annulla iscrizione'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -111,7 +110,7 @@ const TEMPLATE_L10N = {
     al_label: 'Plataforma de excel\u00eancia operacional',
     innov_label: 'Inova\u00e7\u00e3o e pioneirismo mundial',
     svc_label: 'Automa\u00e7\u00e3o, apps m\u00f3veis & web, solu\u00e7\u00f5es de software sob medida',
-    promo: 'Licen\u00e7a 3 meses: +1 m\u00eas gr\u00e1tis | Licen\u00e7a anual: 15% de desconto',
+    promo: 'Licen\u00e7a 3 meses: +1 m\u00eas gr\u00e1tis | Licen\u00e7a anual: 10% de desconto',
     unsub: "Se n\u00e3o deseja receber estes e-mails, basta responder com 'cancelar inscri\u00e7\u00e3o'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -120,7 +119,7 @@ const TEMPLATE_L10N = {
     al_label: 'Operationeel excellentie platform',
     innov_label: 'Innovatie en wereldprimeurs',
     svc_label: 'Automatisering, mobiele & webapps, maatwerkoplossingen',
-    promo: '3-maanden licentie: +1 maand gratis | Jaarlicentie: 15% korting',
+    promo: '3-maanden licentie: +1 maand gratis | Jaarlicentie: 10% korting',
     unsub: "Als u deze e-mails niet meer wilt ontvangen, antwoord dan met 'uitschrijven'.",
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -129,7 +128,7 @@ const TEMPLATE_L10N = {
     al_label: '\u30aa\u30da\u30ec\u30fc\u30b7\u30e7\u30ca\u30eb\u30a8\u30af\u30bb\u30ec\u30f3\u30b9\u30d7\u30e9\u30c3\u30c8\u30d5\u30a9\u30fc\u30e0',
     innov_label: '\u30a4\u30ce\u30d9\u30fc\u30b7\u30e7\u30f3\u3068\u4e16\u754c\u521d',
     svc_label: '\u81ea\u52d5\u5316\u3001\u30e2\u30d0\u30a4\u30eb&\u30a6\u30a7\u30d6\u30a2\u30d7\u30ea\u3001\u30ab\u30b9\u30bf\u30e0\u30bd\u30d5\u30c8\u30a6\u30a7\u30a2\u30bd\u30ea\u30e5\u30fc\u30b7\u30e7\u30f3',
-    promo: '3\u30f6\u6708\u30e9\u30a4\u30bb\u30f3\u30b9\uff1a+1\u30f6\u6708\u7121\u6599 | \u5e74\u9593\u30e9\u30a4\u30bb\u30f3\u30b9\uff1a15%\u5272\u5f15',
+    promo: '3\u30f6\u6708\u30e9\u30a4\u30bb\u30f3\u30b9\uff1a+1\u30f6\u6708\u7121\u6599 | \u5e74\u9593\u30e9\u30a4\u30bb\u30f3\u30b9\uff1a10%\u5272\u5f15',
     unsub: '\u3053\u306e\u30e1\u30fc\u30eb\u306e\u914d\u4fe1\u505c\u6b62\u3092\u3054\u5e0c\u671b\u306e\u5834\u5408\u306f\u3001\u300c\u914d\u4fe1\u505c\u6b62\u300d\u3068\u3054\u8fd4\u4fe1\u304f\u3060\u3055\u3044\u3002',
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -138,7 +137,7 @@ const TEMPLATE_L10N = {
     al_label: '\uc6b4\uc601 \ud0c1\uc6d4\uc131 \ud50c\ub7ab\ud3fc',
     innov_label: '\ud601\uc2e0 \ubc0f \uc138\uacc4 \ucd5c\ucd08',
     svc_label: '\uc790\ub3d9\ud654, \ubaa8\ubc14\uc77c & \uc6f9 \uc571, \ub9de\ucda4\ud615 \uc18c\ud504\ud2b8\uc6e8\uc5b4 \uc194\ub8e8\uc158',
-    promo: '3\uac1c\uc6d4 \ub77c\uc774\uc120\uc2a4: +1\uac1c\uc6d4 \ubb34\ub8cc | \uc5f0\uac04 \ub77c\uc774\uc120\uc2a4: 15% \ud560\uc778',
+    promo: '3\uac1c\uc6d4 \ub77c\uc774\uc120\uc2a4: +1\uac1c\uc6d4 \ubb34\ub8cc | \uc5f0\uac04 \ub77c\uc774\uc120\uc2a4: 10% \ud560\uc778',
     unsub: '\uc774 \uc774\uba54\uc77c \uc218\uc2e0\uc744 \uc6d0\uce58 \uc54a\uc73c\uc2dc\uba74 \'cancelar suscripcion\'\ub85c \ud68c\uc2e0\ud574 \uc8fc\uc138\uc694.',
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   },
@@ -147,8 +146,8 @@ const TEMPLATE_L10N = {
     al_label: '\u0645\u0646\u0635\u0629 \u0627\u0644\u062a\u0645\u064a\u0632 \u0627\u0644\u062a\u0634\u063a\u064a\u0644\u064a',
     innov_label: '\u0627\u0644\u0627\u0628\u062a\u0643\u0627\u0631 \u0648\u0627\u0644\u0631\u064a\u0627\u062f\u0629 \u0627\u0644\u0639\u0627\u0644\u0645\u064a\u0629',
     svc_label: '\u0627\u0644\u0623\u062a\u0645\u062a\u0629\u060c \u062a\u0637\u0628\u064a\u0642\u0627\u062a \u0627\u0644\u0647\u0627\u062a\u0641 \u0648\u0627\u0644\u0648\u064a\u0628\u060c \u062d\u0644\u0648\u0644 \u0628\u0631\u0645\u062c\u064a\u0629 \u0645\u062e\u0635\u0635\u0629',
-    promo: '\u0631\u062e\u0635\u0629 3 \u0623\u0634\u0647\u0631: +1 \u0634\u0647\u0631 \u0645\u062c\u0627\u0646\u064b\u0627 | \u0631\u062e\u0635\u0629 \u0633\u0646\u0648\u064a\u0629: \u062e\u0635\u0645 15%',
-    unsub: '\u0625\u0630\u0627 \u0644\u0645 \u062a\u0631\u063a\u0628 \u0641\u064a \u062a\u0644\u0642\u064a \u0647\u0630\u0647 \u0627\u0644\u0631\u0633\u0627\u0626\u0644\u060c \u064a\u0631\u062c\u0649 \u0627\u0644\u0631\u062f \u0628\u0640 \'\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643\'.',
+    promo: '\u0631\u062e\u0635\u0629 3 \u0623\u0634\u0647\u0631: +1 \u0634\u0647\u0631 \u0645\u062c\u0627\u0646\u064b\u0627 | \u0631\u062e\u0635\u0629 \u0633\u0646\u0648\u064a\u0629: \u062e\u0635\u0645 10%',
+    unsub: '\u0625\u0630\u0627 \u0644\u0645 \u062a\u0631\u063a\u0628 \u0641\u064a \u062a\u0644\u0642\u064a \u0647\u0630\u0647 \u0627\u0644\u0631\u0633\u0627\u0626\u0644\u060c \u064a\u0631\u062c\u0649 \u0627\u0644\u0631\u062f \u0628\u0640 \'\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0633\'.',
     eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
   }
 };
@@ -157,12 +156,12 @@ const EN_L10N = {
   al_label: 'Operational Excellence System Platform',
   innov_label: 'Innovation and World Firsts',
   svc_label: 'Automation, Mobile & Web Apps, Custom Software Solutions',
-  promo: '3-month license: +1 month free | Annual license: 15% discount',
+  promo: '3-month license: +1 month free | Annual license: 10% discount',
   unsub: "If you'd prefer not to receive these emails, simply reply with 'unsubscribe'.",
   eng_note: '<p style="margin:0 0 20px;font-size:12px;color:#888;font-style:italic;">Note: All meetings and communications will be conducted in English.</p>'
 };
 
-const LOGO_URL = 'https://sertacgul.github.io/ataol-dashboard/ataol-logo.png';
+const LOGO_URL = 'https://www.ataolai.tech/images/ataol-logo.png';
 const LINKEDIN_URL = 'https://www.linkedin.com/company/ataol-ai-techs';
 const LINKEDIN_ICON = 'https://cdn-icons-png.flaticon.com/512/174/174857.png';
 
@@ -176,7 +175,7 @@ async function readGist() {
   const fileInfo = gist.files['emails.json'];
   let content;
   if (fileInfo.truncated && fileInfo.raw_url) {
-    const r2 = await fetch(fileInfo.raw_url);
+    const r2 = await fetch(`${fileInfo.raw_url}?t=${Date.now()}`);
     content = await r2.text();
   } else {
     content = fileInfo.content;
@@ -195,6 +194,74 @@ async function writeGist(data) {
     body: JSON.stringify({ files: { 'emails.json': { content: JSON.stringify(data) } } })
   });
   if (!resp.ok) throw new Error(`Gist write failed: ${resp.status}`);
+}
+
+// ---- Helper: Normalize Email ----
+function normalizeEmail(email) {
+  if (!email) return email;
+  return email.toLowerCase().trim()
+    .replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .replace(/ı/g, 'i')
+    .replace(/ö/g, 'o')
+    .replace(/ş/g, 's')
+    .replace(/ü/g, 'u')
+    .replace(/â/g, 'a')
+    .replace(/î/g, 'i')
+    .replace(/û/g, 'u');
+}
+
+// ---- Helper: Resolve Contact Details ----
+function resolveContactDetails(lead, lastEmail) {
+  let email = lead.contact_email;
+  let name = lead.contact_name;
+  let title = lead.contact_title || '';
+  let linkedin = lead.contact_linkedin || '';
+
+  const isInvalid = (val) => !val || val === 'undefined' || val === 'NONE' || val.includes('undefined');
+
+  // Try to resolve email
+  if (isInvalid(email)) {
+    if (lead.decision_maker_email && !isInvalid(lead.decision_maker_email)) {
+      email = lead.decision_maker_email;
+    } else if (lead.email && !isInvalid(lead.email)) {
+      email = lead.email;
+    } else if (lastEmail && lastEmail.to_email && !isInvalid(lastEmail.to_email)) {
+      email = lastEmail.to_email;
+    } else if (lead.emails_found) {
+      try {
+        const parsed = JSON.parse(lead.emails_found);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const firstValid = parsed.find(e => !isInvalid(e));
+          if (firstValid) email = firstValid;
+        }
+      } catch (err) {}
+    }
+  }
+
+  // Try to resolve name
+  if (isInvalid(name)) {
+    if (lead.decision_maker && !isInvalid(lead.decision_maker)) {
+      name = lead.decision_maker;
+    } else if (lastEmail && lastEmail.to_name && !isInvalid(lastEmail.to_name)) {
+      name = lastEmail.to_name;
+    }
+  }
+
+  if (isInvalid(title) && lead.decision_maker_title && !isInvalid(lead.decision_maker_title)) {
+    title = lead.decision_maker_title;
+  }
+
+  if (isInvalid(linkedin) && lead.decision_maker_linkedin && !isInvalid(lead.decision_maker_linkedin)) {
+    linkedin = lead.decision_maker_linkedin;
+  }
+
+  return {
+    email: normalizeEmail(email),
+    name: name || '',
+    title: title || '',
+    linkedin: linkedin || ''
+  };
 }
 
 // ---- Retry wrapper for Gemini API (handles 429/503 rate limits) ----
@@ -256,13 +323,20 @@ IMPORTANT: If you can only find a generic email, still provide it as "CONTACT_EM
   );
 
   const data = await resp.json();
-  const parts = data.candidates[0].content.parts;
+  const candidate = data.candidates && data.candidates[0];
+  const parts = candidate && candidate.content && candidate.content.parts;
+  if (!parts) return '';
   return parts.filter(p => p.text).map(p => p.text).join('\n');
 }
 
 // ---- Country detection ----
 function detectCountryFromResearch(research) {
   if (!research) return 'INT';
+  const hqMatch = research.match(/HEADQUARTERS:\s*([A-Z]{2})/i);
+  if (hqMatch) {
+    const code = hqMatch[1].toUpperCase();
+    if (COUNTRY_LANGCODE[code]) return code;
+  }
   const patterns = [
     [/t\u00fcrk|istanbul|ankara|izmir|antalya|t\u00fcrkiye|turkey/i, 'TR'],
     [/deutschland|m\u00fcnchen|berlin|hamburg|frankfurt|german/i, 'DE'],
@@ -298,7 +372,7 @@ function detectCountryFromResearch(research) {
 }
 
 // ---- Gemini email generation ----
-async function generateEmail(lead, research) {
+async function generateEmail(lead, research, country, lang, emailType = 'initial', prevSubject = '') {
   const name = lead.company_name;
   const email = lead.contact_email || lead.email || '';
   const contactName = lead.contact_name || '';
@@ -306,37 +380,115 @@ async function generateEmail(lead, research) {
   const website = lead.website || '';
   const notes = lead.notes || '';
 
+  const langNames = {
+    tr: 'Turkish',
+    de: 'German',
+    fr: 'French',
+    es: 'Spanish',
+    it: 'Italian',
+    pt: 'Portuguese',
+    nl: 'Dutch',
+    sv: 'Swedish',
+    no: 'Norwegian',
+    da: 'Danish',
+    fi: 'Finnish',
+    pl: 'Polish',
+    cs: 'Czech',
+    ro: 'Romanian',
+    el: 'Greek',
+    ja: 'Japanese',
+    ko: 'Korean',
+    zh: 'Chinese',
+    id: 'Indonesian',
+    th: 'Thai',
+    vi: 'Vietnamese',
+    ar: 'Arabic',
+    en: 'English'
+  };
+  const langName = langNames[lang] || 'English';
+
+  let emailSpecificInstructions = '';
+  if (emailType === 'initial') {
+    emailSpecificInstructions = `
+EMAIL TYPE: INITIAL OUTREACH
+- Write a complete initial business development proposal.
+- Focus entirely on the selected hero product/service. Do NOT cover other products or services.
+- The "intro" and "ataol_intro" fields must explicitly weave in the company's specific researched pain points and introduce the selected hero product/service as the ideal solution to those problems.
+- Keep it highly customized to the research.
+- Subject line must be max 60 chars.
+`;
+  } else if (emailType === 'followup_1') {
+    emailSpecificInstructions = `
+EMAIL TYPE: FOLLOW-UP 1
+- You are writing a short, polite follow-up email (max 80 words) to our previous message.
+- Subject line MUST be "Re: ${prevSubject}".
+- Reference the previous outreach and ask if they had a chance to look at the customized platform solutions (StrategyThrust, ActLedger, ATAOL AI Lab/Institute) we sent.
+- Briefly highlight a different angle of how we solve their specific pain points.
+- Do NOT repeat the full initial proposal. Keep it very concise.
+- Set all other platform-specific solution values (st_value_prop, al_value_prop, st_solutions, al_solutions, innovation_highlights, services_note, institute_note, ataol_intro) to empty strings/arrays.
+- Put the entire follow-up message body in the "intro" field, and a short closing in "closing".
+`;
+  } else if (emailType === 'followup_2') {
+    emailSpecificInstructions = `
+EMAIL TYPE: FOLLOW-UP 2 (FINAL BUMP)
+- You are writing an extremely brief "bump" email (max 50 words).
+- Subject line MUST be "Re: ${prevSubject}".
+- Write a direct query (e.g. "Hi [Name], I know you're busy. Just wanted to check if you had a moment to review my previous note, or if there is a better person on your team to connect with regarding this?").
+- The tone should remain highly consultative and professional.
+- Do NOT include value propositions, just ask for a quick redirect or feedback.
+- Set all other platform-specific solution values (st_value_prop, al_value_prop, st_solutions, al_solutions, innovation_highlights, services_note, institute_note, ataol_intro) to empty strings/arrays.
+- Put the entire follow-up message body in the "intro" field, and a short closing in "closing".
+`;
+  }
+
   const prompt = `You write corporate business development emails for ATAOL AI Techs.
 ${ATAOL_INFO}
 
-LANGUAGE RULES - THIS IS THE MOST IMPORTANT RULE:
-1. First, determine the company's country from the research data below.
-2. Set "country" field to the 2-letter country code.
-3. Then write ALL email fields in that country's primary business language:
-   - TR -> Turkish ("tr"), DE/AT/CH -> German ("de"), FR/BE -> French ("fr")
-   - ES/MX/AR/CO/CL -> Spanish ("es"), IT -> Italian ("it"), PT/BR -> Portuguese ("pt")
-   - NL -> Dutch ("nl"), JP -> Japanese ("ja"), KR -> Korean ("ko")
-   - SA/EG -> Arabic ("ar"), All others -> English ("en")
-4. CRITICAL: ALL email fields must be in the determined language.
-5. Use formal business register appropriate for that language's corporate culture.
-6. GREETING: Use standard formal greeting. If contact name is known, address by name. NEVER use placeholder brackets.
-7. For Turkish companies: fill "institute_note". For others: empty string "".
-8. NEVER use "AI", "yapay zeka", or "artificial intelligence".
-9. Em-dash/en-dash forbidden, use only short hyphen (-).
-10. McKinsey/BCG/Bain corporate tone.
-11. 72 hours and 1/150 cost advantage: mention each ONLY ONCE.
-12. Campaign details ONLY in ActLedger section, NOT in closing.
-13. Include real facts from the research.
+${emailSpecificInstructions}
+
+LANGUAGE & COUNTRY REQUIREMENT (CRITICAL):
+The target company is located in "${country}" and the target language is "${langName}" (language code: "${lang}").
+You MUST write ALL email fields in "${langName}". Do NOT use English or Turkish unless "${langName}" is English or Turkish.
+
+LANGUAGE RULES:
+1. Write ALL email fields (subject, greeting, intro, etc.) in "${langName}".
+2. Set the "country" field in the JSON to "${country}".
+3. Set the "language" field in the JSON to "${lang}".
+4. Use formal business register appropriate for "${langName}" corporate culture.
+5. GREETING: Use standard formal greeting in "${langName}". If the contact name is known (e.g. "${contactName || 'none'}"), you MUST address them by name (e.g., "Sayın Levent Çakıroğlu," or "Dear Mr. Smith,"). NEVER use placeholder brackets, generic texts like "[Buraya Ad Soyad yazılacak]", "[Name]", or "[İsim]". If the contact name is not known or is none, use a clean generic formal greeting (e.g., "Sayın Yetkili," for Turkish, "Sehr geehrte Damen und Herren," for German, "Dear Sir/Madam," for English).
+6. For Turkish companies (lang="tr" and type="initial"): fill "institute_note". For others: empty string "".
+7. NEVER use "AI", "yapay zeka", or "artificial intelligence" (or their translations in the target language) in the email text.
+8. Em-dash/en-dash forbidden, use only short hyphen (-).
+9. McKinsey/BCG/Bain corporate tone.
+10. Shorter timeframe and 1/150 cost advantage: mention each ONLY ONCE total. Emphasize that our consulting output is delivered in a much shorter timeframe and at a much lower cost compared to traditional consulting.
+11. Campaign details (3 months +1 / annual 10%) ONLY in ActLedger section, NOT in closing.
+12. Include real facts from the research.
+
+SPAM PREVENTION & POSTMASTER DELIVERY RULES:
+- To prevent spam filter triggers, avoid overly promotional/sales-y words such as "free", "discount", "campaign", "no risk", "opportunity" in the subject and body. Keep the tone executive and advisory.
+- Avoid using exclamation marks (!), ALL CAPS words, or emojis in the subject line or email body.
+- The subject line (for INITIAL outreach) must be highly professional and specific to their company/challenges (e.g. "Operational Excellence Proposal for [Company]" or "Strategic Efficiency Project for [Company]").
+
+PRODUCT ROUTING & HERO VALUE PROPOSITION RULES (CRITICAL - EXACTLY ONE HERO SERVICE):
+- You MUST select EXACTLY ONE primary platform/service (the "hero") that best fits the company's researched pain points and needs (choose from: StrategyThrust, ActLedger, ATAOL AI Lab, or ATAOL AI Institute).
+- Do NOT pitch multiple platforms or services. Focus entirely on the selected hero.
+- Crucially, you MUST leave the fields for all non-selected services completely empty or null in the JSON response:
+  - If StrategyThrust is the hero: fill \`st_value_prop\` and \`st_solutions\`, and set \`al_value_prop\`, \`al_solutions\`, \`services_note\`, \`institute_note\` to empty values (empty strings or empty arrays).
+  - If ActLedger is the hero: fill \`al_value_prop\` and \`al_solutions\`, and set \`st_value_prop\`, \`st_solutions\`, \`services_note\`, \`institute_note\` to empty values.
+  - If ATAOL AI Lab is the hero (lack of custom software, automation, API integration): fill \`services_note\` (and optionally \`innovation_highlights\`), and set \`st_value_prop\`, \`st_solutions\`, \`al_value_prop\`, \`al_solutions\`, \`institute_note\` to empty values.
+  - If ATAOL AI Institute is the hero (TR companies only - training, AI literacy): fill \`institute_note\`, and set \`st_value_prop\`, \`st_solutions\`, \`al_value_prop\`, \`al_solutions\`, \`services_note\` to empty values.
+- If a platform is not selected as the hero, do NOT write any generic text or placeholder text for it. Keep it completely empty.
+- Keep the \`innovation_highlights\` field focused on the selected hero product or general company tech innovation highlights. If there are no specific highlights, leave it as an empty array.
 
 --- FIRMA BILGILERI ---
 Firma: ${name}
-${website ? 'Website: ' + website : ''}
-${email ? 'Iletisim email: ' + email : ''}
-${contactName ? 'Karar verici: ' + contactName + (contactTitle ? ' (' + contactTitle + ')' : '') : ''}
-${notes ? 'Ek bilgi: ' + notes : ''}
+\${website ? 'Website: ' + website : ''}
+\${email ? 'Iletisim email: ' + email : ''}
+\${contactName ? 'Karar verici: ' + contactName + (contactTitle ? ' (' + contactTitle + ')' : '') : ''}
+\${notes ? 'Ek bilgi: ' + notes : ''}
 
 --- COMPANY RESEARCH ---
-${research}
+\${research}
 --- END RESEARCH ---
 
 Respond ONLY in valid JSON (no markdown, no code blocks):
@@ -344,12 +496,12 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
   "lead": {
     "company_name": "...", "company_summary": "2-3 sentences",
     "industry": "...", "company_size": "small/medium/large",
-    "country": "XX", "pain_points": ["..."], "service_match": ["..."]
+    "country": "${country}", "pain_points": ["..."], "service_match": ["..."]
   },
   "email": {
-    "subject": "max 60 chars", "language": "xx",
-    "greeting": "...", "intro": "max 60 words",
-    "ataol_intro": "max 30 words", "st_value_prop": "max 35 words",
+    "subject": "max 60 chars", "language": "${lang}",
+    "greeting": "...", "intro": "opening paragraph weaving company pain points. max 60 words",
+    "ataol_intro": "ATAOL intro introducing the chosen hero platform as the solution. max 30 words", "st_value_prop": "max 35 words",
     "st_solutions": ["..."], "al_value_prop": "max 35 words",
     "al_solutions": ["..."], "innovation_highlights": ["...","...","..."],
     "services_note": "max 20 words", "institute_note": "TR only or empty",
@@ -379,20 +531,72 @@ Respond ONLY in valid JSON (no markdown, no code blocks):
 }
 
 // ---- Email HTML builder (matches dashboard template) ----
-function buildEmailHtml(d, lang) {
+function buildEmailHtml(d, lang, emailType = 'initial') {
+  if (emailType && emailType.startsWith('followup')) {
+    const l = TEMPLATE_L10N[lang] || EN_L10N;
+    const booking = d._booking_url || 'mailto:sertacgul@ataolai.tech';
+    return `<div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2d2d2d;line-height:1.6;padding:20px;background:#ffffff;border:1px solid #eee;border-radius:8px;">
+      <p style="margin:0 0 16px;font-size:15px;color:#1a1a2e;font-weight:600;">${d.greeting || ''}</p>
+      <p style="margin:0 0 16px;font-size:14px;color:#444;white-space:pre-line;">${d.intro || ''}</p>
+      <p style="margin:0 0 20px;font-size:14px;color:#444;white-space:pre-line;">${d.closing || ''}</p>
+      <div style="margin:24px 0;">
+        <a href="${booking}" style="display:inline-block;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;">${d.cta_text || 'Schedule a Call'}</a>
+      </div>
+      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
+      <p style="margin:0;font-size:13px;color:#333;font-weight:600;">Sertac Gul<br><span style="color:#888;font-size:12px;font-weight:normal;">Founder, ATAOL AI Techs</span></p>
+      <p style="margin:12px 0 0;font-size:10px;color:#aaa;font-style:italic;">${l.unsub}</p>
+    </div>`;
+  }
+
   const l = TEMPLATE_L10N[lang] || EN_L10N;
   const st_items = (d.st_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
   const al_items = (d.al_solutions || []).map(s => `<p style="margin:0 0 6px;font-size:13px;color:#555;padding-left:8px;">&#10004; ${s}</p>`).join('');
   const innov_items = (d.innovation_highlights || []).map(h => `<p style="margin:0 0 8px;font-size:13px;color:#e0e0e0;padding-left:8px;">&#9733; ${h}</p>`).join('');
-  const booking = d._booking_url || 'mailto:sertacgul@strategythrust.com';
+  const booking = d._booking_url || 'mailto:sertacgul@ataolai.tech';
+
+  let st_block = '';
+  if (d.st_value_prop && d.st_value_prop.trim() !== '') {
+    st_block = `<div style="background:#f8f9fc;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #1976d2;">
+      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Strategy<span style="color:#1976d2;">Thrust</span></p>
+      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${l.st_label}</p>
+      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.st_value_prop || ''}</p>
+      ${st_items}
+    </div>`;
+  }
+
+  let al_block = '';
+  if (d.al_value_prop && d.al_value_prop.trim() !== '') {
+    al_block = `<div style="background:#f0fdf4;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #22d3ee;">
+      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Act<span style="color:#22d3ee;">Ledger</span></p>
+      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${l.al_label}</p>
+      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.al_value_prop || ''}</p>
+      ${al_items}
+      <div style="margin:14px 0 0;padding:10px 14px;background:linear-gradient(135deg,#e0f7fa,#e8f5e9);border-radius:6px;border:1px dashed #22d3ee;">
+        <p style="margin:0;font-size:12px;font-weight:600;color:#0e7490;">&#127381; ${l.promo}</p>
+      </div>
+    </div>`;
+  }
 
   let institute_block = '';
-  if (lang === 'tr' && d.institute_note) {
+  if (lang === 'tr' && d.institute_note && d.institute_note.trim() !== '') {
     institute_block = `<div style="background:#fef3c7;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #f59e0b;">
       <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; ATAOL AI <span style="color:#f59e0b;">Institute</span></p>
       <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Kurumsal Yapay Zeka Egitim Programlari</p>
       <p style="margin:8px 0 0;font-size:13px;color:#444;">${d.institute_note}</p>
     </div>`;
+  }
+
+  let innov_block = '';
+  if (d.innovation_highlights && Array.isArray(d.innovation_highlights) && d.innovation_highlights.length > 0) {
+    innov_block = `<div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:10px;padding:20px 24px;margin:20px 0;">
+      <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#4fc3f7;text-transform:uppercase;letter-spacing:1px;">${l.innov_label}</p>
+      ${innov_items}
+    </div>`;
+  }
+
+  let services_block = '';
+  if (d.services_note && d.services_note.trim() !== '') {
+    services_block = `<p style="margin:16px 0 8px;font-size:13px;color:#555;">${d.services_note}</p>`;
   }
 
   return `<div style="max-width:620px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2d2d2d;line-height:1.6;">
@@ -404,27 +608,11 @@ function buildEmailHtml(d, lang) {
     <p style="margin:0 0 16px;font-size:15px;color:#1a1a2e;">${d.greeting || ''}</p>
     <p style="margin:0 0 14px;font-size:14px;color:#444;">${d.intro || ''}</p>
     <p style="margin:0 0 20px;font-size:14px;color:#555;font-style:italic;">${d.ataol_intro || ''}</p>
-    <div style="background:#f8f9fc;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #1976d2;">
-      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Strategy<span style="color:#1976d2;">Thrust</span></p>
-      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${l.st_label}</p>
-      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.st_value_prop || ''}</p>
-      ${st_items}
-    </div>
-    <div style="background:#f0fdf4;border-radius:10px;padding:20px 24px;margin:20px 0;border-left:4px solid #22d3ee;">
-      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1a1a2e;">&#9670; Act<span style="color:#22d3ee;">Ledger</span></p>
-      <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">${l.al_label}</p>
-      <p style="margin:8px 0 12px;font-size:13px;color:#444;">${d.al_value_prop || ''}</p>
-      ${al_items}
-      <div style="margin:14px 0 0;padding:10px 14px;background:linear-gradient(135deg,#e0f7fa,#e8f5e9);border-radius:6px;border:1px dashed #22d3ee;">
-        <p style="margin:0;font-size:12px;font-weight:600;color:#0e7490;">&#127381; ${l.promo}</p>
-      </div>
-    </div>
+    ${st_block}
+    ${al_block}
     ${institute_block}
-    <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:10px;padding:20px 24px;margin:20px 0;">
-      <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#4fc3f7;text-transform:uppercase;letter-spacing:1px;">${l.innov_label}</p>
-      ${innov_items}
-    </div>
-    <p style="margin:16px 0 8px;font-size:13px;color:#555;">${d.services_note || ''}</p>
+    ${innov_block}
+    ${services_block}
     <p style="margin:0 0 20px;font-size:12px;"><a href="https://www.ataolai.tech" style="color:#1976d2;text-decoration:none;font-weight:600;">www.ataolai.tech</a></p>
     <p style="margin:4px 0 12px;font-size:14px;color:#444;">${d.closing || ''}</p>
     ${l.eng_note}
@@ -439,6 +627,12 @@ function buildEmailHtml(d, lang) {
         <p style="margin:0 0 2px;font-size:12px;color:#666;font-weight:600;">ATAOL AI Techs</p>
         <p style="margin:0 0 2px;font-size:11px;color:#888;">${l.svc_label}</p>
         <p style="margin:0 0 2px;font-size:12px;color:#666;">+90 532 201 3416</p>
+        <p style="margin:0 0 4px;font-size:11px;color:#888;">Istanbul Technical University Technokent, Maslak, Istanbul TÜRKİYE</p>
+        <p style="margin:0 0 4px;font-size:11px;">
+          <a href="https://maps.google.com/?q=ARI+Teknokent+Resitpasa+Mah+Katar+Cad+No+4+34467+Maslak+Istanbul" style="color:#4285F4;text-decoration:none;font-size:11px;">📍 Google Maps</a>
+          &nbsp;|&nbsp;
+          <a href="https://maps.apple.com/?q=ARI+Teknokent+Resitpasa+Mah+Katar+Cad+No+4+34467+Maslak+Istanbul" style="color:#333;text-decoration:none;font-size:11px;">🗺️ Apple Maps</a>
+        </p>
         <p style="margin:0;font-size:12px;">
           <a href="https://www.ataolai.tech" style="color:#1a1a2e;text-decoration:none;font-weight:600;">ataolai.tech</a>
           &nbsp;|&nbsp;<a href="https://strategythrust.com" style="color:#1976d2;text-decoration:none;">strategythrust.com</a>
@@ -462,7 +656,7 @@ function extractContactFromResearch(research, lead) {
   // Try DECISION_MAKER first: "Full Name | Title | email@domain.com"
   const dmMatch = research.match(/DECISION_MAKER:\s*([^|]+)\|\s*([^|]+)\|\s*(\S+@\S+)/i);
   if (dmMatch) {
-    const email = dmMatch[3].replace(/[.,;)>]+$/, '');
+    const email = normalizeEmail(dmMatch[3].replace(/[.,;)>]+$/, ''));
     const genericRe = /^(info|contact|hello|office|sales|business|press|legal|privacy|support|hcp|cs|memberservices|dataprotection|notifications)@/i;
     if (!genericRe.test(email)) {
       lead.contact_name = dmMatch[1].trim();
@@ -473,27 +667,25 @@ function extractContactFromResearch(research, lead) {
   }
   // Fallback to CONTACT_EMAIL
   const ceMatch = research.match(/CONTACT_EMAIL:\s*(\S+@\S+)/i);
-  if (ceMatch) return ceMatch[1].replace(/[.,;)>]+$/, '');
+  if (ceMatch) return normalizeEmail(ceMatch[1].replace(/[.,;)>]+$/, ''));
   // Last resort: any business email in the text
   const emailMatch = research.match(/(?:info|contact|hello|office|sales|business)@[\w.-]+\.\w{2,}/i);
-  return emailMatch ? emailMatch[0] : '';
+  return emailMatch ? normalizeEmail(emailMatch[0]) : '';
 }
 
 // ---- Find decision-maker via Gemini + Google Search ----
-const GENERIC_RE = /^(info|contact|hello|office|sales|business|press|legal|privacy|support|hcp|cs|memberservices|dataprotection|notifications|ult|emko|kontakt)@/i;
+const GENERIC_RE = /^(info|contact|hello|office|sales|business|press|legal|privacy|support|hcp|cs|memberservices|dataprotection|notifications|ult|emko|kontakt|jobs|careers|hr|billing|finance|admin|marketing)@/i;
 
 async function findDecisionMaker(companyName, website) {
   const domain = website ? website.replace(/^https?:\/\//, '').replace(/\/.*$/, '') : '';
 
-  const prompt = `Find the CEO, founder, managing director, or CTO of "${companyName}"${domain ? ' (' + domain + ')' : ''}.
+  const prompt = `Research the C-level executives (CEO, Founder, General Manager, Board Members, Managing Director, CTO, COO, CFO) of the company "${companyName}"${domain ? ' (' + domain + ')' : ''}.
 
-I need their:
+We need to contact a decision-maker directly. Search LinkedIn, Google, Crunchbase, company about pages, and press releases to find:
 1. Full name
 2. Job title
-3. Professional email address (NOT info@, contact@, or generic addresses — their personal work email)
+3. Personal direct professional work email address (NOT a generic address like info@, hello@, contact@, sales@, etc.)
 4. LinkedIn profile URL
-
-Search LinkedIn, company website, Crunchbase, press releases, and news articles.
 
 IMPORTANT: Respond in this exact format, one field per line:
 NAME: <full name>
@@ -501,9 +693,11 @@ TITLE: <job title>
 EMAIL: <personal work email>
 LINKEDIN: <linkedin url>
 
-If you cannot find a personal email, try the common pattern: firstname@${domain || 'company.com'} or firstname.lastname@${domain || 'company.com'}.
-If you truly cannot determine any email, write EMAIL: NONE.
-Do NOT return info@, contact@, hello@, support@, or any generic address.`;
+EMAIL RETRIEVAL STRATEGY:
+- Try to find the exact direct work email of the person (e.g., name@domain.com, name.surname@domain.com).
+- If you cannot find their email directly but found their name, guess the email pattern for the domain "${domain || 'company.com'}" (e.g., first.last@domain, first@domain, etc.) and perform a web search to verify it.
+- If you cannot find a personal direct email, do NOT return a generic address under "EMAIL:". Write EMAIL: NONE.
+- Do NOT return generic/department addresses starting with: info@, contact@, sales@, hello@, support@, office@, careers@, hr@, marketing@, jobs@, billing@.`;
 
   const resp = await fetchWithRetry(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
@@ -512,7 +706,7 @@ Do NOT return info@, contact@, hello@, support@, or any generic address.`;
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: 'You find real decision-makers at companies using web search. Return verified information only. Never fabricate emails — if unsure, say NONE.' }]
+          parts: [{ text: 'You are a professional B2B lead generation specialist. You search the web to find direct, personal corporate email addresses of C-level executives (Founders, Board Members, CEOs, General Managers, CTOs, COOs). You never return generic or department emails, and you write NONE if a direct email cannot be verified.' }]
         },
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         tools: [{ google_search: {} }],
@@ -523,7 +717,9 @@ Do NOT return info@, contact@, hello@, support@, or any generic address.`;
   );
 
   const data = await resp.json();
-  const parts = data.candidates[0].content.parts;
+  const candidate = data.candidates && data.candidates[0];
+  const parts = candidate && candidate.content && candidate.content.parts;
+  if (!parts) return null;
   const text = parts.filter(p => p.text).map(p => p.text).join('\n');
 
   const nameMatch = text.match(/NAME:\s*(.+)/i);
@@ -531,7 +727,7 @@ Do NOT return info@, contact@, hello@, support@, or any generic address.`;
   const emailMatch = text.match(/EMAIL:\s*(\S+@\S+)/i);
   const linkedinMatch = text.match(/LINKEDIN:\s*(https?:\/\/\S+)/i);
 
-  const email = emailMatch ? emailMatch[1].replace(/[.,;)>]+$/, '') : null;
+  const email = emailMatch ? normalizeEmail(emailMatch[1].replace(/[.,;)>]+$/, '')) : null;
   if (!email || email === 'NONE' || GENERIC_RE.test(email)) return null;
 
   return {
@@ -544,7 +740,8 @@ Do NOT return info@, contact@, hello@, support@, or any generic address.`;
 
 // ---- Main ----
 async function main() {
-  console.log(`[${new Date().toISOString()}] Starting daily outreach generation (batch: ${BATCH_SIZE})`);
+  const serviceFilter = process.env.SERVICE || process.argv.find(arg => arg.startsWith('--service='))?.split('=')[1] || '';
+  console.log(`[${new Date().toISOString()}] Starting outreach generation (batch: ${BATCH_SIZE}, service: ${serviceFilter || 'all'})`);
 
   const data = await readGist();
   const leads = data.leads || [];
@@ -552,84 +749,238 @@ async function main() {
   console.log(`Current: ${leads.length} leads, ${emails.length} emails`);
 
   const emailLeadIds = new Set(emails.map(e => e.lead_id));
-  const unprocessed = leads.filter(l => !emailLeadIds.has(l.id));
-  console.log(`Unprocessed leads: ${unprocessed.length}`);
-
-  if (unprocessed.length === 0) {
-    console.log('No unprocessed leads remaining. Exiting.');
-    return;
+  let unprocessed = leads.filter(l => !emailLeadIds.has(l.id) && l.contact_email !== 'NONE');
+  
+  if (serviceFilter === 'institute') {
+    const originalCount = unprocessed.length;
+    unprocessed = unprocessed.filter(l => !l.country || l.country === 'TR');
+    console.log(`Filter applied for service 'institute': kept ${unprocessed.length} of ${originalCount} leads (filtered out known non-TR countries)`);
   }
 
-  const batch = unprocessed.slice(0, BATCH_SIZE);
-  console.log(`Processing batch of ${batch.length}: ${batch.map(l => l.company_name).join(', ')}`);
+  // Sort unprocessed leads:
+  // 1. Leads with a valid contact email first (so they are ready to generate outreach)
+  // 2. Newest leads first (higher ID)
+  unprocessed.sort((a, b) => {
+    const hasEmailA = a.contact_email && a.contact_email !== 'NONE' ? 1 : 0;
+    const hasEmailB = b.contact_email && b.contact_email !== 'NONE' ? 1 : 0;
+    if (hasEmailA !== hasEmailB) {
+      return hasEmailB - hasEmailA;
+    }
+    return b.id - a.id;
+  });
+
+  // Identify leads needing follow-ups
+  const followUpLeads = [];
+  const now = new Date();
+  
+  for (const lead of leads) {
+    const leadEmails = emails.filter(e => e.lead_id === lead.id);
+    if (leadEmails.length === 0) continue; // Needs initial email, handled in unprocessed
+    
+    // Sort emails by generation date
+    leadEmails.sort((a, b) => new Date(a.generated_at) - new Date(b.generated_at));
+    const lastEmail = leadEmails[leadEmails.length - 1];
+    
+    // Only follow-up if the last email was sent, and has no pending follow-ups
+    if (lastEmail.status !== 'sent') continue;
+    
+    const daysSinceSent = (now - new Date(lastEmail.sent_at)) / (1000 * 60 * 60 * 24);
+    
+    // Follow-up interval: 4 days
+    if (daysSinceSent >= 4) {
+      if (lastEmail.email_type === 'initial') {
+        followUpLeads.push({ lead, emailType: 'followup_1', prevSubject: lastEmail.subject });
+      } else if (lastEmail.email_type === 'followup_1') {
+        followUpLeads.push({ lead, emailType: 'followup_2', prevSubject: lastEmail.subject });
+      }
+    }
+  }
+
+  console.log(`Leads needing follow-ups: ${followUpLeads.length}`);
+  console.log(`Unprocessed leads (initial): ${unprocessed.length}`);
+
+  // Build the batch: hybrid queue to prevent starvation (up to 15 unprocessed, then follow-ups)
+  const batch = [];
+  
+  // 1. Add up to 15 unprocessed/initial leads first
+  const maxUnprocessed = 15;
+  const unprocessedBatch = unprocessed.slice(0, maxUnprocessed);
+  for (const lead of unprocessedBatch) {
+    batch.push({
+      lead,
+      emailType: 'initial',
+      prevSubject: ''
+    });
+  }
+  
+  // 2. Fill remaining space (up to BATCH_SIZE) with follow-up leads
+  const remainingCount = BATCH_SIZE - batch.length;
+  const followUpBatch = followUpLeads.slice(0, remainingCount);
+  for (const item of followUpBatch) {
+    batch.push({
+      lead: item.lead,
+      emailType: item.emailType,
+      prevSubject: item.prevSubject
+    });
+  }
+
+  console.log(`Processing batch of ${batch.length}: ${batch.map(item => `${item.lead.company_name} (${item.emailType})`).join(', ')}`);
 
   let generated = 0;
   let skipped = 0;
-  for (const lead of batch) {
+  let hasUpdates = false;
+  for (const item of batch) {
+    const { lead, emailType, prevSubject } = item;
     try {
-      console.log(`\n--- ${lead.company_name} ---`);
+      console.log(`\n--- ${lead.company_name} (${emailType}) ---`);
 
-      // Step 1: Find decision-maker FIRST (1 Gemini call)
-      console.log('  Step 1: Finding decision-maker...');
-      const dm = await findDecisionMaker(lead.company_name, lead.website);
+      // Find last generated email for fallback resolution
+      const leadEmails = emails.filter(e => e.lead_id === lead.id);
+      leadEmails.sort((a, b) => new Date(a.generated_at) - new Date(b.generated_at));
+      const lastEmail = leadEmails[leadEmails.length - 1];
 
-      if (!dm) {
-        console.log('  SKIPPED: No decision-maker email found. Saving tokens.');
+      // Resolve contact details with fallbacks
+      const resolved = resolveContactDetails(lead, lastEmail);
+      if (resolved.email && (!lead.contact_email || lead.contact_email !== resolved.email)) {
+        lead.contact_email = resolved.email;
+        hasUpdates = true;
+      }
+      if (resolved.name && (!lead.contact_name || lead.contact_name !== resolved.name)) {
+        lead.contact_name = resolved.name;
+        hasUpdates = true;
+      }
+      if (resolved.title && (!lead.contact_title || lead.contact_title !== resolved.title)) {
+        lead.contact_title = resolved.title;
+        hasUpdates = true;
+      }
+      if (resolved.linkedin && (!lead.contact_linkedin || lead.contact_linkedin !== resolved.linkedin)) {
+        lead.contact_linkedin = resolved.linkedin;
+        hasUpdates = true;
+      }
+
+      // Check if we have a valid contact email before proceeding
+      const isInvalidEmail = !lead.contact_email || lead.contact_email === 'undefined' || lead.contact_email === 'NONE' || lead.contact_email.includes('undefined');
+      if (emailType !== 'initial' && isInvalidEmail) {
+        console.log(`  SKIPPED: No valid contact email address could be resolved for follow-up.`);
         skipped++;
-        await new Promise(r => setTimeout(r, 5000));
         continue;
       }
 
-      console.log(`  Found: ${dm.name} (${dm.title}) <${dm.email}>`);
-      lead.contact_name = dm.name;
-      lead.contact_email = dm.email;
-      lead.contact_title = dm.title;
-      if (dm.linkedin) lead.contact_linkedin = dm.linkedin;
+      let research = '';
+      let detectedCountry = lead.country || 'INT';
 
-      // Step 2: Research company (1 Gemini call)
-      console.log('  Step 2: Researching company...');
-      const research = await researchCompany(lead);
-      console.log('  Research complete.');
+      if (emailType === 'initial') {
+        let dm = null;
+        if (lead.contact_email && lead.contact_email !== 'NONE') {
+          lead.contact_email = normalizeEmail(lead.contact_email);
+          console.log(`  Reusing existing contact details: ${lead.contact_name} <${lead.contact_email}>`);
+          dm = {
+            name: lead.contact_name,
+            email: lead.contact_email,
+            title: lead.contact_title || '',
+            linkedin: lead.contact_linkedin || ''
+          };
+        } else {
+          // Step 1: Find decision-maker FIRST (1 Gemini call)
+          console.log('  Step 1: Finding decision-maker...');
+          dm = await findDecisionMaker(lead.company_name, lead.website);
+        }
+
+        if (!dm) {
+          console.log('  SKIPPED: No decision-maker email found. Saving tokens.');
+          lead.contact_email = 'NONE';
+          hasUpdates = true;
+          skipped++;
+          await new Promise(r => setTimeout(r, 5000));
+          continue;
+        }
+
+        if (!lead.contact_email || lead.contact_email === 'NONE') {
+          console.log(`  Found: ${dm.name} (${dm.title}) <${dm.email}>`);
+          lead.contact_name = dm.name;
+          lead.contact_email = normalizeEmail(dm.email);
+          lead.contact_title = dm.title;
+          if (dm.linkedin) lead.contact_linkedin = dm.linkedin;
+          hasUpdates = true;
+        }
+
+        // Step 2: Research company (1 Gemini call)
+        console.log('  Step 2: Researching company...');
+        research = await researchCompany(lead);
+        console.log('  Research complete.');
+
+        detectedCountry = detectCountryFromResearch(research);
+        console.log(`  Detected Country: ${detectedCountry}`);
+
+        // If service is 'institute' and company is not in Turkey (TR), skip email generation
+        if (serviceFilter === 'institute' && detectedCountry !== 'TR') {
+          console.log(`  SKIPPED: Country is ${detectedCountry} (not TR) and service is 'institute'. Updating country and skipping email generation.`);
+          lead.country = detectedCountry;
+          hasUpdates = true;
+          skipped++;
+          await new Promise(r => setTimeout(r, 5000));
+          continue;
+        }
+      } else {
+        console.log(`  Reusing contact details: ${lead.contact_name} <${lead.contact_email}>`);
+        // Mini research text using lead database fields for followup context
+        research = `Company Summary: ${lead.company_summary || ''}
+Pain Points: ${lead.pain_points || '[]'}
+Service Match: ${lead.service_match || '[]'}`;
+      }
 
       // Step 3: Generate email (1 Gemini call)
-      console.log('  Step 3: Generating email...');
-      const result = await generateEmail(lead, research);
+      console.log(`  Step 3: Generating email (${emailType})...`);
+      const detectedLang = COUNTRY_LANGCODE[detectedCountry] || 'en';
+      const result = await generateEmail(lead, research, detectedCountry, detectedLang, emailType, prevSubject);
       console.log('  Email generated.');
 
-      // Update lead with research data
-      const leadResult = result.lead;
-      lead.company_summary = leadResult.company_summary;
-      lead.industry = leadResult.industry || lead.industry;
-      lead.company_size = leadResult.company_size;
-      lead.country = leadResult.country || lead.country;
-      lead.pain_points = JSON.stringify(leadResult.pain_points || []);
-      lead.service_match = JSON.stringify(leadResult.service_match || []);
+      // Update lead details if it was an initial research
+      if (emailType === 'initial') {
+        const leadResult = result.lead;
+        lead.company_summary = leadResult.company_summary;
+        lead.industry = leadResult.industry || lead.industry;
+        lead.company_size = leadResult.company_size;
+        lead.country = leadResult.country || lead.country;
+        lead.pain_points = JSON.stringify(leadResult.pain_points || []);
+        lead.service_match = JSON.stringify(leadResult.service_match || []);
+      }
 
       // Build email HTML
       const ed = result.email;
-      const finalCountry = leadResult.country || detectCountryFromResearch(research);
+      const finalCountry = lead.country || detectCountryFromResearch(research);
       const lang = ed.language || COUNTRY_LANGCODE[finalCountry] || 'en';
       const tzOffset = COUNTRY_TZ[finalCountry] || 0;
-      ed._booking_url = `https://sertacgul.github.io/ataol-dashboard/book.html?company=${encodeURIComponent(lead.company_name)}&tz=${tzOffset}&lang=${lang}`;
-      ed.body_html = buildEmailHtml(ed, lang);
+      const queryParams = new URLSearchParams({
+        company: lead.company_name,
+        tz: tzOffset,
+        lang: lang,
+        summary: lead.company_summary || '',
+        pain_points: lead.pain_points || '[]',
+        services: lead.service_match || '[]',
+        name: lead.contact_name || '',
+        email: lead.contact_email || ''
+      });
+      ed._booking_url = `https://sertacgul.github.io/ataol-dashboard/book.html?${queryParams.toString()}`;
+      ed.body_html = buildEmailHtml(ed, lang, emailType);
       ed.body_text = ed.body_html.replace(/<[^>]*>/g, '');
 
       const newEmail = {
         lead_id: lead.id,
-        to_email: lead.contact_email,
+        to_email: normalizeEmail(lead.contact_email),
         to_name: lead.contact_name,
-        from_email: 'sertacgul@strategythrust.com',
+        from_email: 'sertacgul@ataolai.tech',
         subject: ed.subject,
         body_html: ed.body_html,
         body_text: ed.body_text,
         language: ed.language || 'en',
-        email_type: 'initial',
+        email_type: emailType,
         status: 'pending_review',
         generated_at: new Date().toISOString()
       };
       emails.push(newEmail);
       generated++;
-      console.log(`  OK: "${ed.subject}" (${lang}) -> ${lead.contact_email}`);
+      console.log(`  OK (${emailType}): "${ed.subject}" (${lang}) -> ${lead.contact_email}`);
 
       // Rate limit: Gemini free tier = 15 RPM
       await new Promise(r => setTimeout(r, 5000));
@@ -638,12 +989,12 @@ async function main() {
     }
   }
 
-  if (generated > 0) {
+  if (generated > 0 || hasUpdates) {
     data.leads = leads;
     data.emails = emails;
     data.updated_at = new Date().toISOString();
     await writeGist(data);
-    console.log(`\nWrote ${generated} new emails to Gist.`);
+    console.log(`\nWrote ${generated} new emails and updated lead info in Gist.`);
   }
 
   console.log(`\nDone. Generated: ${generated}, Skipped (no contact): ${skipped}, Failed: ${batch.length - generated - skipped}. Remaining queue: ${unprocessed.length - batch.length}`);

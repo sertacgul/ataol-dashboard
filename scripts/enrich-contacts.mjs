@@ -53,6 +53,21 @@ async function writeGist(data) {
   if (!resp.ok) throw new Error(`Gist write failed: ${resp.status}`);
 }
 
+// ---- Helper: Normalize Email ----
+function normalizeEmail(email) {
+  if (!email) return email;
+  return email.toLowerCase().trim()
+    .replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .replace(/ı/g, 'i')
+    .replace(/ö/g, 'o')
+    .replace(/ş/g, 's')
+    .replace(/ü/g, 'u')
+    .replace(/â/g, 'a')
+    .replace(/î/g, 'i')
+    .replace(/û/g, 'u');
+}
+
 // ---- Retry wrapper ----
 async function fetchWithRetry(url, options, label, maxRetries = 3) {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -119,7 +134,7 @@ Do NOT return info@, contact@, hello@, support@, or any generic address.`;
   const emailMatch = text.match(/EMAIL:\s*(\S+@\S+)/i);
   const linkedinMatch = text.match(/LINKEDIN:\s*(https?:\/\/\S+)/i);
 
-  const email = emailMatch ? emailMatch[1].replace(/[.,;)>]+$/, '') : null;
+  const email = emailMatch ? normalizeEmail(emailMatch[1].replace(/[.,;)>]+$/, '')) : null;
   if (!email || email === 'NONE' || GENERIC_RE.test(email)) return null;
 
   return {
@@ -161,11 +176,11 @@ async function main() {
         console.log(`  Found: ${dm.name} (${dm.title}) <${dm.email}>`);
         // Update lead
         lead.contact_name = dm.name;
-        lead.contact_email = dm.email;
+        lead.contact_email = normalizeEmail(dm.email);
         lead.contact_title = dm.title;
         if (dm.linkedin) lead.contact_linkedin = dm.linkedin;
         // Update email record
-        email.to_email = dm.email;
+        email.to_email = normalizeEmail(dm.email);
         email.to_name = dm.name;
         enriched++;
       } else {
