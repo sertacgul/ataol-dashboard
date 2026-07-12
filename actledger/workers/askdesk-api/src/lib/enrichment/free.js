@@ -1,4 +1,4 @@
-import { applyPattern, nameParts } from './patterns.js'
+import { applyPattern, nameParts, derivePattern } from './patterns.js'
 
 // ─── Constants ───────────────────────────────────────────────
 
@@ -345,4 +345,20 @@ function parseJson(raw) {
 export async function getLearnedPattern(db, domain) {
   const row = await db.prepare('SELECT pattern, confidence FROM domain_patterns WHERE domain = ?').bind(domain).first()
   return row || null
+}
+
+export async function saveLearnedPattern(db, domain, people) {
+  for (const p of people) {
+    if (!p.email || p.email_type === 'generic') continue
+    if (p.verification_status !== 'verified' && p.confidence < 80) continue
+    const token = derivePattern(p.email, p.name)
+    if (token) {
+      await db.prepare(
+        `INSERT OR REPLACE INTO domain_patterns (domain, pattern, confidence, sample_email, learned_at)
+         VALUES (?, ?, ?, ?, datetime('now'))`
+      ).bind(domain, token, p.confidence || 80, p.email).run()
+      return token
+    }
+  }
+  return null
 }
