@@ -379,59 +379,18 @@ router.post('/verify', async (c) => {
   const { email } = await c.req.json()
   if (!email) return c.json({ error: 'Email gerekli' }, 400)
 
-  // Check if user has revealed this email
-  const reveal = await c.env.DB.prepare(
-    'SELECT * FROM email_reveals WHERE user_id = ? AND email = ?'
-  ).bind(userId, email).first()
+  const reveal = await c.env.DB.prepare('SELECT * FROM email_reveals WHERE user_id = ? AND email = ?')
+    .bind(userId, email).first()
   if (!reveal) return c.json({ error: 'Bu email henuz reveal edilmemis' }, 404)
-  if (reveal.verification_status === 'verified') return c.json({ error: 'Bu email zaten dogrulanmis', already_verified: true }, 409)
+  if (reveal.verification_status === 'verified') return c.json({ status: 'verified', already_verified: true })
 
-  const domain = email.split('@')[1]
-  if (!domain) return c.json({ error: 'Gecersiz email adresi' }, 400)
+  const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
+  const v = await enrichment.verifyEmail(email)
 
-  // Check MX records
-  const mx = await checkMxRecords(domain)
-  if (!mx.hasMx) {
-    await c.env.DB.prepare(
-      'UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?'
-    ).bind('unknown', 10, userId, email).run()
-    return c.json({ verified: false, status: 'unknown', reason: 'Domain icin MX kaydi bulunamadi' })
-  }
+  await c.env.DB.prepare('UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?')
+    .bind(v.status, v.confidence, userId, email).run()
 
-  // Check catch-all
-  const hasCatchAll = detectCatchAll(mx.mxHosts)
-
-  // Try SMTP-like verification via DNS + pattern check
-  // We check: valid MX + not catch-all = likely valid
-  const isVerified = mx.hasMx && !hasCatchAll
-
-  if (isVerified) {
-    // Mark as verified
-    await c.env.DB.prepare(
-      'UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?'
-    ).bind('verified', 95, userId, email).run()
-
-    // Award +5 credits
-    const user = await c.env.DB.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
-    const credits = await getOrCreateCredits(c.env.DB, userId, user?.plan || 'free')
-    const newUsed = Math.max(0, credits.used_this_month - 5)
-    await c.env.DB.prepare('UPDATE user_credits SET used_this_month = ? WHERE user_id = ?')
-      .bind(newUsed, userId).run()
-
-    return c.json({
-      verified: true,
-      status: 'verified',
-      confidence_score: 95,
-      credits_earned: 5,
-      credits_remaining: credits.monthly_limit - newUsed,
-    })
-  } else {
-    // Catch-all domain - risky
-    await c.env.DB.prepare(
-      'UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?'
-    ).bind('risky', 40, userId, email).run()
-    return c.json({ verified: false, status: 'risky', reason: 'Catch-all domain, dogrulama kesin degil' })
-  }
+  return c.json({ status: v.status, confidence_score: v.confidence })
 })
 
 // ─── POST /export ── CSV export of reveals ───────────────────
