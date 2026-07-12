@@ -209,12 +209,26 @@ export function maskPhone(phone) {
 
 // ─── Classification ─────────────────────────────────────────
 
+// Short acronyms (<=3 chars like "cto", "vp", "ui") need word boundaries so
+// "cto" inside "director" or "ui" inside "building" don't false-match. Longer
+// keywords keep substring matching to stay lenient with Turkish suffixes
+// (e.g. "mudur" in "muduru", "muhendis" in "muhendisi").
+function keywordMatch(text, keywords) {
+  return keywords.some(k => {
+    if (k.length <= 3) {
+      const esc = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      return new RegExp(`\\b${esc}\\b`).test(text)
+    }
+    return text.includes(k)
+  })
+}
+
 export function classifySeniority(title) {
   if (!title) return 'Staff'
   const lower = title.toLowerCase()
   for (const [level, keywords] of Object.entries(SENIORITY_KEYWORDS)) {
     if (level === 'Staff') continue
-    if (keywords.some(k => lower.includes(k))) return level
+    if (keywordMatch(lower, keywords)) return level
   }
   return 'Staff'
 }
@@ -223,7 +237,7 @@ export function classifyDepartment(title) {
   if (!title) return 'Other'
   const lower = title.toLowerCase()
   for (const [dept, keywords] of Object.entries(DEPARTMENT_KEYWORDS)) {
-    if (keywords.some(k => lower.includes(k))) return dept
+    if (keywordMatch(lower, keywords)) return dept
   }
   return 'Other'
 }
