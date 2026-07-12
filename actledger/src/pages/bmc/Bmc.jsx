@@ -236,12 +236,14 @@ Her alanda 3-5 madde olsun. Sadece JSON formatında yanıt ver.`
             items={data.activities}
             onAdd={onAdd}
             onDelete={onDelete}
+            t={t}
           />
           <Section
             section={SECTIONS[2]}
             items={data.resources}
             onAdd={onAdd}
             onDelete={onDelete}
+            t={t}
           />
         </div>
 
@@ -261,12 +263,14 @@ Her alanda 3-5 madde olsun. Sadece JSON formatında yanıt ver.`
             items={data.relationships}
             onAdd={onAdd}
             onDelete={onDelete}
+            t={t}
           />
           <Section
             section={SECTIONS[5]}
             items={data.channels}
             onAdd={onAdd}
             onDelete={onDelete}
+            t={t}
           />
         </div>
 

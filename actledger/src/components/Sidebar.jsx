@@ -12,9 +12,10 @@ const navItems = [
 
 const secondaryItems = [
   { to: '/app/leads/maps', label: 'Maps', icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
-  { to: '/app/guide', label: 'Kilavuz', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
-  { to: '/app/settings', label: 'Ayarlar', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+  { to: '/app/guide', label: 'Kılavuz', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
 ]
+
+const settingsItem = { to: '/app/settings', label: 'Ayarlar', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' }
 
 const contentItems = [
   { to: '/app/seo', label: 'SEO İçerik', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
@@ -55,7 +56,7 @@ function NavItem({ to, label, icon, t }) {
 
 export default function Sidebar() {
   const { user, logout } = useAuth()
-  const { t, lang, toggleLang } = useT()
+  const { t, lang, changeLang, languages } = useT()
   const navigate = useNavigate()
 
   async function handleLogout() {
@@ -71,13 +72,15 @@ export default function Sidebar() {
             <img src="/assets/logo.svg" alt="" className="w-7 h-7" />
             <span className="text-sm font-semibold tracking-tight text-[#111827]">AskDesk</span>
           </div>
-          <button
-            onClick={toggleLang}
-            className="text-xs font-medium px-2 py-1 rounded border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827] transition-colors"
-            title={lang === 'tr' ? 'Switch to English' : 'Turkceye gec'}
+          <select
+            value={lang}
+            onChange={e => changeLang(e.target.value)}
+            className="text-[11px] font-medium pl-1.5 pr-1 py-1 rounded border border-[#E5E7EB] text-[#6B7280] bg-white hover:bg-[#F3F4F6] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#2563EB] transition-colors"
           >
-            {lang === 'tr' ? 'EN' : 'TR'}
-          </button>
+            {languages.map(l => (
+              <option key={l.code} value={l.code}>{l.name}</option>
+            ))}
+          </select>
         </div>
       </div>
       <nav className="flex-1 px-2 py-3 space-y-0.5">
@@ -88,6 +91,8 @@ export default function Sidebar() {
         {contentItems.map((item) => <NavItem key={item.to} {...item} t={t} />)}
         <div className="my-3 border-t border-[#E5E7EB]" />
         {analyticsItems.map((item) => <NavItem key={item.to} {...item} t={t} />)}
+        <div className="my-3 border-t border-[#E5E7EB]" />
+        <NavItem {...settingsItem} t={t} />
       </nav>
       <div className="px-3 py-3 border-t border-[#E5E7EB]">
         <div className="flex items-center gap-2">

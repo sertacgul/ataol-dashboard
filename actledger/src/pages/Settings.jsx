@@ -404,7 +404,7 @@ export default function Settings() {
               <input type="password" value={blogForm.api_password} onChange={e => setBlogForm(p => ({ ...p, api_password: e.target.value }))} className={inputCls} placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" />
             </div>
             <div className="text-xs text-[#6B7280] bg-[#F9FAFB] border border-[#E5E7EB] rounded-md px-3 py-2">
-              {t('WordPress icin Uygulama Sifresi kullanin. Kullanici Profili sayfasindan Uygulama Sifreleri bolumunden olusturabilirsiniz.')}
+              {t('WordPress için Uygulama Şifresi kullanın. Kullanıcı Profili sayfasından Uygulama Şifreleri bölümünden oluşturabilirsiniz.')}
             </div>
             <div className="flex gap-2 justify-end pt-1">
               {blogEditMode && (

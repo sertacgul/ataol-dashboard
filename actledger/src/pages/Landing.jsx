@@ -830,8 +830,8 @@ function ProductShowcase({ isEn }) {
 }
 
 export default function Landing() {
-  const { t, lang, toggleLang } = useT()
-  const isEn = lang === 'en'
+  const { t, lang, changeLang, languages } = useT()
+  const isEn = lang !== 'tr'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
@@ -852,12 +852,15 @@ export default function Landing() {
             <a href="#pricing" className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors">
               {isEn ? 'Pricing' : 'Fiyatlandırma'}
             </a>
-            <button
-              onClick={toggleLang}
-              className="text-xs font-medium text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded-md px-2.5 py-1.5 transition-colors"
+            <select
+              value={lang}
+              onChange={e => changeLang(e.target.value)}
+              className="text-xs font-medium text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded-md px-1.5 py-1.5 bg-white cursor-pointer focus:outline-none"
             >
-              {lang === 'tr' ? 'EN' : 'TR'}
-            </button>
+              {languages.map(l => (
+                <option key={l.code} value={l.code}>{l.name}</option>
+              ))}
+            </select>
             <Link to="/login" className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors">
               {t('Giriş Yap')}
             </Link>
@@ -871,12 +874,15 @@ export default function Landing() {
 
           {/* Mobile nav buttons */}
           <div className="flex md:hidden items-center gap-2">
-            <button
-              onClick={toggleLang}
-              className="text-xs font-medium text-[#6B7280] border border-[#E5E7EB] rounded-md px-2 py-1.5"
+            <select
+              value={lang}
+              onChange={e => changeLang(e.target.value)}
+              className="text-xs font-medium text-[#6B7280] border border-[#E5E7EB] rounded-md px-1 py-1.5 bg-white cursor-pointer"
             >
-              {lang === 'tr' ? 'EN' : 'TR'}
-            </button>
+              {languages.map(l => (
+                <option key={l.code} value={l.code}>{l.code.toUpperCase()}</option>
+              ))}
+            </select>
             <Link
               to="/register"
               className="text-xs font-medium text-white bg-[#2563EB] rounded-lg px-3 py-1.5"
@@ -1004,7 +1010,7 @@ export default function Landing() {
             </svg>
             Powered by ATAOL AI Techs
           </a>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-[#111827] mb-5 leading-[1.15] tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-[#2563EB] mb-5 leading-[1.15] tracking-tight">
             {isEn
               ? <>The Growth Platform<br />Built for Startups</>
               : <>Startup'lar İçin<br />Büyüme Platformu</>}
@@ -1070,7 +1076,7 @@ export default function Landing() {
             <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider mb-2">
               {isEn ? 'Features' : 'Özellikler'}
             </p>
-            <h2 className="text-3xl font-extrabold text-[#111827] mb-3 tracking-tight">
+            <h2 className="text-3xl font-extrabold text-[#2563EB] mb-3 tracking-tight">
               {isEn ? 'Everything you need to grow' : 'Büyümeniz için ihtiyacınız olan her şey'}
             </h2>
             <p className="text-sm text-[#6B7280] max-w-lg mx-auto">
@@ -1118,7 +1124,7 @@ export default function Landing() {
             <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider mb-2">
               {isEn ? 'How it works' : 'Nasıl çalışır'}
             </p>
-            <h2 className="text-3xl font-extrabold text-[#111827] tracking-tight">
+            <h2 className="text-3xl font-extrabold text-[#2563EB] tracking-tight">
               {isEn ? 'Get started in minutes' : 'Dakikalar içinde başlayın'}
             </h2>
           </div>
@@ -1159,7 +1165,7 @@ export default function Landing() {
               <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider mb-2">
                 {isEn ? 'AI Technology' : 'AI Teknolojisi'}
               </p>
-              <h2 className="text-3xl font-extrabold text-[#111827] mb-4 tracking-tight">
+              <h2 className="text-3xl font-extrabold text-[#2563EB] mb-4 tracking-tight">
                 {isEn ? 'AI at every step of your workflow' : 'İş akışınızın her adımında AI'}
               </h2>
               <p className="text-sm text-[#6B7280] mb-8 leading-relaxed">
@@ -1271,7 +1277,7 @@ export default function Landing() {
             <p className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider mb-2">
               {isEn ? 'Pricing' : 'Fiyatlandırma'}
             </p>
-            <h2 className="text-3xl font-extrabold text-[#111827] mb-3 tracking-tight">
+            <h2 className="text-3xl font-extrabold text-[#2563EB] mb-3 tracking-tight">
               {isEn ? 'Simple, transparent pricing' : 'Basit ve şeffaf fiyatlandırma'}
             </h2>
             <p className="text-sm text-[#6B7280] max-w-lg mx-auto">
@@ -1397,7 +1403,7 @@ export default function Landing() {
         </div>
 
         <div className="relative max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-extrabold text-[#111827] mb-4 tracking-tight">
+          <h2 className="text-3xl font-extrabold text-[#2563EB] mb-4 tracking-tight">
             {isEn ? 'Ready to grow your startup?' : "Startup'ınızı büyütmeye hazır mısınız?"}
           </h2>
           <p className="text-sm text-[#6B7280] mb-8">

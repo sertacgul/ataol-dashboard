@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom'
 import { useT } from '../contexts/LanguageContext'
 
 const sections = [
-  { id: 'baslangic', label: 'Baslangic' },
-  { id: 'lead-yonetimi', label: 'Lead Yonetimi' },
+  { id: 'baslangic', label: 'Başlangıç' },
+  { id: 'lead-yonetimi', label: 'Lead Yönetimi' },
   { id: 'outreach', label: 'Outreach' },
-  { id: 'icerik-uretimi', label: 'Icerik Uretimi' },
+  { id: 'icerik-uretimi', label: 'İçerik Üretimi' },
   { id: 'crm-pipeline', label: 'CRM Pipeline' },
   { id: 'analitik', label: 'Analitik ve Strateji' },
-  { id: 'takvim', label: 'Sablonlar ve Takvim' },
+  { id: 'takvim', label: 'Şablonlar ve Takvim' },
   { id: 'ayarlar', label: 'Ayarlar' },
   { id: 'email-bulucu', label: 'Email Bulucu' },
 ]
@@ -17,7 +17,7 @@ const sections = [
 function Tip({ children }) {
   return (
     <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-md p-3 mt-3 text-xs text-[#1E40AF] leading-relaxed">
-      <span className="font-semibold">Ipucu:</span> {children}
+      <span className="font-semibold">İpucu:</span> {children}
     </div>
   )
 }
@@ -87,7 +87,7 @@ export default function Guide() {
       {/* Left nav */}
       <nav className="w-44 flex-shrink-0">
         <div className="sticky top-6">
-          <div className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2 px-2">{t('Kilavuz')}</div>
+          <div className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2 px-2">{t('Kılavuz')}</div>
           <div className="space-y-0.5">
             {sections.map(s => (
               <a
@@ -114,359 +114,359 @@ export default function Guide() {
           <p className="text-xs text-[#6B7280] mt-0.5">{t('Platformu etkili kullanmak için adım adım rehber.')}</p>
         </div>
 
-        <Section id="baslangic" title="Baslangic">
-          <p>AskDesk, satis, outreach ve icerik uretim sureclerini tek platformda yonetmenizi saglar. Ilk giris yaptiginizda Onboarding ekrani sizi yonlendirecektir.</p>
+        <Section id="baslangic" title="Başlangıç">
+          <p>AskDesk, satış, outreach ve içerik üretim süreçlerini tek platformda yönetmenizi sağlar. İlk giriş yaptığınızda Onboarding ekranı sizi yönlendirecektir.</p>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Hesap Olusturma ve Giris</div>
+            <div className="font-medium text-[#111827] mb-1.5">Hesap Oluşturma ve Giriş</div>
             <Steps items={[
-              'askdesk.app adresine gidin ve "Kayit Ol" butonuna tiklayin.',
-              'Adinizi, email adresinizi ve sifrenizi girin.',
-              'Kayit sonrasi otomatik olarak Dashboard\'a yonlendirilirsiniz.',
-              'Tekrar giris icin Login sayfasini kullanin.',
+              'askdesk.app adresine gidin ve "Kayıt Ol" butonuna tıklayın.',
+              'Adınızı, email adresinizi ve şifrenizi girin.',
+              'Kayıt sonrası otomatik olarak Dashboard\'a yönlendirilirsiniz.',
+              'Tekrar giriş için Login sayfasını kullanın.',
             ]} />
           </div>
 
           <div>
             <div className="font-medium text-[#111827] mb-1.5">Firma Profili Ayarlama</div>
-            <p>Profil bilgileriniz OperIQ analizlerinde ve email sablonlarinda kullanilir.</p>
+            <p>Profil bilgileriniz OperIQ analizlerinde ve email şablonlarında kullanılır.</p>
             <Steps items={[
-              'Sol menuden "Ayarlar" sayfasina gidin.',
-              'Firma adi, sektör, web sitesi ve iletisim bilgilerinizi doldurun.',
-              'Kaydet butonuna basin.',
+              'Sol menüden "Ayarlar" sayfasına gidin.',
+              'Firma adı, sektör, web sitesi ve iletişim bilgilerinizi doldurun.',
+              'Kaydet butonuna basın.',
             ]} />
-            <Tip>Sektör bilgisini dogru girmek OperIQ analizlerinin kalitesini arttirir.</Tip>
+            <Tip>Sektör bilgisini doğru girmek OperIQ analizlerinin kalitesini artırır.</Tip>
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Email ve Blog Ayarlari</div>
+            <div className="font-medium text-[#111827] mb-1.5">Email ve Blog Ayarları</div>
             <Steps items={[
-              'Ayarlar sayfasinda "Email Ayarlari" bolumune gidin.',
-              'SMTP sunucu bilgilerinizi (host, port, kullanici adi, sifre) girin.',
-              'Test emaili gondererek baglantıyi dogrulayin.',
-              'Blog ayarlari icin WordPress API URL ve kimlik bilgilerini girin.',
+              'Ayarlar sayfasında "Email Ayarları" bölümüne gidin.',
+              'SMTP sunucu bilgilerinizi (host, port, kullanıcı adı, şifre) girin.',
+              'Test emaili göndererek bağlantıyı doğrulayın.',
+              'Blog ayarları için WordPress API URL ve kimlik bilgilerini girin.',
             ]} />
           </div>
         </Section>
 
-        <Section id="lead-yonetimi" title="Lead Yonetimi">
-          <p>Lead Yonetimi modulu potansiyel musterilerinizi (firmalari ve kisilerini) organize etmenizi saglar. Her lead icin detayli bilgi, notlar ve iliskilendirilmis emailler tutabilirsiniz.</p>
+        <Section id="lead-yonetimi" title="Lead Yönetimi">
+          <p>Lead Yönetimi modülü potansiyel müşterilerinizi (firmaları ve kişilerini) organize etmenizi sağlar. Her lead için detaylı bilgi, notlar ve ilişkilendirilmiş emailler tutabilirsiniz.</p>
 
           <div>
             <div className="font-medium text-[#111827] mb-1.5">Manuel Lead Ekleme</div>
             <Steps items={[
-              '"Leads" sayfasina gidin.',
-              '"Yeni Lead" butonuna tiklayin.',
-              'Firma adi, web sitesi, sektör ve ulke bilgilerini girin.',
-              'Iletisim kisi bilgilerini ekleyin (opsiyonel).',
-              '"Kaydet" butonuna basin.',
+              '"Leads" sayfasına gidin.',
+              '"Yeni Lead" butonuna tıklayın.',
+              'Firma adı, web sitesi, sektör ve ülke bilgilerini girin.',
+              'İletişim kişi bilgilerini ekleyin (opsiyonel).',
+              '"Kaydet" butonuna basın.',
             ]} />
           </div>
 
           <div>
             <div className="font-medium text-[#111827] mb-1.5">Google Maps\'ten Firma Bulma</div>
-            <p>Maps modulu ile belirli bir sektör ve lokasyondaki firmalari arayip dogrudan lead olarak ekleyebilirsiniz.</p>
+            <p>Maps modülü ile belirli bir sektör ve lokasyondaki firmaları arayıp doğrudan lead olarak ekleyebilirsiniz.</p>
             <Steps items={[
-              '"Maps" sayfasina gidin.',
-              'Arama kutusu, sektör ve sehir bilgilerini girin.',
-              '"Ara" butonuna basin.',
-              'Sonuclardan istediginiz firmalar icin "Lead Olarak Ekle" butonuna basin.',
+              '"Maps" sayfasına gidin.',
+              'Arama kutusu, sektör ve şehir bilgilerini girin.',
+              '"Ara" butonuna basın.',
+              'Sonuçlardan istediğiniz firmalar için "Lead Olarak Ekle" butonuna basın.',
             ]} />
-            <Tip>Maps aramasinda "restoran istanbul" yerine "yazilim gelistirme ankara" gibi sektör odakli aramalar daha iyi sonuc verir.</Tip>
+            <Tip>Maps aramasında "restoran istanbul" yerine "yazılım geliştirme ankara" gibi sektör odaklı aramalar daha iyi sonuç verir.</Tip>
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Email Bulucu Kullanimi</div>
-            <p>Email Bulucu, bir firma domaininden potansiyel email adreslerini otomatik olarak uretir.</p>
+            <div className="font-medium text-[#111827] mb-1.5">Email Bulucu Kullanımı</div>
+            <p>Email Bulucu, bir firma domaininden potansiyel email adreslerini otomatik olarak üretir.</p>
             <Bullets items={[
-              'Sol menuden "Email Bulucu" sayfasina gidin.',
-              'Firma sec ya da domain gir.',
-              'Kisi adi ve unvan girin.',
-              '"OperIQ ile Ara" butonuna basin.',
-              'Sonuclari kopyalayin veya "Kisiyi Kaydet" ile ilgili firmaya baglayın.',
+              'Sol menüden "Email Bulucu" sayfasına gidin.',
+              'Firma seç ya da domain gir.',
+              'Kişi adı ve unvan girin.',
+              '"OperIQ ile Ara" butonuna basın.',
+              'Sonuçları kopyalayın veya "Kişiyi Kaydet" ile ilgili firmaya bağlayın.',
             ]} />
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Lead Detay ve Duzenleme</div>
+            <div className="font-medium text-[#111827] mb-1.5">Lead Detay ve Düzenleme</div>
             <Steps items={[
-              'Leads listesinde bir firma adinina tiklayin.',
-              'Detay sayfasinda firma bilgilerini, kisilerini ve email gecmisini gorun.',
-              '"Duzenle" butonu ile bilgileri guncelleyin.',
+              'Leads listesinde bir firma adına tıklayın.',
+              'Detay sayfasında firma bilgilerini, kişilerini ve email geçmişini görün.',
+              '"Düzenle" butonu ile bilgileri güncelleyin.',
             ]} />
           </div>
         </Section>
 
         <Section id="outreach" title="Outreach">
-          <p>Outreach modulu, lead\'lerinize kisisellestirilmis email gondermek ve acilma oranlarini takip etmek icin kullanilir. OperIQ yapay zeka destegi ile saniyeler icinde profesyonel emailler olusturabilirsiniz.</p>
+          <p>Outreach modülü, lead\'lerinize kişiselleştirilmiş email göndermek ve açılma oranlarını takip etmek için kullanılır. OperIQ yapay zeka desteği ile saniyeler içinde profesyonel emailler oluşturabilirsiniz.</p>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">OperIQ ile Email Olusturma</div>
+            <div className="font-medium text-[#111827] mb-1.5">OperIQ ile Email Oluşturma</div>
             <Steps items={[
-              '"Outreach" sayfasinda "Yeni Email" butonuna tiklayin.',
-              'Firma secin.',
-              '"OperIQ ile Yaz" butonuna basin.',
-              'AI, firma bilgilerine gore kisisellestirilmis bir email taslagi olusturur.',
-              'Taslagi duzenleyip begendiginizde kaydedin.',
+              '"Outreach" sayfasında "Yeni Email" butonuna tıklayın.',
+              'Firma seçin.',
+              '"OperIQ ile Yaz" butonuna basın.',
+              'AI, firma bilgilerine göre kişiselleştirilmiş bir email taslağı oluşturur.',
+              'Taslağı düzenleyip beğendiğinizde kaydedin.',
             ]} />
-            <Tip>Firma web sitesini lead kaydina eklerseniz OperIQ daha alakali bir email olusturur.</Tip>
+            <Tip>Firma web sitesini lead kaydına eklerseniz OperIQ daha alakalı bir email oluşturur.</Tip>
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Email Onaylama ve Gonderme</div>
+            <div className="font-medium text-[#111827] mb-1.5">Email Onaylama ve Gönderme</div>
             <Steps items={[
-              'Email taslagini inceleyin ve gerekli degisiklikleri yapin.',
-              'Alici email adresini kontrol edin.',
-              '"Gonder" butonuna basin.',
-              'Email durum "Gonderildi" olarak guncellenir.',
+              'Email taslağını inceleyin ve gerekli değişiklikleri yapın.',
+              'Alıcı email adresini kontrol edin.',
+              '"Gönder" butonuna basın.',
+              'Email durumu "Gönderildi" olarak güncellenir.',
             ]} />
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Acilma Takibi</div>
-            <p>AskDesk, gonderdginiz emaillerin acilip acilmadigini otomatik olarak takip eder.</p>
+            <div className="font-medium text-[#111827] mb-1.5">Açılma Takibi</div>
+            <p>AskDesk, gönderdiğiniz emaillerin açılıp açılmadığını otomatik olarak takip eder.</p>
             <Bullets items={[
-              'Acilan emailler listede "Acildi" rozeti ile gorunur.',
-              'Dashboard\'da genel acilma orani istatistigi gorebilirsiniz.',
-              'Analytics sayfasinda detayli raporlar mevcuttur.',
+              'Açılan emailler listede "Açıldı" rozeti ile görünür.',
+              'Dashboard\'da genel açılma oranı istatistiği görebilirsiniz.',
+              'Analytics sayfasında detaylı raporlar mevcuttur.',
             ]} />
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Sablondan Email Olusturma</div>
+            <div className="font-medium text-[#111827] mb-1.5">Şablondan Email Oluşturma</div>
             <Steps items={[
-              '"Sablonlar" sayfasindan bir sablon secin.',
-              'Sablon detay sayfasinda "Bu Sablonu Kullan" butonuna basin.',
-              'Ilgili kisi/firmaya ata ve gor.',
+              '"Şablonlar" sayfasından bir şablon seçin.',
+              'Şablon detay sayfasında "Bu Şablonu Kullan" butonuna basın.',
+              'İlgili kişi/firmaya atayın ve görüntüleyin.',
             ]} />
           </div>
         </Section>
 
-        <Section id="icerik-uretimi" title="Icerik Uretimi">
-          <p>AskDesk'in icerik uretim modulleri ile SEO makaleleri, sosyal medya icerikleri, newsletter ve posterler olusturabilirsiniz. Tum icerikler OperIQ destegi ile uretilir.</p>
+        <Section id="icerik-uretimi" title="İçerik Üretimi">
+          <p>AskDesk'in içerik üretim modülleri ile SEO makaleleri, sosyal medya içerikleri, newsletter ve posterler oluşturabilirsiniz. Tüm içerikler OperIQ desteği ile üretilir.</p>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">SEO Makale Yazimi (6 Adim)</div>
+            <div className="font-medium text-[#111827] mb-1.5">SEO Makale Yazımı (6 Adım)</div>
             <Steps items={[
-              '"SEO Icerik" sayfasina gidin ve "Yeni Makale" butonuna basin.',
-              'Anahtar kelime ve konu basligi girin.',
-              'Hedef kitle ve ton secin.',
-              '"OperIQ ile Yaz" butonuna basin.',
-              'Olusturulan makaleyi gozden gecirin ve duzenleyin.',
-              '"Kaydet" ile taslagi koruyun.',
+              '"SEO İçerik" sayfasına gidin ve "Yeni Makale" butonuna basın.',
+              'Anahtar kelime ve konu başlığı girin.',
+              'Hedef kitle ve ton seçin.',
+              '"OperIQ ile Yaz" butonuna basın.',
+              'Oluşturulan makaleyi gözden geçirin ve düzenleyin.',
+              '"Kaydet" ile taslağı koruyun.',
             ]} />
-            <Tip>Uzun kuyruklu anahtar kelimeler (ornek: "istanbul yazilim sirketleri icin CRM") daha hedefli icerik uretir.</Tip>
+            <Tip>Uzun kuyruklu anahtar kelimeler (örnek: "istanbul yazılım şirketleri için CRM") daha hedefli içerik üretir.</Tip>
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Blog\'a Yayinlama</div>
+            <div className="font-medium text-[#111827] mb-1.5">Blog\'a Yayınlama</div>
             <Steps items={[
-              'SEO makale detay sayfasina gidin.',
-              '"Blog\'a Yayinla" butonuna basin.',
-              'WordPress baglantiniz varsa makale otomatik olarak yayinlanir.',
+              'SEO makale detay sayfasına gidin.',
+              '"Blog\'a Yayınla" butonuna basın.',
+              'WordPress bağlantınız varsa makale otomatik olarak yayınlanır.',
             ]} />
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Sosyal Medya Icerigi (4 Platform)</div>
-            <p>LinkedIn, Twitter/X, Instagram ve Facebook icin optimize edilmis icerikler olusturun.</p>
+            <div className="font-medium text-[#111827] mb-1.5">Sosyal Medya İçeriği (4 Platform)</div>
+            <p>LinkedIn, Twitter/X, Instagram ve Facebook için optimize edilmiş içerikler oluşturun.</p>
             <Steps items={[
-              '"Sosyal Medya" sayfasina gidin.',
-              '"Yeni Icerik" butonuna basin.',
-              'Konu ve platform secin.',
-              '"OperIQ ile Olustur" butonuna basin.',
-              'Sonucu kopyalayip ilgili platforma yapistirin.',
+              '"Sosyal Medya" sayfasına gidin.',
+              '"Yeni İçerik" butonuna basın.',
+              'Konu ve platform seçin.',
+              '"OperIQ ile Oluştur" butonuna basın.',
+              'Sonucu kopyalayıp ilgili platforma yapıştırın.',
             ]} />
           </div>
 
           <div>
             <div className="font-medium text-[#111827] mb-1.5">Newsletter ve Poster</div>
             <Bullets items={[
-              '"Newsletter" sayfasinda abone listenize yonelik email kampanyalari olusturun.',
-              'Konu girisinin ardindan OperIQ tam bir newsletter taslagi olusturur.',
-              'Poster icerikleri gorsel sosyal medya paylasimlariniz icin kısa ve etkili metinler uretir.',
+              '"Newsletter" sayfasında abone listenize yönelik email kampanyaları oluşturun.',
+              'Konu girişinin ardından OperIQ tam bir newsletter taslağı oluşturur.',
+              'Poster içerikleri görsel sosyal medya paylaşımlarınız için kısa ve etkili metinler üretir.',
             ]} />
           </div>
         </Section>
 
         <Section id="crm-pipeline" title="CRM Pipeline">
-          <p>Pipeline modulu, satislarifinizi asama asama takip etmenizi saglar. Kanban gorunumu ile bir bakista tum satislarin nerede oldugunu gorursunuz.</p>
+          <p>Pipeline modülü, satışlarınızı aşama aşama takip etmenizi sağlar. Kanban görünümü ile bir bakışta tüm satışların nerede olduğunu görürsünüz.</p>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Kanban Kullanimi</div>
+            <div className="font-medium text-[#111827] mb-1.5">Kanban Kullanımı</div>
             <Steps items={[
-              '"Pipeline" sayfasina gidin.',
-              'Her sutun bir satis asamasini temsil eder.',
-              'Kartlar uzerinde firma adi, deger ve son aktivite gorunur.',
-              'Kart basligina tikladiginizda detay acilir.',
+              '"Pipeline" sayfasına gidin.',
+              'Her sütun bir satış aşamasını temsil eder.',
+              'Kartlar üzerinde firma adı, değer ve son aktivite görünür.',
+              'Kart başlığına tıkladığınızda detay açılır.',
             ]} />
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Lead Asamalari</div>
+            <div className="font-medium text-[#111827] mb-1.5">Lead Aşamaları</div>
             <Bullets items={[
-              'Asamalar: Kesfedildi, Iletisime Gecildi, Ilgileniliyor, Teklif Verildi, Kazanildi, Kaybedildi.',
-              'Her asamaya lead atayabilir, notlar ekleyebilirsiniz.',
-              'Sutun basligindaki sayi o asama\'daki toplam lead sayisini gosterir.',
+              'Aşamalar: Keşfedildi, İletişime Geçildi, İlgileniliyor, Teklif Verildi, Kazanıldı, Kaybedildi.',
+              'Her aşamaya lead atayabilir, notlar ekleyebilirsiniz.',
+              'Sütun başlığındaki sayı o aşamadaki toplam lead sayısını gösterir.',
             ]} />
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Surukle-Birak</div>
+            <div className="font-medium text-[#111827] mb-1.5">Sürükle-Bırak</div>
             <Steps items={[
-              'Bir karti tutun ve baska bir sutuna surukleyin.',
-              'Biraktiginizda kart o asama\'ya gecer ve kayit otomatik guncellenir.',
+              'Bir kartı tutun ve başka bir sütuna sürükleyin.',
+              'Bıraktığınızda kart o aşamaya geçer ve kayıt otomatik güncellenir.',
             ]} />
-            <Tip>Pipeline'da bir lead\'i kazanildi olarak isaretle ettiginizde Analytics sayfasindaki donusum oranlari guncellenir.</Tip>
+            <Tip>Pipeline'da bir lead\'i kazanıldı olarak işaretlediğinizde Analytics sayfasındaki dönüşüm oranları güncellenir.</Tip>
           </div>
         </Section>
 
         <Section id="analitik" title="Analitik ve Strateji">
-          <p>Analytics, Finansal Simulatör, Is Modeli Kanvasi ve Rakip Analizi modulleri ile stratejik kararlari verilere dayali alabilirsiniz.</p>
+          <p>Analytics, Finansal Simülatör, İş Modeli Kanvası ve Rakip Analizi modülleri ile stratejik kararları verilere dayalı alabilirsiniz.</p>
 
           <div>
             <div className="font-medium text-[#111827] mb-1.5">Analytics Dashboard</div>
             <Bullets items={[
-              'Outreach performansi: gonderilen, acilan, yanitlanan email sayilari.',
-              'Lead kaynak dagilimi ve sektor grafikleri.',
-              'Pipeline donusum orani zaman serisi grafigi.',
-              'Son 30 gun aktivite ozeti.',
+              'Outreach performansı: gönderilen, açılan, yanıtlanan email sayıları.',
+              'Lead kaynak dağılımı ve sektör grafikleri.',
+              'Pipeline dönüşüm oranı zaman serisi grafiği.',
+              'Son 30 gün aktivite özeti.',
             ]} />
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Finansal Simulasyon</div>
-            <p>3 senaryo (Iyimser, Gercekci, Kotumser) ile yillik gelir, gider ve net kar projeksiyonu yapabilirsiniz.</p>
+            <div className="font-medium text-[#111827] mb-1.5">Finansal Simülasyon</div>
+            <p>3 senaryo (İyimser, Gerçekçi, Kötümser) ile yıllık gelir, gider ve net kar projeksiyonu yapabilirsiniz.</p>
             <Steps items={[
-              '"Simulatör" sayfasina gidin.',
-              'Senaryo tablarindan birini secin.',
+              '"Simülatör" sayfasına gidin.',
+              'Senaryo tablarından birini seçin.',
               'Gelir ve maliyet sürücülerini doldurun.',
-              '12 aylik tablo otomatik hesaplanir.',
-              '"OperIQ Sektör Analizi" ile benchmarklarinizi ogrenin.',
-              '"Rapor Indir" ile tarayici print diyalogunu acin.',
+              '12 aylık tablo otomatik hesaplanır.',
+              '"OperIQ Sektör Analizi" ile benchmarklarınızı öğrenin.',
+              '"Rapor İndir" ile tarayıcı print diyalogunu açın.',
             ]} />
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Is Modeli Kanvasi (BMC)</div>
+            <div className="font-medium text-[#111827] mb-1.5">İş Modeli Kanvası (BMC)</div>
             <Steps items={[
-              '"BMC" sayfasina gidin.',
-              'Dokuz bloku doldurun (Musteriler, Deger Onerisi, Gelir Akislari vb.).',
-              '"OperIQ ile Analiz Et" butonu eksik ya da zayif bloklari isaret eder.',
+              '"BMC" sayfasına gidin.',
+              'Dokuz bloğu doldurun (Müşteriler, Değer Önerisi, Gelir Akışları vb.).',
+              '"OperIQ ile Analiz Et" butonu eksik ya da zayıf blokları işaret eder.',
             ]} />
           </div>
 
           <div>
             <div className="font-medium text-[#111827] mb-1.5">Rakip Analizi</div>
             <Steps items={[
-              '"Rakip Analizi" sayfasina gidin.',
-              'Rakip firma adi ve web sitesi girin.',
-              'OperIQ, SWOT ve konumlandirma analizi uretir.',
+              '"Rakip Analizi" sayfasına gidin.',
+              'Rakip firma adı ve web sitesi girin.',
+              'OperIQ, SWOT ve konumlandırma analizi üretir.',
             ]} />
           </div>
         </Section>
 
-        <Section id="takvim" title="Sablonlar ve Takvim">
+        <Section id="takvim" title="Şablonlar ve Takvim">
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Sablon Olusturma ve Kullanma</div>
-            <p>Tekrar kullanimlik email ve icerik sablonlari olusturarak zamandan tasarruf edin.</p>
+            <div className="font-medium text-[#111827] mb-1.5">Şablon Oluşturma ve Kullanma</div>
+            <p>Tekrar kullanımlık email ve içerik şablonları oluşturarak zamandan tasarruf edin.</p>
             <Steps items={[
-              '"Sablonlar" sayfasina gidin.',
-              '"Yeni Sablon" butonuna basin.',
-              'Sablon adi, kategori ve icerigini girin.',
-              'Icerik icinde {firma_adi} gibi degisken alanlar kullanabilirsiniz.',
+              '"Şablonlar" sayfasına gidin.',
+              '"Yeni Şablon" butonuna basın.',
+              'Şablon adı, kategori ve içeriğini girin.',
+              'İçerik içinde {firma_adi} gibi değişken alanlar kullanabilirsiniz.',
               '"Kaydet" ile saklayın.',
             ]} />
-            <Tip>Sablonlari email olusturma ekranindaki "Sablondan Sec" secenegi ile dogrudan kullanabilirsiniz.</Tip>
+            <Tip>Şablonları email oluşturma ekranındaki "Şablondan Seç" seçeneği ile doğrudan kullanabilirsiniz.</Tip>
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Icerik Takvimi Planlama</div>
+            <div className="font-medium text-[#111827] mb-1.5">İçerik Takvimi Planlama</div>
             <Steps items={[
-              '"Takvim" sayfasina gidin.',
-              'Bir gune tiklayin ve etkinlik olusturun.',
-              'Etkinlik turunu secin: Email, SEO Makale, Sosyal Medya veya Newsletter.',
-              'Planlanan etkinlikler takvimde farkli renklerle gosterilir.',
-              'Hatirlatici ozelligi ile planlarinizi takip edin.',
+              '"Takvim" sayfasına gidin.',
+              'Bir güne tıklayın ve etkinlik oluşturun.',
+              'Etkinlik türünü seçin: Email, SEO Makale, Sosyal Medya veya Newsletter.',
+              'Planlanan etkinlikler takvimde farklı renklerle gösterilir.',
+              'Hatırlatıcı özelliği ile planlarınızı takip edin.',
             ]} />
           </div>
         </Section>
 
         <Section id="ayarlar" title="Ayarlar">
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Firma Profili Duzenleme</div>
+            <div className="font-medium text-[#111827] mb-1.5">Firma Profili Düzenleme</div>
             <Steps items={[
-              '"Ayarlar" sayfasina gidin.',
-              'Firma adi, sektör, web sitesi, ulke ve aciklama alanlarini guncelleyin.',
-              '"Profili Kaydet" butonuna basin.',
+              '"Ayarlar" sayfasına gidin.',
+              'Firma adı, sektör, web sitesi, ülke ve açıklama alanlarını güncelleyin.',
+              '"Profili Kaydet" butonuna basın.',
             ]} />
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Email (SMTP) Ayarlari</div>
-            <p>AskDesk uzerinden email gondermek icin SMTP bilgilerinizi girmeniz gerekir.</p>
+            <div className="font-medium text-[#111827] mb-1.5">Email (SMTP) Ayarları</div>
+            <p>AskDesk üzerinden email göndermek için SMTP bilgilerinizi girmeniz gerekir.</p>
             <Steps items={[
-              '"Email Ayarlari" bolumune gidin.',
-              'SMTP Host (ornek: smtp.gmail.com), Port (587 veya 465), Kullanici Adi ve Sifre girin.',
-              '"Baglantıyı Test Et" ile dogrulayin.',
-              '"Kaydet" butonuna basin.',
+              '"Email Ayarları" bölümüne gidin.',
+              'SMTP Host (örnek: smtp.gmail.com), Port (587 veya 465), Kullanıcı Adı ve Şifre girin.',
+              '"Bağlantıyı Test Et" ile doğrulayın.',
+              '"Kaydet" butonuna basın.',
             ]} />
-            <Tip>Gmail kullaniyorsaniz "Uygulama Sifresi" olusturmaniz gerekir. Google Hesap guvenlik ayarlarindan 2FA aktif ederek uygulama sifresi alabilirsiniz.</Tip>
+            <Tip>Gmail kullanıyorsanız "Uygulama Şifresi" oluşturmanız gerekir. Google Hesap güvenlik ayarlarından 2FA aktif ederek uygulama şifresi alabilirsiniz.</Tip>
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Blog Ayarlari</div>
+            <div className="font-medium text-[#111827] mb-1.5">Blog Ayarları</div>
             <Steps items={[
-              '"Blog Ayarlari" bolumune gidin.',
-              'WordPress site URL\'inizi girin (ornek: https://siteadı.com).',
-              'WordPress kullanici adi ve uygulama sifresini girin.',
-              '"Kaydet" butonuna basin.',
-              'SEO makaleleri artık dogrudan blog\'unuza yayinlanabilir.',
+              '"Blog Ayarları" bölümüne gidin.',
+              'WordPress site URL\'inizi girin (örnek: https://siteadi.com).',
+              'WordPress kullanıcı adı ve uygulama şifresini girin.',
+              '"Kaydet" butonuna basın.',
+              'SEO makaleleri artık doğrudan blog\'unuza yayınlanabilir.',
             ]} />
           </div>
         </Section>
 
         <Section id="email-bulucu" title="Email Bulucu">
-          <p>Email Bulucu modulu, bir firma domaininden olasi email adreslerini algoritmik olarak uretir ve OperIQ ile web sitesini analiz ederek herkese acik emailler bulur.</p>
+          <p>Email Bulucu modülü, bir firma domaininden olası email adreslerini algoritmik olarak üretir ve OperIQ ile web sitesini analiz ederek herkese açık emailler bulur.</p>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Nasil Calisir?</div>
+            <div className="font-medium text-[#111827] mb-1.5">Nasıl Çalışır?</div>
             <Bullets items={[
-              'Domain + kisi adi kombinasyonundan 7 farkli email paterni uretilir.',
-              'OperIQ domain\'i analiz ederek kamuya acik email adreslerini tespit eder.',
-              'Bulunan kisiler (isim, unvan) listelenir.',
-              'Olusturulan email adresleri bir tikla kopyalanir.',
-              'Begendilerinizi "Kisiyi Kaydet" ile CRM\'e ekleyin.',
+              'Domain + kişi adı kombinasyonundan 7 farklı email paterni üretilir.',
+              'OperIQ domain\'i analiz ederek kamuya açık email adreslerini tespit eder.',
+              'Bulunan kişiler (isim, unvan) listelenir.',
+              'Oluşturulan email adresleri bir tıkla kopyalanır.',
+              'Beğendiklerinizi "Kişiyi Kaydet" ile CRM\'e ekleyin.',
             ]} />
           </div>
 
           <div>
-            <div className="font-medium text-[#111827] mb-1.5">Adim Adim Kullanim</div>
+            <div className="font-medium text-[#111827] mb-1.5">Adım Adım Kullanım</div>
             <Steps items={[
-              '"Email Bulucu" sayfasina gidin.',
-              '"Firma Ara" alanina firma adi yazmaya baslayin ve ac&#305;lan listeden secin.',
-              'Domain otomatik dolar; yoksa "Domain" alanina elle girin.',
-              'Opsiyonel olarak kisi adi ve unvani girin.',
-              '"OperIQ ile Ara" butonuna basin.',
-              'Tahmin edilen email listesinden uygun olanları kopyalayin.',
-              'Gercek kisileri "Kisiyi Kaydet" ile CRM\'e ekleyin.',
+              '"Email Bulucu" sayfasına gidin.',
+              '"Firma Ara" alanına firma adı yazmaya başlayın ve açılan listeden seçin.',
+              'Domain otomatik dolar; yoksa "Domain" alanına elle girin.',
+              'Opsiyonel olarak kişi adı ve unvanı girin.',
+              '"OperIQ ile Ara" butonuna basın.',
+              'Tahmin edilen email listesinden uygun olanları kopyalayın.',
+              'Gerçek kişileri "Kişiyi Kaydet" ile CRM\'e ekleyin.',
             ]} />
-            <Tip>Bulunan emailler dogrulanmamistir. Gonderim oncesinde bounce oranini dusuk tutmak icin dogrulama servisi kullanmaniz onerilir.</Tip>
+            <Tip>Bulunan emailler doğrulanmamıştır. Gönderim öncesinde bounce oranını düşük tutmak için doğrulama servisi kullanmanız önerilir.</Tip>
           </div>
 
           <div>
             <div className="font-medium text-[#111827] mb-1.5">CSV Export</div>
             <Steps items={[
-              'Arama sonuclarinin altinda "CSV Olarak Indir" butonuna basin.',
-              'Ya da gecmis aramalar tablosunun ustundeki "Tumunu Indir" linkine basin.',
-              'Indirilen dosyada domain, kisi adi, unvan ve tum email adresleri yer alir.',
+              'Arama sonuçlarının altında "CSV Olarak İndir" butonuna basın.',
+              'Ya da geçmiş aramalar tablosunun üstündeki "Tümünü İndir" linkine basın.',
+              'İndirilen dosyada domain, kişi adı, unvan ve tüm email adresleri yer alır.',
             ]} />
           </div>
         </Section>
 
         <div className="pt-4 border-t border-[#E5E7EB] text-center">
           <p className="text-xs text-[#9CA3AF]">
-            Daha fazla yardim icin{' '}
+            Daha fazla yardım için{' '}
             <a href="mailto:destek@askdesk.app" className="text-[#2563EB] hover:underline">destek@askdesk.app</a>
             {' '}adresine yazabilirsiniz.
           </p>

@@ -8,7 +8,12 @@ router.use('*', authMiddleware)
 
 const PLAN_LIMITS = { free: 25, pro: 300, growth: 1500, team: 1000 }
 const CACHE_TTL_HOURS = 24
-const SCRAPE_PAGES = ['/', '/contact', '/contact-us', '/iletisim', '/about', '/about-us', '/hakkimizda', '/team', '/ekibimiz']
+const SCRAPE_PAGES = [
+  '/', '/contact', '/contact-us', '/contactus', '/iletisim', '/tr/iletisim', '/en/contact',
+  '/about', '/about-us', '/aboutus', '/hakkimizda', '/tr/hakkimizda', '/en/about',
+  '/team', '/our-team', '/ekibimiz', '/yonetim', '/tr/yonetim', '/management',
+  '/kurumsal', '/tr/kurumsal', '/impressum',
+]
 const FALSE_POSITIVE_DOMAINS = ['example.com', 'sentry.io', 'webpack.js', 'w3.org', 'schema.org', 'googleapis.com', 'cloudflare.com', 'jsdelivr.net']
 const CATCHALL_PROVIDERS = ['yandex', 'zoho', 'fastmail']
 
@@ -43,17 +48,40 @@ async function callGemini(prompt, apiKey) {
   return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 }
 
+// ─── Domain Cleaning ─────────────────────────────────────────
+
+function cleanDomain(raw) {
+  if (!raw) return ''
+  let d = raw.trim().toLowerCase()
+  d = d.replace(/^https?:\/\//, '')
+  d = d.replace(/^www\./, '')
+  d = d.split('/')[0]    // remove path
+  d = d.split('?')[0]    // remove query
+  d = d.split('#')[0]    // remove hash
+  d = d.split(':')[0]    // remove port
+  d = d.trim()
+  // Validate it looks like a domain
+  if (!d || !d.includes('.') || d.includes(' ') || d.length > 80) return ''
+  return d
+}
+
 // ─── Email Pattern Generation ────────────────────────────────
 
 function generateEmailPatterns(personName, domain) {
   if (!personName || !domain) return []
-  const parts = personName.toLowerCase().replace(/[^a-z\s]/g, '').trim().split(/\s+/)
-  if (parts.length < 2) return parts[0] ? [`${parts[0]}@${domain}`] : []
+  const clean = cleanDomain(domain)
+  if (!clean) return []
+  // Turkish char transliteration for email patterns
+  const turkishMap = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u',
+    'Ç': 'c', 'Ğ': 'g', 'İ': 'i', 'Ö': 'o', 'Ş': 's', 'Ü': 'u' }
+  const ascii = personName.split('').map(c => turkishMap[c] || c).join('')
+  const parts = ascii.toLowerCase().replace(/[^a-z\s]/g, '').trim().split(/\s+/)
+  if (parts.length < 2) return parts[0] ? [`${parts[0]}@${clean}`] : []
   const first = parts[0], last = parts[parts.length - 1]
   const patterns = [
-    `${first}.${last}@${domain}`, `${first}${last}@${domain}`,
-    `${first[0]}.${last}@${domain}`, `${first}_${last}@${domain}`,
-    `${first}.${last[0]}@${domain}`, `${first}@${domain}`, `${last}@${domain}`,
+    `${first}.${last}@${clean}`, `${first}${last}@${clean}`,
+    `${first[0]}.${last}@${clean}`, `${first}_${last}@${clean}`,
+    `${first}.${last[0]}@${clean}`, `${first}@${clean}`, `${last}@${clean}`,
   ]
   return [...new Set(patterns)]
 }
@@ -111,10 +139,35 @@ async function fetchPageText(url) {
 function extractEmailsFromHtml(html) {
   const matches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || []
   return [...new Set(matches)].filter(e => {
+    const local = e.split('@')[0] || ''
     const domain = e.split('@')[1]?.toLowerCase() || ''
-    return !FALSE_POSITIVE_DOMAINS.some(fp => domain.includes(fp))
-      && !/\.(png|jpg|jpeg|gif|svg|webp|css|js)$/i.test(e)
+    if (!domain || !domain.includes('.')) return false
+    if (FALSE_POSITIVE_DOMAINS.some(fp => domain.includes(fp))) return false
+    if (/\.(png|jpg|jpeg|gif|svg|webp|css|js|json|xml|woff|ttf|eot)$/i.test(e)) return false
+    if (domain.includes('://') || domain.includes('/')) return false
+    if (local.length < 2 || local.length > 64) return false
+    if (domain.length > 80) return false
+    return true
   })
+}
+
+function extractPhonesFromHtml(html) {
+  // Match Turkish and international phone patterns
+  const patterns = [
+    /(?:\+90|0090)[\s.-]?\d{3}[\s.-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}/g,
+    /\(0?\d{3}\)\s?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}/g,
+    /(?:\+\d{1,3})[\s.-]?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{2,4}/g,
+    /0\d{3}[\s.-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}/g,
+  ]
+  const phones = new Set()
+  for (const pat of patterns) {
+    const matches = html.match(pat) || []
+    for (const m of matches) {
+      const digits = m.replace(/[\s.()-]/g, '')
+      if (digits.length >= 10 && digits.length <= 15) phones.add(m.trim())
+    }
+  }
+  return [...phones]
 }
 
 async function scrapeWebsite(domain) {
@@ -122,16 +175,17 @@ async function scrapeWebsite(domain) {
     fetchPageText(`https://${domain}${p}`).then(text => ({ path: p, text }))
   )
   const results = await Promise.allSettled(fetches)
-  let allText = '', allEmails = [], pagesScraped = []
+  let allText = '', allEmails = [], allPhones = [], pagesScraped = []
 
   for (const r of results) {
     if (r.status !== 'fulfilled' || !r.value.text || r.value.text.length < 100) continue
     pagesScraped.push(r.value.path)
     allText += r.value.text + '\n'
     allEmails.push(...extractEmailsFromHtml(r.value.text))
+    allPhones.push(...extractPhonesFromHtml(r.value.text))
   }
 
-  return { text: allText.slice(0, 30000), emails: [...new Set(allEmails)], pagesScraped }
+  return { text: allText.slice(0, 30000), emails: [...new Set(allEmails)], phones: [...new Set(allPhones)], pagesScraped }
 }
 
 // ─── Masking ─────────────────────────────────────────────────
@@ -146,6 +200,11 @@ function maskEmail(email) {
   if (!email) return '***@***.com'
   const [local, domain] = email.split('@')
   return local[0] + '***@' + domain
+}
+
+function maskPhone(phone) {
+  if (!phone) return null
+  return phone.slice(0, 4) + '****'
 }
 
 // ─── Classification ─────────────────────────────────────────
@@ -245,30 +304,25 @@ router.post('/search', async (c) => {
   const { query, domain: inputDomain, company_id } = await c.req.json()
 
   // Resolve domain
-  let domain = inputDomain
+  let domain = cleanDomain(inputDomain)
   if (!domain && company_id) {
     const company = await c.env.DB.prepare('SELECT website FROM companies WHERE id = ? AND user_id = ?')
       .bind(company_id, userId).first()
-    domain = extractDomainFromUrl(company?.website)
+    domain = cleanDomain(company?.website)
   }
   if (!domain && query) {
-    // Try to use query as domain if it looks like one
-    if (query.includes('.') && !query.includes(' ')) {
-      domain = query.toLowerCase().replace(/^www\./, '')
+    const cleaned = cleanDomain(query)
+    if (cleaned) {
+      domain = cleaned
     } else if (c.env.GEMINI_API_KEY) {
-      // Use Gemini to find the company domain
       try {
         const domainPrompt = `"${query}" firmasinin web sitesi domain adresini bul. SADECE domain adresini yaz, baska hicbir sey yazma. Ornek: getir.com`
         const domainGuess = await callGemini(domainPrompt, c.env.GEMINI_API_KEY)
-        const cleaned = domainGuess.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].split('\n')[0].trim()
-        if (cleaned && cleaned.includes('.') && cleaned.length < 50) {
-          domain = cleaned
-        }
+        domain = cleanDomain(domainGuess.split('\n')[0])
       } catch {}
     }
   }
   if (!domain) return c.json({ error: 'Domain bulunamadi. Lutfen domain adresini girin (ornek: firma.com)' }, 400)
-  domain = domain.toLowerCase().replace(/^www\./, '')
 
   // Check cache first
   let cached = await getCachedDomain(c.env.DB, domain)
@@ -292,6 +346,8 @@ router.post('/search', async (c) => {
         seniority: classifySeniority(p.title),
         masked_email: rev ? bestEmail : maskEmail(bestEmail),
         full_email: rev ? bestEmail : null,
+        masked_phone: p.phone ? (rev ? p.phone : maskPhone(p.phone)) : null,
+        full_phone: rev ? (p.phone || null) : null,
         revealed: !!rev,
         verification_status: rev?.verification_status || null,
         confidence_score: rev?.confidence_score || null,
@@ -317,34 +373,42 @@ router.post('/search', async (c) => {
   const hasCatchAll = detectCatchAll(mx.mxHosts)
 
   // Extract company info + people via Gemini
-  let companyInfo = { name: query || domain, domain, sector: '', location: '', employee_count: '', mx_valid: mx.hasMx }
+  let companyInfo = { name: query || domain, domain, sector: '', location: '', employee_count: '', company_phones: [], mx_valid: mx.hasMx }
   let people = []
 
   if (scrapeResult.text.length > 200 && c.env.GEMINI_API_KEY) {
     try {
-      const prompt = `Bu web sitesi iceriginden firma bilgileri ve calisanlari cikar.
+      const prompt = `Extract company information and people from this website content AND your knowledge.
 
-KURALLAR:
-- SADECE verilen icerikten bilgi cikar, uydurma
-- Calisanlarin isim ve unvanlarini bul
-- Her calisan icin departman tahmini yap
-
-Icerik:
+WEBSITE CONTENT:
 ${scrapeResult.text.slice(0, 12000)}
 
-JSON formatinda don:
+EMAILS FOUND ON WEBSITE: ${scrapeResult.emails.join(', ') || 'none'}
+PHONES FOUND ON WEBSITE: ${scrapeResult.phones.join(', ') || 'none'}
+
+INSTRUCTIONS:
+1. Extract company info (name, sector, description, location, employee count)
+2. List ALL real people found on the website with their names, titles, and phone if shown
+3. ALSO add publicly known executives, founders, board members, C-level, senior management of this company from your training knowledge
+4. Do NOT hallucinate or invent people. Only include people you are confident about.
+5. If you find phone numbers on the website associated with specific people, include them.
+6. Include company-level phone numbers in company_phones array.
+
+Respond in JSON only:
 {
   "company_name": "...",
-  "description": "1-2 cumle",
+  "description": "1-2 sentences",
   "sector": "...",
   "location": "...",
   "employee_count": "...",
-  "people": [{"name": "Ad Soyad", "title": "Unvan"}]
+  "company_phones": ["..."],
+  "people": [{"name": "Full Name", "title": "Position/Title", "phone": "phone or null"}]
 }`
       const raw = await callGemini(prompt, c.env.GEMINI_API_KEY)
       const jsonMatch = raw.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0])
+        const companyPhones = [...new Set([...(parsed.company_phones || []), ...scrapeResult.phones])]
         companyInfo = {
           name: parsed.company_name || companyInfo.name,
           domain,
@@ -352,6 +416,7 @@ JSON formatinda don:
           sector: parsed.sector || '',
           location: parsed.location || '',
           employee_count: parsed.employee_count || '',
+          company_phones: companyPhones,
           mx_valid: mx.hasMx,
         }
         if (Array.isArray(parsed.people)) {
@@ -362,20 +427,22 @@ JSON formatinda don:
   } else if (c.env.GEMINI_API_KEY) {
     // Website scraping failed/insufficient, ask Gemini about the company directly
     try {
-      const fallbackPrompt = `"${query || domain}" firmasi hakkinda bilgi ver.
+      const fallbackPrompt = `Provide information about the company "${query || domain}".
 
-KURALLAR:
-- Bildiklerini yaz, bilmiyorsan null yaz
-- Tahmin etme
+INSTRUCTIONS:
+1. Provide company info (name, sector, description, location, employee count)
+2. List ONLY people who are PUBLICLY KNOWN to work at this company (CEO, founders, board members, C-level executives, senior management)
+3. Do NOT hallucinate or guess names. If unsure, leave the people array empty.
+4. Include phone numbers only if publicly available.
 
-JSON formatinda don:
+Respond in JSON only:
 {
   "company_name": "...",
-  "description": "1-2 cumle" veya null,
-  "sector": "..." veya null,
-  "location": "..." veya null,
-  "employee_count": "..." veya null,
-  "people": []
+  "description": "1-2 sentences or null",
+  "sector": "... or null",
+  "location": "... or null",
+  "employee_count": "... or null",
+  "people": [{"name": "Full Name", "title": "Position/Title", "phone": "phone or null"}]
 }`
       const raw = await callGemini(fallbackPrompt, c.env.GEMINI_API_KEY)
       const jsonMatch = raw.match(/\{[\s\S]*\}/)
@@ -388,15 +455,35 @@ JSON formatinda don:
           sector: parsed.sector || '',
           location: parsed.location || '',
           employee_count: parsed.employee_count || '',
+          company_phones: [],
           mx_valid: mx.hasMx,
+        }
+        if (Array.isArray(parsed.people)) {
+          people = parsed.people.filter(p => p.name && p.name.length > 1)
         }
       }
     } catch {}
   }
 
+  // If no real people found, add common functional email addresses
+  if (people.length === 0) {
+    people = [
+      { name: 'Genel İletişim', title: 'Genel', _functional: true },
+      { name: 'Satış Departmanı', title: 'Satis', _functional: true },
+      { name: 'İnsan Kaynakları', title: 'IK', _functional: true },
+      { name: 'Destek', title: 'Destek', _functional: true },
+    ]
+  }
+
   // Generate emails for each person
   const websiteEmails = scrapeResult.emails
+  const FUNCTIONAL_EMAILS = { 'Genel': 'info', 'Satis': 'sales', 'IK': 'hr', 'Destek': 'support' }
   const peopleWithEmails = people.map(p => {
+    if (p._functional) {
+      const prefix = FUNCTIONAL_EMAILS[p.title] || 'info'
+      const { _functional, ...cleanPerson } = p
+      return { ...cleanPerson, emails: [`${prefix}@${domain}`], matchedWebsite: false }
+    }
     const patterns = generateEmailPatterns(p.name, domain)
     // Check if any pattern matches a website email
     const matchedWebsite = patterns.find(pat => websiteEmails.some(we => we.toLowerCase() === pat.toLowerCase()))
@@ -441,6 +528,8 @@ JSON formatinda don:
       seniority: classifySeniority(p.title),
       masked_email: isRevealed ? email : maskEmail(email),
       full_email: isRevealed ? email : null,
+      masked_phone: p.phone ? (isRevealed ? p.phone : maskPhone(p.phone)) : null,
+      full_phone: isRevealed ? (p.phone || null) : null,
       revealed: isRevealed,
       verification_status: null,
       confidence_score: null,
@@ -487,6 +576,7 @@ router.post('/reveal', async (c) => {
       person_name: existing.person_name,
       person_title: existing.person_title,
       email: existing.email,
+      phone: person.phone || null,
       verification_status: existing.verification_status,
       confidence_score: existing.confidence_score,
       source: existing.source,
@@ -522,6 +612,7 @@ router.post('/reveal', async (c) => {
     person_name: person.name,
     person_title: person.title,
     email,
+    phone: person.phone || null,
     verification_status: v.status,
     confidence_score: v.confidence,
     source: v.source,
@@ -578,6 +669,7 @@ router.post('/bulk-reveal', async (c) => {
       person_name: item.person.name,
       person_title: item.person.title,
       email: item.email,
+      phone: item.person.phone || null,
       verification_status: v.status,
       confidence_score: v.confidence,
     })
@@ -639,6 +731,68 @@ router.get('/reveals', async (c) => {
   })
 })
 
+// ─── POST /verify ── Verify a revealed email and earn credits ─
+
+router.post('/verify', async (c) => {
+  const userId = c.get('userId')
+  const { email } = await c.req.json()
+  if (!email) return c.json({ error: 'Email gerekli' }, 400)
+
+  // Check if user has revealed this email
+  const reveal = await c.env.DB.prepare(
+    'SELECT * FROM email_reveals WHERE user_id = ? AND email = ?'
+  ).bind(userId, email).first()
+  if (!reveal) return c.json({ error: 'Bu email henuz reveal edilmemis' }, 404)
+  if (reveal.verification_status === 'verified') return c.json({ error: 'Bu email zaten dogrulanmis', already_verified: true }, 409)
+
+  const domain = email.split('@')[1]
+  if (!domain) return c.json({ error: 'Gecersiz email adresi' }, 400)
+
+  // Check MX records
+  const mx = await checkMxRecords(domain)
+  if (!mx.hasMx) {
+    await c.env.DB.prepare(
+      'UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?'
+    ).bind('unknown', 10, userId, email).run()
+    return c.json({ verified: false, status: 'unknown', reason: 'Domain icin MX kaydi bulunamadi' })
+  }
+
+  // Check catch-all
+  const hasCatchAll = detectCatchAll(mx.mxHosts)
+
+  // Try SMTP-like verification via DNS + pattern check
+  // We check: valid MX + not catch-all = likely valid
+  const isVerified = mx.hasMx && !hasCatchAll
+
+  if (isVerified) {
+    // Mark as verified
+    await c.env.DB.prepare(
+      'UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?'
+    ).bind('verified', 95, userId, email).run()
+
+    // Award +5 credits
+    const user = await c.env.DB.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
+    const credits = await getOrCreateCredits(c.env.DB, userId, user?.plan || 'free')
+    const newUsed = Math.max(0, credits.used_this_month - 5)
+    await c.env.DB.prepare('UPDATE user_credits SET used_this_month = ? WHERE user_id = ?')
+      .bind(newUsed, userId).run()
+
+    return c.json({
+      verified: true,
+      status: 'verified',
+      confidence_score: 95,
+      credits_earned: 5,
+      credits_remaining: credits.monthly_limit - newUsed,
+    })
+  } else {
+    // Catch-all domain - risky
+    await c.env.DB.prepare(
+      'UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?'
+    ).bind('risky', 40, userId, email).run()
+    return c.json({ verified: false, status: 'risky', reason: 'Catch-all domain, dogrulama kesin degil' })
+  }
+})
+
 // ─── POST /export ── CSV export of reveals ───────────────────
 
 router.post('/export', async (c) => {
@@ -648,9 +802,9 @@ router.post('/export', async (c) => {
   ).bind(userId).all()
 
   const results = rows.results || []
-  let csv = 'Name,Title,Email,Domain,Status,Confidence,Source,Date\n'
+  let csv = 'Name,Title,Email,Phone,Domain,Status,Confidence,Source,Date\n'
   for (const r of results) {
-    csv += `"${r.person_name}","${r.person_title || ''}","${r.email}","${r.domain}","${r.verification_status}",${r.confidence_score},"${r.source}","${r.created_at}"\n`
+    csv += `"${r.person_name}","${r.person_title || ''}","${r.email}","${r.phone || ''}","${r.domain}","${r.verification_status}",${r.confidence_score},"${r.source}","${r.created_at}"\n`
   }
 
   return new Response(csv, {
@@ -714,6 +868,249 @@ JSON formatinda don:
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
       return c.json({ subject: parsed.subject || '', body: parsed.body || '' })
+    }
+    return c.json({ error: 'Email olusturulamadi' }, 500)
+  } catch {
+    return c.json({ error: 'AI servisi hatasi' }, 500)
+  }
+})
+
+// ─── POST /auto-outreach ── One-button: find company + pick contact + compose email ───
+
+router.post('/auto-outreach', async (c) => {
+  const userId = c.get('userId')
+  const { query, sector, company_size, location, local_language } = await c.req.json()
+
+  const apiKey = c.env.GEMINI_API_KEY
+  if (!apiKey) return c.json({ error: 'AI servisi yapilandirilmamis' }, 500)
+
+  // Get user's company profile
+  const profile = await c.env.DB.prepare('SELECT * FROM company_profiles WHERE user_id = ?').bind(userId).first()
+
+  const senderInfo = profile ? `
+Gonderen Firma: ${profile.company_name || ''}
+Sektor: ${profile.sector || ''}
+Deger Onerisi: ${profile.value_proposition || ''}
+Urunler/Hizmetler: ${profile.products_services || ''}
+Hedef Kitle: ${profile.target_audience || ''}
+Ton: ${profile.tone || 'professional'}` : ''
+
+  const q = query?.trim() || ''
+  const hasCriteria = sector || company_size || location
+
+  if (!q && !hasCriteria) return c.json({ error: 'En az bir kriter girin (firma adi, sektor, buyukluk veya lokasyon)' }, 400)
+
+  // Find company, analyze, and compose targeted email
+  let domain = null
+
+  if (q) {
+    // User provided a company name or domain
+    const cleaned = cleanDomain(q)
+    if (cleaned) {
+      domain = cleaned
+    } else {
+      try {
+        const domainPrompt = `"${q}" firmasinin web sitesi domain adresini bul. SADECE domain adresini yaz, baska hicbir sey yazma. Ornek: getir.com`
+        const domainGuess = await callGemini(domainPrompt, apiKey)
+        domain = cleanDomain(domainGuess.split('\n')[0])
+      } catch {}
+    }
+  } else {
+    // No company name - discover a company from criteria
+    const criteriaLines = []
+    if (sector) criteriaLines.push(`Sector: ${sector}`)
+    if (company_size) criteriaLines.push(`Company size: ${company_size} employees`)
+    if (location) criteriaLines.push(`Location: ${location}`)
+    try {
+      const discoverPrompt = `Find a real, well-known, active company that matches these criteria:
+${criteriaLines.join('\n')}
+
+RULES:
+- Choose a REAL, existing company. Do NOT invent or hallucinate.
+- The company must be well-known in that sector and location.
+- Reply with ONLY the company's website domain, nothing else.
+- Format: just the domain like "company.com"
+
+Examples of correct answers:
+siemens.com
+toyota.co.jp
+emirates.com`
+      const raw = await callGemini(discoverPrompt, apiKey)
+      // Try to extract a valid domain from the response
+      const lines = raw.trim().split('\n')
+      for (const line of lines) {
+        const d = cleanDomain(line.replace(/[`*"']/g, ''))
+        if (d) { domain = d; break }
+      }
+    } catch {}
+  }
+  if (!domain) return c.json({ error: 'Kriterlere uygun firma bulunamadi. Firma adi veya domain girin.' }, 400)
+
+  // Get company info + people (check cache first)
+  let cached = await getCachedDomain(c.env.DB, domain)
+  let companyInfo, peopleList
+
+  if (cached) {
+    companyInfo = cached.company_info
+    peopleList = cached.people
+  } else {
+    const [mx, scrapeResult] = await Promise.all([checkMxRecords(domain), scrapeWebsite(domain)])
+    companyInfo = { name: q || domain, domain, sector: '', location: '', employee_count: '', company_phones: [], mx_valid: mx.hasMx }
+    peopleList = []
+    const hasCatchAll = detectCatchAll(mx.mxHosts)
+
+    if (scrapeResult.text.length > 200) {
+      try {
+        const prompt = `Extract company information and people from this website content AND your knowledge.
+
+WEBSITE CONTENT:
+${scrapeResult.text.slice(0, 12000)}
+
+EMAILS FOUND: ${scrapeResult.emails.join(', ') || 'none'}
+PHONES FOUND: ${scrapeResult.phones.join(', ') || 'none'}
+
+INSTRUCTIONS:
+1. Extract company info (name, sector, description, location, employee count)
+2. List ALL real people found on the website AND publicly known executives/founders from your knowledge
+3. Do NOT hallucinate. Only include people you are confident about.
+
+Respond in JSON only:
+{"company_name":"...","description":"1-2 sentences","sector":"...","location":"...","employee_count":"...","company_phones":["..."],"people":[{"name":"Full Name","title":"Title","phone":"phone or null"}]}`
+        const raw = await callGemini(prompt, apiKey)
+        const jsonMatch = raw.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0])
+          const companyPhones = [...new Set([...(parsed.company_phones || []), ...scrapeResult.phones])]
+          companyInfo = { name: parsed.company_name || q || domain, domain, description: parsed.description || '', sector: parsed.sector || '', location: parsed.location || '', employee_count: parsed.employee_count || '', company_phones: companyPhones, mx_valid: mx.hasMx }
+          if (Array.isArray(parsed.people)) peopleList = parsed.people.filter(p => p.name && p.name.length > 1)
+        }
+      } catch {}
+    } else {
+      try {
+        const fallbackPrompt = `Provide information about the company "${q || domain}".
+
+INSTRUCTIONS:
+1. Provide company info (name, sector, description, location, employee count)
+2. List ONLY people who are PUBLICLY KNOWN to work there (CEO, founders, board members, C-level)
+3. Do NOT hallucinate. If unsure, leave people array empty.
+
+Respond in JSON only:
+{"company_name":"...","description":"1-2 sentences","sector":"...","location":"...","employee_count":"...","people":[{"name":"Full Name","title":"Title","phone":"phone or null"}]}`
+        const raw = await callGemini(fallbackPrompt, apiKey)
+        const jsonMatch = raw.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0])
+          companyInfo = { name: parsed.company_name || q || domain, domain, description: parsed.description || '', sector: parsed.sector || '', location: parsed.location || '', employee_count: parsed.employee_count || '', company_phones: [], mx_valid: mx.hasMx }
+          if (Array.isArray(parsed.people)) peopleList = parsed.people.filter(p => p.name && p.name.length > 1)
+        }
+      } catch {}
+    }
+
+    const websiteEmails = scrapeResult.emails
+    peopleList = peopleList.map(p => {
+      const patterns = generateEmailPatterns(p.name, domain)
+      const matchedWebsite = patterns.find(pat => websiteEmails.some(we => we.toLowerCase() === pat.toLowerCase()))
+      const bestEmail = matchedWebsite || patterns[0] || null
+      return { ...p, emails: bestEmail ? [bestEmail] : [] }
+    })
+
+    // Add website emails that don't belong to any found person
+    const assignedEmails = new Set(peopleList.flatMap(p => p.emails.map(e => e.toLowerCase())))
+    for (const we of websiteEmails) {
+      if (!assignedEmails.has(we.toLowerCase())) {
+        const localPart = we.split('@')[0]
+        // Skip generic prefixes like info@, skip if domain doesn't match
+        const emailDomain = we.split('@')[1]?.toLowerCase()
+        if (emailDomain && emailDomain === domain) {
+          peopleList.push({ name: localPart.replace(/[._]/g, ' '), title: '', emails: [we] })
+        }
+      }
+    }
+
+    await setCachedDomain(c.env.DB, domain, {
+      company_info: companyInfo, people: peopleList, emails_raw: websiteEmails || [],
+      has_catchall: hasCatchAll, mx_provider: mx.mxHosts?.[0] || '',
+    })
+  }
+
+  // Pick best contact - prefer real people, fallback to info@
+  const seniorityOrder = ['C-Level', 'VP', 'Director', 'Manager', 'Staff']
+  let bestPerson = peopleList[0]
+  let bestRank = 99
+  for (const p of peopleList) {
+    const rank = seniorityOrder.indexOf(classifySeniority(p.title))
+    if (rank >= 0 && rank < bestRank) { bestRank = rank; bestPerson = p }
+  }
+
+  const contactEmail = bestPerson?.emails?.[0] || `info@${domain}`
+  const contactName = bestPerson?.name || 'Yetkili'
+  const contactTitle = bestPerson?.title || ''
+
+  // Build target info from form + scraped data
+  const targetSector = sector || companyInfo.sector || ''
+  const targetSize = company_size || companyInfo.employee_count || ''
+  const targetLocation = location || companyInfo.location || ''
+
+  // Determine email language based on company location
+  const langInstruction = targetLocation
+    ? `- Email'i su lokasyona uygun yerel dilde yaz: ${targetLocation} (ornegin Almanya icin Almanca, Japonya icin Japonca, BAE/Dubai icin Arapca, ABD/UK icin Ingilizce, Fransa icin Fransizca, Turkiye icin Turkce vb.)`
+    : '- Email Turkce olsun'
+
+  const composePrompt = `Write a professional B2B outreach email based on the following information.
+
+RECIPIENT COMPANY:
+- Name: ${companyInfo.name}
+- Domain: ${domain}
+- Sector: ${targetSector}
+- Company Size: ${targetSize}
+- Location: ${targetLocation}
+- Description: ${companyInfo.description || 'N/A'}
+
+SENDER COMPANY:
+${senderInfo || '(No sender profile configured)'}
+
+EMAIL FORMAT - FOLLOW THIS STRUCTURE EXACTLY:
+1. Start with "Sayin Yoneticiler merhaba," (or equivalent formal greeting in the target language)
+2. Reference the company's industry standing or trade chamber/association membership if relevant
+3. Acknowledge the company's leadership and achievements in their sector - be specific to their actual business, not generic
+4. Identify exactly 3 SPECIFIC operational challenges that companies in this EXACT sector face. Be very industry-specific (e.g., for steel: furnace efficiency, quality control in rolling, maintenance scheduling; for textiles: yarn waste optimization, dyeing consistency, supply chain visibility). Number them 1, 2, 3.
+5. For each of the 3 challenges, propose a concrete solution from the sender's products/services. Format as bullet points with quantified benefits (e.g., "OEE %15 artis", "bakim maliyetlerinde %30 tasarruf", "%25 verimlilik artisi", "enerji tuketiminde %20 azalma")
+6. End with a SOFT call-to-action: offer to send a 1-page flow chart or brief summary document. Do NOT request a meeting or phone call.
+7. Sign off with "Saygilarimla," and sender company name
+8. Do NOT use any markdown formatting (no #, *, ** symbols)
+9. Email body should be 300-500 words - detailed and substantive, NOT a short cold email
+${langInstruction}
+
+Respond in JSON only:
+{
+  "subject": "Email subject line",
+  "body": "Full email body text",
+  "value_proposition": "1-2 sentence value proposition specific to this company"
+}`
+
+  try {
+    const raw = await callGemini(composePrompt, apiKey)
+    const jsonMatch = raw.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0])
+      const subject = parsed.subject || ''
+      const body = parsed.body || ''
+
+      // Save to outreach as draft
+      const emailId = crypto.randomUUID()
+      await c.env.DB.prepare(
+        `INSERT INTO emails (id, user_id, subject, body, status) VALUES (?, ?, ?, ?, 'draft')`
+      ).bind(emailId, userId, subject, body).run()
+
+      return c.json({
+        company: companyInfo,
+        contact: { name: contactName, title: contactTitle, email: contactEmail },
+        people_count: peopleList.length,
+        subject,
+        body,
+        value_proposition: parsed.value_proposition || '',
+        outreach_id: emailId,
+      })
     }
     return c.json({ error: 'Email olusturulamadi' }, 500)
   } catch {
