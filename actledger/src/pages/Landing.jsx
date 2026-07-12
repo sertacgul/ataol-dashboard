@@ -1031,13 +1031,13 @@ export default function Landing() {
           </a>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-[#2563EB] mb-5 leading-[1.15] tracking-tight">
             {isEn
-              ? <>Automated Outreach<br />& Growth Platform</>
-              : <>Otomatik Outreach<br />ve Büyüme Platformu</>}
+              ? <>The Growth Platform<br />Built for Startups</>
+              : <>Startup'lar İçin<br />Büyüme Platformu</>}
           </h1>
           <p className="text-base text-[#6B7280] mb-8 max-w-xl mx-auto leading-relaxed">
             {isEn
-              ? 'Enter a company name, AI finds decision-makers, writes personalized emails, and tracks opens. Lead generation, CRM pipeline, and analytics all in one platform.'
-              : 'Firma adını girin, AI karar vericileri bulsun, kişiselleştirilmiş email yazsın ve açılmaları takip etsin. Lead bulma, CRM pipeline ve analitik tek platformda.'}
+              ? 'Find customers, run outreach campaigns, manage your pipeline, and make data-driven decisions in one platform. Featuring fully automated AI outreach.'
+              : 'Tek platformda müşteri bulun, outreach kampanyaları yürütün, pipeline yönetin ve veriye dayalı kararlar alın. Tam otomatik AI outreach dahil.'}
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
