@@ -3,7 +3,7 @@ import { authMiddleware } from '../middleware/auth.js'
 import {
   callGemini, cleanDomain, generateEmailPatterns, checkMxRecords, detectCatchAll,
   scrapeWebsite, maskName, maskEmail, maskPhone, classifySeniority, classifyDepartment,
-  computeVerification, getLearnedPattern, saveLearnedPattern,
+  getLearnedPattern, saveLearnedPattern,
 } from '../lib/enrichment/free.js'
 import { createEnrichment } from '../lib/enrichment/index.js'
 
@@ -194,8 +194,15 @@ router.post('/reveal', async (c) => {
   if (!cached || !cached.people[idx]) return c.json({ error: 'Kisi bulunamadi. Tekrar arama yapin.' }, 404)
 
   const person = cached.people[idx]
-  const email = person.emails?.[0]
-  if (!email) return c.json({ error: 'Bu kisi icin email adresi bulunamadi' }, 404)
+  let email = person.email
+  if (!email) {
+    const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
+    const found = await enrichment.findEmail(person.first_name || person.name?.split(' ')[0] || '', person.last_name || person.name?.split(' ').slice(-1)[0] || '', domain)
+    if (!found?.email) return c.json({ error: 'Bu kisi icin email adresi bulunamadi' }, 404)
+    email = found.email
+    person.verification_status = person.verification_status || 'unknown'
+    person.confidence = found.confidence
+  }
 
   // Check if already revealed by this user
   const existing = await c.env.DB.prepare(
@@ -228,14 +235,15 @@ router.post('/reveal', async (c) => {
   }
 
   // Compute verification
-  const v = computeVerification(email, cached.emails_raw, !!cached.mx_provider, cached.has_catchall)
+  const vStatus = person.verification_status || 'unknown'
+  const vConfidence = person.confidence ?? 0
 
   // Save reveal
   const revealId = crypto.randomUUID()
   await c.env.DB.prepare(
     `INSERT INTO email_reveals (id, user_id, domain, person_name, person_title, email, verification_status, confidence_score, source)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).bind(revealId, userId, domain, person.name, person.title || '', email, v.status, v.confidence, v.source).run()
+  ).bind(revealId, userId, domain, person.name, person.title || '', email, vStatus, vConfidence, person.source || 'pattern').run()
 
   // Deduct credit
   await deductCredit(c.env.DB, userId)
@@ -245,9 +253,9 @@ router.post('/reveal', async (c) => {
     person_title: person.title,
     email,
     phone: person.phone || null,
-    verification_status: v.status,
-    confidence_score: v.confidence,
-    source: v.source,
+    verification_status: vStatus,
+    confidence_score: vConfidence,
+    source: person.source || 'pattern',
     credits_remaining: credits.monthly_limit - credits.used_this_month - 1,
     already_revealed: false,
   })
@@ -273,10 +281,10 @@ router.post('/bulk-reveal', async (c) => {
   for (const pid of person_ids) {
     const idx = parseInt(pid.split('-').pop())
     const person = cached.people[idx]
-    if (!person || !person.emails?.[0]) continue
+    if (!person || !person.email) continue
     const existing = await c.env.DB.prepare('SELECT id FROM email_reveals WHERE user_id = ? AND email = ?')
-      .bind(userId, person.emails[0]).first()
-    if (!existing) toReveal.push({ idx, person, email: person.emails[0] })
+      .bind(userId, person.email).first()
+    if (!existing) toReveal.push({ idx, person, email: person.email })
   }
 
   const available = credits.monthly_limit - credits.used_this_month
@@ -289,12 +297,13 @@ router.post('/bulk-reveal', async (c) => {
 
   const revealed = []
   for (const item of toReveal) {
-    const v = computeVerification(item.email, cached.emails_raw, !!cached.mx_provider, cached.has_catchall)
+    const vStatus = item.person.verification_status || 'unknown'
+    const vConfidence = item.person.confidence ?? 0
     await c.env.DB.prepare(
       `INSERT INTO email_reveals (id, user_id, domain, person_name, person_title, email, verification_status, confidence_score, source)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(crypto.randomUUID(), userId, domain, item.person.name, item.person.title || '',
-      item.email, v.status, v.confidence, v.source).run()
+      item.email, vStatus, vConfidence, item.person.source || 'pattern').run()
     await deductCredit(c.env.DB, userId)
     revealed.push({
       person_id: `${domain}-${item.idx}`,
@@ -302,8 +311,8 @@ router.post('/bulk-reveal', async (c) => {
       person_title: item.person.title,
       email: item.email,
       phone: item.person.phone || null,
-      verification_status: v.status,
-      confidence_score: v.confidence,
+      verification_status: vStatus,
+      confidence_score: vConfidence,
     })
   }
 
