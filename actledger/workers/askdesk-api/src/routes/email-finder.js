@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import {
-  callGemini, cleanDomain, generateEmailPatterns, checkMxRecords, detectCatchAll,
+  callGemini, cleanDomain, checkMxRecords, detectCatchAll,
   scrapeWebsite, maskName, maskEmail, maskPhone, classifySeniority, classifyDepartment,
   getLearnedPattern, saveLearnedPattern,
 } from '../lib/enrichment/free.js'
@@ -546,103 +546,36 @@ emirates.com`
   }
   if (!domain) return c.json({ error: 'Kriterlere uygun firma bulunamadi. Firma adi veya domain girin.' }, 400)
 
-  // Get company info + people (check cache first)
-  let cached = await getCachedDomain(c.env.DB, domain)
+  // Firma + kişiler (cache -> orchestrator)
   let companyInfo, peopleList
-
+  const cached = await getCachedDomain(c.env.DB, domain)
   if (cached) {
     companyInfo = cached.company_info
     peopleList = cached.people
   } else {
-    const [mx, scrapeResult] = await Promise.all([checkMxRecords(domain), scrapeWebsite(domain)])
-    companyInfo = { name: q || domain, domain, sector: '', location: '', employee_count: '', company_phones: [], mx_valid: mx.hasMx }
-    peopleList = []
-    const hasCatchAll = detectCatchAll(mx.mxHosts)
-
-    if (scrapeResult.text.length > 200) {
-      try {
-        const prompt = `Extract company information and people from this website content AND your knowledge.
-
-WEBSITE CONTENT:
-${scrapeResult.text.slice(0, 12000)}
-
-EMAILS FOUND: ${scrapeResult.emails.join(', ') || 'none'}
-PHONES FOUND: ${scrapeResult.phones.join(', ') || 'none'}
-
-INSTRUCTIONS:
-1. Extract company info (name, sector, description, location, employee count)
-2. List ALL real people found on the website AND publicly known executives/founders from your knowledge
-3. Do NOT hallucinate. Only include people you are confident about.
-
-Respond in JSON only:
-{"company_name":"...","description":"1-2 sentences","sector":"...","location":"...","employee_count":"...","company_phones":["..."],"people":[{"name":"Full Name","title":"Title","phone":"phone or null"}]}`
-        const raw = await callGemini(prompt, apiKey)
-        const jsonMatch = raw.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0])
-          const companyPhones = [...new Set([...(parsed.company_phones || []), ...scrapeResult.phones])]
-          companyInfo = { name: parsed.company_name || q || domain, domain, description: parsed.description || '', sector: parsed.sector || '', location: parsed.location || '', employee_count: parsed.employee_count || '', company_phones: companyPhones, mx_valid: mx.hasMx }
-          if (Array.isArray(parsed.people)) peopleList = parsed.people.filter(p => p.name && p.name.length > 1)
-        }
-      } catch {}
-    } else {
-      try {
-        const fallbackPrompt = `Provide information about the company "${q || domain}".
-
-INSTRUCTIONS:
-1. Provide company info (name, sector, description, location, employee count)
-2. List ONLY people who are PUBLICLY KNOWN to work there (CEO, founders, board members, C-level)
-3. Do NOT hallucinate. If unsure, leave people array empty.
-
-Respond in JSON only:
-{"company_name":"...","description":"1-2 sentences","sector":"...","location":"...","employee_count":"...","people":[{"name":"Full Name","title":"Title","phone":"phone or null"}]}`
-        const raw = await callGemini(fallbackPrompt, apiKey)
-        const jsonMatch = raw.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0])
-          companyInfo = { name: parsed.company_name || q || domain, domain, description: parsed.description || '', sector: parsed.sector || '', location: parsed.location || '', employee_count: parsed.employee_count || '', company_phones: [], mx_valid: mx.hasMx }
-          if (Array.isArray(parsed.people)) peopleList = parsed.people.filter(p => p.name && p.name.length > 1)
-        }
-      } catch {}
-    }
-
-    const websiteEmails = scrapeResult.emails
-    peopleList = peopleList.map(p => {
-      const patterns = generateEmailPatterns(p.name, domain)
-      const matchedWebsite = patterns.find(pat => websiteEmails.some(we => we.toLowerCase() === pat.toLowerCase()))
-      const bestEmail = matchedWebsite || patterns[0] || null
-      return { ...p, emails: bestEmail ? [bestEmail] : [] }
-    })
-
-    // Add website emails that don't belong to any found person
-    const assignedEmails = new Set(peopleList.flatMap(p => p.emails.map(e => e.toLowerCase())))
-    for (const we of websiteEmails) {
-      if (!assignedEmails.has(we.toLowerCase())) {
-        const localPart = we.split('@')[0]
-        // Skip generic prefixes like info@, skip if domain doesn't match
-        const emailDomain = we.split('@')[1]?.toLowerCase()
-        if (emailDomain && emailDomain === domain) {
-          peopleList.push({ name: localPart.replace(/[._]/g, ' '), title: '', emails: [we] })
-        }
-      }
-    }
-
+    const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
+    const result = await enrichment.domainSearch(domain)
+    companyInfo = result.company
+    peopleList = result.people
+    const mx = await checkMxRecords(domain)
+    companyInfo.mx_valid = mx.hasMx
+    await saveLearnedPattern(c.env.DB, domain, peopleList).catch(() => {})
     await setCachedDomain(c.env.DB, domain, {
-      company_info: companyInfo, people: peopleList, emails_raw: websiteEmails || [],
-      has_catchall: hasCatchAll, mx_provider: mx.mxHosts?.[0] || '',
+      company_info: companyInfo, people: peopleList,
+      emails_raw: peopleList.filter(p => p.email).map(p => p.email),
+      has_catchall: detectCatchAll(mx.mxHosts), mx_provider: mx.mxHosts[0] || '', provider: result.provider,
     })
   }
 
-  // Pick best contact - prefer real people, fallback to info@
   const seniorityOrder = ['C-Level', 'VP', 'Director', 'Manager', 'Staff']
   let bestPerson = peopleList[0]
   let bestRank = 99
   for (const p of peopleList) {
-    const rank = seniorityOrder.indexOf(classifySeniority(p.title))
+    const rank = seniorityOrder.indexOf(p.seniority || classifySeniority(p.title))
     if (rank >= 0 && rank < bestRank) { bestRank = rank; bestPerson = p }
   }
 
-  const contactEmail = bestPerson?.emails?.[0] || `info@${domain}`
+  const contactEmail = bestPerson?.email || `info@${domain}`
   const contactName = bestPerson?.name || 'Yetkili'
   const contactTitle = bestPerson?.title || ''
 
