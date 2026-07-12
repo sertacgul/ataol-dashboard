@@ -160,6 +160,7 @@ export default function EmailFinder() {
         masked_phone: data.phone || null,
         verification_status: data.verification_status,
         confidence_score: data.confidence_score,
+        source: data.source,
       } : p))
       setCredits(prev => prev ? { ...prev, used_this_month: prev.monthly_limit - data.credits_remaining } : prev)
     } catch (err) {
@@ -187,6 +188,7 @@ export default function EmailFinder() {
         masked_phone: revealedMap[p.id].phone || null,
         verification_status: revealedMap[p.id].verification_status,
         confidence_score: revealedMap[p.id].confidence_score,
+        source: revealedMap[p.id].source,
       } : p))
       setCredits(prev => prev ? { ...prev, used_this_month: prev.monthly_limit - data.credits_remaining } : prev)
       setSelected(new Set())
@@ -245,9 +247,6 @@ export default function EmailFinder() {
         verification_status: data.status,
         confidence_score: data.confidence_score || p.confidence_score,
       } : p))
-      if (data.verified && data.credits_remaining != null) {
-        setCredits(prev => prev ? { ...prev, used_this_month: prev.monthly_limit - data.credits_remaining } : prev)
-      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -513,12 +512,12 @@ export default function EmailFinder() {
                               >
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                               </button>
-                              {person.verification_status !== 'verified' && (
+                              {person.verification_status !== 'verified' && person.source && person.source !== 'hunter' && (
                                 <button
                                   onClick={() => handleVerify(person)}
                                   disabled={verifyingEmail === person.full_email}
                                   className="inline-flex items-center gap-1 text-[10px] font-medium text-[#059669] hover:text-[#047857] disabled:opacity-50 transition-colors whitespace-nowrap"
-                                  title={t('Doğrula (+5 kredi)')}
+                                  title={t('Doğrula')}
                                 >
                                   {verifyingEmail === person.full_email ? (
                                     <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>

@@ -1,5 +1,11 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
+import {
+  callGemini, cleanDomain, checkMxRecords, detectCatchAll,
+  scrapeWebsite, maskName, maskEmail, maskPhone, classifySeniority, classifyDepartment,
+  saveLearnedPattern,
+} from '../lib/enrichment/free.js'
+import { createEnrichment } from '../lib/enrichment/index.js'
 
 const router = new Hono()
 router.use('*', authMiddleware)
@@ -7,236 +13,7 @@ router.use('*', authMiddleware)
 // ─── Constants ───────────────────────────────────────────────
 
 const PLAN_LIMITS = { free: 25, pro: 300, growth: 1500, team: 1000 }
-const CACHE_TTL_HOURS = 24
-const SCRAPE_PAGES = [
-  '/', '/contact', '/contact-us', '/contactus', '/iletisim', '/tr/iletisim', '/en/contact',
-  '/about', '/about-us', '/aboutus', '/hakkimizda', '/tr/hakkimizda', '/en/about',
-  '/team', '/our-team', '/ekibimiz', '/yonetim', '/tr/yonetim', '/management',
-  '/kurumsal', '/tr/kurumsal', '/impressum',
-]
-const FALSE_POSITIVE_DOMAINS = ['example.com', 'sentry.io', 'webpack.js', 'w3.org', 'schema.org', 'googleapis.com', 'cloudflare.com', 'jsdelivr.net']
-const CATCHALL_PROVIDERS = ['yandex', 'zoho', 'fastmail']
-
-const SENIORITY_KEYWORDS = {
-  'C-Level': ['ceo', 'cto', 'cfo', 'coo', 'cmo', 'cio', 'chief', 'founder', 'co-founder', 'kurucu', 'genel mudur'],
-  'VP': ['vp', 'vice president', 'baskan yardimcisi'],
-  'Director': ['director', 'direktor', 'mudur', 'head of'],
-  'Manager': ['manager', 'yonetici', 'mudur yardimcisi', 'lead', 'supervisor'],
-  'Staff': []
-}
-
-const DEPARTMENT_KEYWORDS = {
-  'Engineering': ['engineering', 'developer', 'software', 'tech', 'yazilim', 'muhendis', 'devops', 'backend', 'frontend', 'full stack'],
-  'Marketing': ['marketing', 'pazarlama', 'growth', 'brand', 'content', 'seo', 'social media'],
-  'Sales': ['sales', 'satis', 'business development', 'account', 'revenue'],
-  'HR': ['hr', 'human resources', 'insan kaynaklari', 'people', 'talent', 'recruitment'],
-  'Finance': ['finance', 'finans', 'accounting', 'muhasebe', 'cfo'],
-  'Operations': ['operations', 'operasyon', 'logistics', 'supply chain'],
-  'Legal': ['legal', 'hukuk', 'compliance'],
-  'Design': ['design', 'tasarim', 'ux', 'ui', 'creative'],
-}
-
-// ─── Gemini AI ───────────────────────────────────────────────
-
-async function callGemini(prompt, apiKey) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }
-  )
-  const data = await res.json()
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-}
-
-// ─── Domain Cleaning ─────────────────────────────────────────
-
-function cleanDomain(raw) {
-  if (!raw) return ''
-  let d = raw.trim().toLowerCase()
-  d = d.replace(/^https?:\/\//, '')
-  d = d.replace(/^www\./, '')
-  d = d.split('/')[0]    // remove path
-  d = d.split('?')[0]    // remove query
-  d = d.split('#')[0]    // remove hash
-  d = d.split(':')[0]    // remove port
-  d = d.trim()
-  // Validate it looks like a domain
-  if (!d || !d.includes('.') || d.includes(' ') || d.length > 80) return ''
-  return d
-}
-
-// ─── Email Pattern Generation ────────────────────────────────
-
-function generateEmailPatterns(personName, domain) {
-  if (!personName || !domain) return []
-  const clean = cleanDomain(domain)
-  if (!clean) return []
-  // Turkish char transliteration for email patterns
-  const turkishMap = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u',
-    'Ç': 'c', 'Ğ': 'g', 'İ': 'i', 'Ö': 'o', 'Ş': 's', 'Ü': 'u' }
-  const ascii = personName.split('').map(c => turkishMap[c] || c).join('')
-  const parts = ascii.toLowerCase().replace(/[^a-z\s]/g, '').trim().split(/\s+/)
-  if (parts.length < 2) return parts[0] ? [`${parts[0]}@${clean}`] : []
-  const first = parts[0], last = parts[parts.length - 1]
-  const patterns = [
-    `${first}.${last}@${clean}`, `${first}${last}@${clean}`,
-    `${first[0]}.${last}@${clean}`, `${first}_${last}@${clean}`,
-    `${first}.${last[0]}@${clean}`, `${first}@${clean}`, `${last}@${clean}`,
-  ]
-  return [...new Set(patterns)]
-}
-
-// ─── Domain Utilities ────────────────────────────────────────
-
-function extractDomainFromUrl(url) {
-  if (!url) return null
-  try {
-    let d = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].toLowerCase()
-    return d || null
-  } catch { return null }
-}
-
-async function checkMxRecords(domain) {
-  try {
-    const res = await fetch(`https://cloudflare-dns.com/dns-query?name=${domain}&type=MX`, {
-      headers: { Accept: 'application/dns-json' }
-    })
-    const data = await res.json()
-    const answers = data.Answer || []
-    const mxHosts = answers.filter(a => a.type === 15).map(a => a.data?.split(' ')[1]?.replace(/\.$/, '') || '')
-    return { hasMx: mxHosts.length > 0, mxHosts }
-  } catch { return { hasMx: false, mxHosts: [] } }
-}
-
-function detectCatchAll(mxHosts) {
-  const mxStr = mxHosts.join(' ').toLowerCase()
-  return CATCHALL_PROVIDERS.some(p => mxStr.includes(p))
-}
-
-// ─── Web Scraping ────────────────────────────────────────────
-
-async function fetchPageText(url) {
-  try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 8000)
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; AskDeskBot/1.0)' },
-      redirect: 'follow'
-    })
-    clearTimeout(timeout)
-    if (!res.ok) return ''
-    let html = await res.text()
-    html = html.replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/&[a-z]+;/gi, ' ')
-      .replace(/\s+/g, ' ').trim()
-    return html.slice(0, 15000)
-  } catch { return '' }
-}
-
-function extractEmailsFromHtml(html) {
-  const matches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || []
-  return [...new Set(matches)].filter(e => {
-    const local = e.split('@')[0] || ''
-    const domain = e.split('@')[1]?.toLowerCase() || ''
-    if (!domain || !domain.includes('.')) return false
-    if (FALSE_POSITIVE_DOMAINS.some(fp => domain.includes(fp))) return false
-    if (/\.(png|jpg|jpeg|gif|svg|webp|css|js|json|xml|woff|ttf|eot)$/i.test(e)) return false
-    if (domain.includes('://') || domain.includes('/')) return false
-    if (local.length < 2 || local.length > 64) return false
-    if (domain.length > 80) return false
-    return true
-  })
-}
-
-function extractPhonesFromHtml(html) {
-  // Match Turkish and international phone patterns
-  const patterns = [
-    /(?:\+90|0090)[\s.-]?\d{3}[\s.-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}/g,
-    /\(0?\d{3}\)\s?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}/g,
-    /(?:\+\d{1,3})[\s.-]?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{2,4}/g,
-    /0\d{3}[\s.-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}/g,
-  ]
-  const phones = new Set()
-  for (const pat of patterns) {
-    const matches = html.match(pat) || []
-    for (const m of matches) {
-      const digits = m.replace(/[\s.()-]/g, '')
-      if (digits.length >= 10 && digits.length <= 15) phones.add(m.trim())
-    }
-  }
-  return [...phones]
-}
-
-async function scrapeWebsite(domain) {
-  const fetches = SCRAPE_PAGES.map(p =>
-    fetchPageText(`https://${domain}${p}`).then(text => ({ path: p, text }))
-  )
-  const results = await Promise.allSettled(fetches)
-  let allText = '', allEmails = [], allPhones = [], pagesScraped = []
-
-  for (const r of results) {
-    if (r.status !== 'fulfilled' || !r.value.text || r.value.text.length < 100) continue
-    pagesScraped.push(r.value.path)
-    allText += r.value.text + '\n'
-    allEmails.push(...extractEmailsFromHtml(r.value.text))
-    allPhones.push(...extractPhonesFromHtml(r.value.text))
-  }
-
-  return { text: allText.slice(0, 30000), emails: [...new Set(allEmails)], phones: [...new Set(allPhones)], pagesScraped }
-}
-
-// ─── Masking ─────────────────────────────────────────────────
-
-function maskName(name) {
-  if (!name) return '***'
-  const parts = name.split(' ')
-  return parts.map(p => p[0] + '***').join(' ')
-}
-
-function maskEmail(email) {
-  if (!email) return '***@***.com'
-  const [local, domain] = email.split('@')
-  return local[0] + '***@' + domain
-}
-
-function maskPhone(phone) {
-  if (!phone) return null
-  return phone.slice(0, 4) + '****'
-}
-
-// ─── Classification ─────────────────────────────────────────
-
-function classifySeniority(title) {
-  if (!title) return 'Staff'
-  const lower = title.toLowerCase()
-  for (const [level, keywords] of Object.entries(SENIORITY_KEYWORDS)) {
-    if (level === 'Staff') continue
-    if (keywords.some(k => lower.includes(k))) return level
-  }
-  return 'Staff'
-}
-
-function classifyDepartment(title) {
-  if (!title) return 'Other'
-  const lower = title.toLowerCase()
-  for (const [dept, keywords] of Object.entries(DEPARTMENT_KEYWORDS)) {
-    if (keywords.some(k => lower.includes(k))) return dept
-  }
-  return 'Other'
-}
-
-// ─── Verification ────────────────────────────────────────────
-
-function computeVerification(email, websiteEmails, hasMx, hasCatchAll) {
-  const onWebsite = websiteEmails.some(we => we.toLowerCase() === email.toLowerCase())
-  if (onWebsite) return { status: 'verified', confidence: 95, source: 'website' }
-  if (!hasMx) return { status: 'unknown', confidence: 10, source: 'pattern' }
-  if (hasCatchAll) return { status: 'risky', confidence: 40, source: 'pattern' }
-  return { status: 'likely', confidence: 72, source: 'pattern' }
-}
+const CACHE_TTL_HOURS = 168
 
 // ─── Credits ─────────────────────────────────────────────────
 
@@ -290,10 +67,10 @@ async function getCachedDomain(db, domain) {
 }
 
 async function setCachedDomain(db, domain, data) {
-  await db.prepare(`INSERT OR REPLACE INTO domain_cache (domain, company_info, people, emails_raw, has_catchall, mx_provider, scraped_at)
-    VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`)
+  await db.prepare(`INSERT OR REPLACE INTO domain_cache (domain, company_info, people, emails_raw, has_catchall, mx_provider, provider, scraped_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`)
     .bind(domain, JSON.stringify(data.company_info), JSON.stringify(data.people),
-      JSON.stringify(data.emails_raw), data.has_catchall ? 1 : 0, data.mx_provider || '')
+      JSON.stringify(data.emails_raw), data.has_catchall ? 1 : 0, data.mx_provider || '', data.provider || 'free')
     .run()
 }
 
@@ -324,215 +101,70 @@ router.post('/search', async (c) => {
   }
   if (!domain) return c.json({ error: 'Domain bulunamadi. Lutfen domain adresini girin (ornek: firma.com)' }, 400)
 
-  // Check cache first
-  let cached = await getCachedDomain(c.env.DB, domain)
+  // Cache
+  const cached = await getCachedDomain(c.env.DB, domain)
+  const helpers = { classifySeniority, classifyDepartment }
+
+  let people, companyInfo, hasCatchAll, mxProvider
   if (cached) {
-    // Check which emails user already revealed
-    const revealed = await c.env.DB.prepare(
-      'SELECT email, person_name, verification_status, confidence_score FROM email_reveals WHERE user_id = ? AND domain = ?'
-    ).bind(userId, domain).all()
-    const revealedMap = {}
-    for (const r of (revealed.results || [])) revealedMap[r.email] = r
+    people = cached.people
+    companyInfo = cached.company_info
+    hasCatchAll = cached.has_catchall
+    mxProvider = cached.mx_provider
+  } else {
+    const enrichment = createEnrichment(c.env, helpers)
+    const result = await enrichment.domainSearch(domain)
 
-    const people = cached.people.map((p, i) => {
-      const bestEmail = p.emails?.[0] || null
-      const rev = bestEmail ? revealedMap[bestEmail] : null
-      return {
-        id: `${domain}-${i}`,
-        masked_name: rev ? p.name : maskName(p.name),
-        full_name: rev ? p.name : null,
-        title: p.title,
-        department: classifyDepartment(p.title),
-        seniority: classifySeniority(p.title),
-        masked_email: rev ? bestEmail : maskEmail(bestEmail),
-        full_email: rev ? bestEmail : null,
-        masked_phone: p.phone ? (rev ? p.phone : maskPhone(p.phone)) : null,
-        full_phone: rev ? (p.phone || null) : null,
-        revealed: !!rev,
-        verification_status: rev?.verification_status || null,
-        confidence_score: rev?.confidence_score || null,
-      }
-    })
+    // Firma açıklaması için ücretsiz scrape ile tamamla (Hunter description vermez)
+    const scrape = await scrapeWebsite(domain).catch(() => ({ emails: [], phones: [], text: '' }))
+    if (!result.company.description && scrape.text.length > 200 && c.env.GEMINI_API_KEY) {
+      try {
+        const raw = await callGemini(
+          `Bu firma hakkında 1-2 cümlelik kısa açıklama ve sektör bilgisi ver. Site: ${domain}\nİçerik: ${scrape.text.slice(0, 4000)}\nJSON: {"description":"...","sector":"..."}`,
+          c.env.GEMINI_API_KEY
+        )
+        const m = raw.match(/\{[\s\S]*\}/)
+        if (m) { const j = JSON.parse(m[0]); result.company.description = j.description || ''; if (!result.company.sector) result.company.sector = j.sector || '' }
+      } catch {}
+    }
 
-    return c.json({
-      company: cached.company_info,
-      people,
-      total_count: people.length,
-      has_catchall: cached.has_catchall,
-      mx_provider: cached.mx_provider,
-      from_cache: true,
+    people = result.people
+    companyInfo = result.company
+    const mx = await checkMxRecords(domain)
+    hasCatchAll = detectCatchAll(mx.mxHosts)
+    mxProvider = mx.mxHosts[0] || ''
+    companyInfo.mx_valid = mx.hasMx
+
+    await saveLearnedPattern(c.env.DB, domain, people).catch(() => {})
+    await setCachedDomain(c.env.DB, domain, {
+      company_info: companyInfo, people, emails_raw: people.filter(p => p.email).map(p => p.email),
+      has_catchall: hasCatchAll, mx_provider: mxProvider, provider: result.provider,
     })
   }
 
-  // Fresh scrape
-  const [mx, scrapeResult] = await Promise.all([
-    checkMxRecords(domain),
-    scrapeWebsite(domain),
-  ])
-
-  const hasCatchAll = detectCatchAll(mx.mxHosts)
-
-  // Extract company info + people via Gemini
-  let companyInfo = { name: query || domain, domain, sector: '', location: '', employee_count: '', company_phones: [], mx_valid: mx.hasMx }
-  let people = []
-
-  if (scrapeResult.text.length > 200 && c.env.GEMINI_API_KEY) {
-    try {
-      const prompt = `Extract company information and people from this website content AND your knowledge.
-
-WEBSITE CONTENT:
-${scrapeResult.text.slice(0, 12000)}
-
-EMAILS FOUND ON WEBSITE: ${scrapeResult.emails.join(', ') || 'none'}
-PHONES FOUND ON WEBSITE: ${scrapeResult.phones.join(', ') || 'none'}
-
-INSTRUCTIONS:
-1. Extract company info (name, sector, description, location, employee count)
-2. List ALL real people found on the website with their names, titles, and phone if shown
-3. ALSO add publicly known executives, founders, board members, C-level, senior management of this company from your training knowledge
-4. Do NOT hallucinate or invent people. Only include people you are confident about.
-5. If you find phone numbers on the website associated with specific people, include them.
-6. Include company-level phone numbers in company_phones array.
-
-Respond in JSON only:
-{
-  "company_name": "...",
-  "description": "1-2 sentences",
-  "sector": "...",
-  "location": "...",
-  "employee_count": "...",
-  "company_phones": ["..."],
-  "people": [{"name": "Full Name", "title": "Position/Title", "phone": "phone or null"}]
-}`
-      const raw = await callGemini(prompt, c.env.GEMINI_API_KEY)
-      const jsonMatch = raw.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0])
-        const companyPhones = [...new Set([...(parsed.company_phones || []), ...scrapeResult.phones])]
-        companyInfo = {
-          name: parsed.company_name || companyInfo.name,
-          domain,
-          description: parsed.description || '',
-          sector: parsed.sector || '',
-          location: parsed.location || '',
-          employee_count: parsed.employee_count || '',
-          company_phones: companyPhones,
-          mx_valid: mx.hasMx,
-        }
-        if (Array.isArray(parsed.people)) {
-          people = parsed.people.filter(p => p.name && p.name.length > 1)
-        }
-      }
-    } catch (e) { /* Gemini failed, continue with scrape data */ }
-  } else if (c.env.GEMINI_API_KEY) {
-    // Website scraping failed/insufficient, ask Gemini about the company directly
-    try {
-      const fallbackPrompt = `Provide information about the company "${query || domain}".
-
-INSTRUCTIONS:
-1. Provide company info (name, sector, description, location, employee count)
-2. List ONLY people who are PUBLICLY KNOWN to work at this company (CEO, founders, board members, C-level executives, senior management)
-3. Do NOT hallucinate or guess names. If unsure, leave the people array empty.
-4. Include phone numbers only if publicly available.
-
-Respond in JSON only:
-{
-  "company_name": "...",
-  "description": "1-2 sentences or null",
-  "sector": "... or null",
-  "location": "... or null",
-  "employee_count": "... or null",
-  "people": [{"name": "Full Name", "title": "Position/Title", "phone": "phone or null"}]
-}`
-      const raw = await callGemini(fallbackPrompt, c.env.GEMINI_API_KEY)
-      const jsonMatch = raw.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0])
-        companyInfo = {
-          name: parsed.company_name || companyInfo.name,
-          domain,
-          description: parsed.description || '',
-          sector: parsed.sector || '',
-          location: parsed.location || '',
-          employee_count: parsed.employee_count || '',
-          company_phones: [],
-          mx_valid: mx.hasMx,
-        }
-        if (Array.isArray(parsed.people)) {
-          people = parsed.people.filter(p => p.name && p.name.length > 1)
-        }
-      }
-    } catch {}
-  }
-
-  // If no real people found, add common functional email addresses
-  if (people.length === 0) {
-    people = [
-      { name: 'Genel İletişim', title: 'Genel', _functional: true },
-      { name: 'Satış Departmanı', title: 'Satis', _functional: true },
-      { name: 'İnsan Kaynakları', title: 'IK', _functional: true },
-      { name: 'Destek', title: 'Destek', _functional: true },
-    ]
-  }
-
-  // Generate emails for each person
-  const websiteEmails = scrapeResult.emails
-  const FUNCTIONAL_EMAILS = { 'Genel': 'info', 'Satis': 'sales', 'IK': 'hr', 'Destek': 'support' }
-  const peopleWithEmails = people.map(p => {
-    if (p._functional) {
-      const prefix = FUNCTIONAL_EMAILS[p.title] || 'info'
-      const { _functional, ...cleanPerson } = p
-      return { ...cleanPerson, emails: [`${prefix}@${domain}`], matchedWebsite: false }
-    }
-    const patterns = generateEmailPatterns(p.name, domain)
-    // Check if any pattern matches a website email
-    const matchedWebsite = patterns.find(pat => websiteEmails.some(we => we.toLowerCase() === pat.toLowerCase()))
-    const bestEmail = matchedWebsite || patterns[0] || null
-    return { ...p, emails: bestEmail ? [bestEmail] : [], matchedWebsite: !!matchedWebsite }
-  })
-
-  // Also add website emails that don't belong to any found person
-  const assignedEmails = new Set(peopleWithEmails.flatMap(p => p.emails.map(e => e.toLowerCase())))
-  for (const we of websiteEmails) {
-    if (!assignedEmails.has(we.toLowerCase())) {
-      const localPart = we.split('@')[0].replace(/[._]/g, ' ')
-      peopleWithEmails.push({ name: localPart, title: '', emails: [we], matchedWebsite: true })
-    }
-  }
-
-  // Save to cache
-  await setCachedDomain(c.env.DB, domain, {
-    company_info: companyInfo,
-    people: peopleWithEmails,
-    emails_raw: websiteEmails,
-    has_catchall: hasCatchAll,
-    mx_provider: mx.mxHosts[0] || '',
-  })
-
-  // Check user's existing reveals
   const revealed = await c.env.DB.prepare(
-    'SELECT email FROM email_reveals WHERE user_id = ? AND domain = ?'
+    'SELECT email, person_name, verification_status, confidence_score FROM email_reveals WHERE user_id = ? AND domain = ?'
   ).bind(userId, domain).all()
-  const revealedSet = new Set((revealed.results || []).map(r => r.email))
+  const revealedMap = {}
+  for (const r of (revealed.results || [])) revealedMap[r.email] = r
 
-  // Build masked response
-  const maskedPeople = peopleWithEmails.map((p, i) => {
-    const email = p.emails[0] || null
-    const isRevealed = email && revealedSet.has(email)
+  const maskedPeople = people.map((p, i) => {
+    const rev = p.email ? revealedMap[p.email] : null
     return {
       id: `${domain}-${i}`,
-      masked_name: isRevealed ? p.name : maskName(p.name),
-      full_name: isRevealed ? p.name : null,
+      masked_name: rev ? p.name : maskName(p.name),
+      full_name: rev ? p.name : null,
       title: p.title,
-      department: classifyDepartment(p.title),
-      seniority: classifySeniority(p.title),
-      masked_email: isRevealed ? email : maskEmail(email),
-      full_email: isRevealed ? email : null,
-      masked_phone: p.phone ? (isRevealed ? p.phone : maskPhone(p.phone)) : null,
-      full_phone: isRevealed ? (p.phone || null) : null,
-      revealed: isRevealed,
-      verification_status: null,
-      confidence_score: null,
+      department: p.department,
+      seniority: p.seniority,
+      masked_email: rev ? p.email : maskEmail(p.email),
+      full_email: rev ? p.email : null,
+      masked_phone: p.phone ? (rev ? p.phone : maskPhone(p.phone)) : null,
+      full_phone: rev ? (p.phone || null) : null,
+      revealed: !!rev,
+      verification_status: rev?.verification_status || p.verification_status || null,
+      confidence_score: rev?.confidence_score ?? p.confidence ?? null,
+      source: p.source,
     }
   })
 
@@ -541,8 +173,8 @@ Respond in JSON only:
     people: maskedPeople,
     total_count: maskedPeople.length,
     has_catchall: hasCatchAll,
-    mx_provider: mx.mxHosts[0] || '',
-    from_cache: false,
+    mx_provider: mxProvider,
+    from_cache: !!cached,
   })
 })
 
@@ -562,8 +194,15 @@ router.post('/reveal', async (c) => {
   if (!cached || !cached.people[idx]) return c.json({ error: 'Kisi bulunamadi. Tekrar arama yapin.' }, 404)
 
   const person = cached.people[idx]
-  const email = person.emails?.[0]
-  if (!email) return c.json({ error: 'Bu kisi icin email adresi bulunamadi' }, 404)
+  let email = person.email
+  if (!email) {
+    const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
+    const found = await enrichment.findEmail(person.first_name || person.name?.split(' ')[0] || '', person.last_name || person.name?.split(' ').slice(-1)[0] || '', domain)
+    if (!found?.email) return c.json({ error: 'Bu kisi icin email adresi bulunamadi' }, 404)
+    email = found.email
+    person.verification_status = person.verification_status || 'unknown'
+    person.confidence = found.confidence
+  }
 
   // Check if already revealed by this user
   const existing = await c.env.DB.prepare(
@@ -596,14 +235,15 @@ router.post('/reveal', async (c) => {
   }
 
   // Compute verification
-  const v = computeVerification(email, cached.emails_raw, !!cached.mx_provider, cached.has_catchall)
+  const vStatus = person.verification_status || 'unknown'
+  const vConfidence = person.confidence ?? 0
 
   // Save reveal
   const revealId = crypto.randomUUID()
   await c.env.DB.prepare(
     `INSERT INTO email_reveals (id, user_id, domain, person_name, person_title, email, verification_status, confidence_score, source)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).bind(revealId, userId, domain, person.name, person.title || '', email, v.status, v.confidence, v.source).run()
+  ).bind(revealId, userId, domain, person.name, person.title || '', email, vStatus, vConfidence, person.source || 'pattern').run()
 
   // Deduct credit
   await deductCredit(c.env.DB, userId)
@@ -613,9 +253,9 @@ router.post('/reveal', async (c) => {
     person_title: person.title,
     email,
     phone: person.phone || null,
-    verification_status: v.status,
-    confidence_score: v.confidence,
-    source: v.source,
+    verification_status: vStatus,
+    confidence_score: vConfidence,
+    source: person.source || 'pattern',
     credits_remaining: credits.monthly_limit - credits.used_this_month - 1,
     already_revealed: false,
   })
@@ -641,10 +281,10 @@ router.post('/bulk-reveal', async (c) => {
   for (const pid of person_ids) {
     const idx = parseInt(pid.split('-').pop())
     const person = cached.people[idx]
-    if (!person || !person.emails?.[0]) continue
+    if (!person || !person.email) continue
     const existing = await c.env.DB.prepare('SELECT id FROM email_reveals WHERE user_id = ? AND email = ?')
-      .bind(userId, person.emails[0]).first()
-    if (!existing) toReveal.push({ idx, person, email: person.emails[0] })
+      .bind(userId, person.email).first()
+    if (!existing) toReveal.push({ idx, person, email: person.email })
   }
 
   const available = credits.monthly_limit - credits.used_this_month
@@ -657,12 +297,13 @@ router.post('/bulk-reveal', async (c) => {
 
   const revealed = []
   for (const item of toReveal) {
-    const v = computeVerification(item.email, cached.emails_raw, !!cached.mx_provider, cached.has_catchall)
+    const vStatus = item.person.verification_status || 'unknown'
+    const vConfidence = item.person.confidence ?? 0
     await c.env.DB.prepare(
       `INSERT INTO email_reveals (id, user_id, domain, person_name, person_title, email, verification_status, confidence_score, source)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(crypto.randomUUID(), userId, domain, item.person.name, item.person.title || '',
-      item.email, v.status, v.confidence, v.source).run()
+      item.email, vStatus, vConfidence, item.person.source || 'pattern').run()
     await deductCredit(c.env.DB, userId)
     revealed.push({
       person_id: `${domain}-${item.idx}`,
@@ -670,8 +311,9 @@ router.post('/bulk-reveal', async (c) => {
       person_title: item.person.title,
       email: item.email,
       phone: item.person.phone || null,
-      verification_status: v.status,
-      confidence_score: v.confidence,
+      verification_status: vStatus,
+      confidence_score: vConfidence,
+      source: item.person.source || 'pattern',
     })
   }
 
@@ -738,59 +380,18 @@ router.post('/verify', async (c) => {
   const { email } = await c.req.json()
   if (!email) return c.json({ error: 'Email gerekli' }, 400)
 
-  // Check if user has revealed this email
-  const reveal = await c.env.DB.prepare(
-    'SELECT * FROM email_reveals WHERE user_id = ? AND email = ?'
-  ).bind(userId, email).first()
+  const reveal = await c.env.DB.prepare('SELECT * FROM email_reveals WHERE user_id = ? AND email = ?')
+    .bind(userId, email).first()
   if (!reveal) return c.json({ error: 'Bu email henuz reveal edilmemis' }, 404)
-  if (reveal.verification_status === 'verified') return c.json({ error: 'Bu email zaten dogrulanmis', already_verified: true }, 409)
+  if (reveal.verification_status === 'verified') return c.json({ status: 'verified', already_verified: true })
 
-  const domain = email.split('@')[1]
-  if (!domain) return c.json({ error: 'Gecersiz email adresi' }, 400)
+  const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
+  const v = await enrichment.verifyEmail(email)
 
-  // Check MX records
-  const mx = await checkMxRecords(domain)
-  if (!mx.hasMx) {
-    await c.env.DB.prepare(
-      'UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?'
-    ).bind('unknown', 10, userId, email).run()
-    return c.json({ verified: false, status: 'unknown', reason: 'Domain icin MX kaydi bulunamadi' })
-  }
+  await c.env.DB.prepare('UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?')
+    .bind(v.status, v.confidence, userId, email).run()
 
-  // Check catch-all
-  const hasCatchAll = detectCatchAll(mx.mxHosts)
-
-  // Try SMTP-like verification via DNS + pattern check
-  // We check: valid MX + not catch-all = likely valid
-  const isVerified = mx.hasMx && !hasCatchAll
-
-  if (isVerified) {
-    // Mark as verified
-    await c.env.DB.prepare(
-      'UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?'
-    ).bind('verified', 95, userId, email).run()
-
-    // Award +5 credits
-    const user = await c.env.DB.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
-    const credits = await getOrCreateCredits(c.env.DB, userId, user?.plan || 'free')
-    const newUsed = Math.max(0, credits.used_this_month - 5)
-    await c.env.DB.prepare('UPDATE user_credits SET used_this_month = ? WHERE user_id = ?')
-      .bind(newUsed, userId).run()
-
-    return c.json({
-      verified: true,
-      status: 'verified',
-      confidence_score: 95,
-      credits_earned: 5,
-      credits_remaining: credits.monthly_limit - newUsed,
-    })
-  } else {
-    // Catch-all domain - risky
-    await c.env.DB.prepare(
-      'UPDATE email_reveals SET verification_status = ?, confidence_score = ? WHERE user_id = ? AND email = ?'
-    ).bind('risky', 40, userId, email).run()
-    return c.json({ verified: false, status: 'risky', reason: 'Catch-all domain, dogrulama kesin degil' })
-  }
+  return c.json({ status: v.status, confidence_score: v.confidence })
 })
 
 // ─── POST /export ── CSV export of reveals ───────────────────
@@ -804,7 +405,8 @@ router.post('/export', async (c) => {
   const results = rows.results || []
   let csv = 'Name,Title,Email,Phone,Domain,Status,Confidence,Source,Date\n'
   for (const r of results) {
-    csv += `"${r.person_name}","${r.person_title || ''}","${r.email}","${r.phone || ''}","${r.domain}","${r.verification_status}",${r.confidence_score},"${r.source}","${r.created_at}"\n`
+    const src = r.source === 'website' ? 'website' : 'directory'
+    csv += `"${r.person_name}","${r.person_title || ''}","${r.email}","${r.phone || ''}","${r.domain}","${r.verification_status}",${r.confidence_score},"${src}","${r.created_at}"\n`
   }
 
   return new Response(csv, {
@@ -946,103 +548,36 @@ emirates.com`
   }
   if (!domain) return c.json({ error: 'Kriterlere uygun firma bulunamadi. Firma adi veya domain girin.' }, 400)
 
-  // Get company info + people (check cache first)
-  let cached = await getCachedDomain(c.env.DB, domain)
+  // Firma + kişiler (cache -> orchestrator)
   let companyInfo, peopleList
-
+  const cached = await getCachedDomain(c.env.DB, domain)
   if (cached) {
     companyInfo = cached.company_info
     peopleList = cached.people
   } else {
-    const [mx, scrapeResult] = await Promise.all([checkMxRecords(domain), scrapeWebsite(domain)])
-    companyInfo = { name: q || domain, domain, sector: '', location: '', employee_count: '', company_phones: [], mx_valid: mx.hasMx }
-    peopleList = []
-    const hasCatchAll = detectCatchAll(mx.mxHosts)
-
-    if (scrapeResult.text.length > 200) {
-      try {
-        const prompt = `Extract company information and people from this website content AND your knowledge.
-
-WEBSITE CONTENT:
-${scrapeResult.text.slice(0, 12000)}
-
-EMAILS FOUND: ${scrapeResult.emails.join(', ') || 'none'}
-PHONES FOUND: ${scrapeResult.phones.join(', ') || 'none'}
-
-INSTRUCTIONS:
-1. Extract company info (name, sector, description, location, employee count)
-2. List ALL real people found on the website AND publicly known executives/founders from your knowledge
-3. Do NOT hallucinate. Only include people you are confident about.
-
-Respond in JSON only:
-{"company_name":"...","description":"1-2 sentences","sector":"...","location":"...","employee_count":"...","company_phones":["..."],"people":[{"name":"Full Name","title":"Title","phone":"phone or null"}]}`
-        const raw = await callGemini(prompt, apiKey)
-        const jsonMatch = raw.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0])
-          const companyPhones = [...new Set([...(parsed.company_phones || []), ...scrapeResult.phones])]
-          companyInfo = { name: parsed.company_name || q || domain, domain, description: parsed.description || '', sector: parsed.sector || '', location: parsed.location || '', employee_count: parsed.employee_count || '', company_phones: companyPhones, mx_valid: mx.hasMx }
-          if (Array.isArray(parsed.people)) peopleList = parsed.people.filter(p => p.name && p.name.length > 1)
-        }
-      } catch {}
-    } else {
-      try {
-        const fallbackPrompt = `Provide information about the company "${q || domain}".
-
-INSTRUCTIONS:
-1. Provide company info (name, sector, description, location, employee count)
-2. List ONLY people who are PUBLICLY KNOWN to work there (CEO, founders, board members, C-level)
-3. Do NOT hallucinate. If unsure, leave people array empty.
-
-Respond in JSON only:
-{"company_name":"...","description":"1-2 sentences","sector":"...","location":"...","employee_count":"...","people":[{"name":"Full Name","title":"Title","phone":"phone or null"}]}`
-        const raw = await callGemini(fallbackPrompt, apiKey)
-        const jsonMatch = raw.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0])
-          companyInfo = { name: parsed.company_name || q || domain, domain, description: parsed.description || '', sector: parsed.sector || '', location: parsed.location || '', employee_count: parsed.employee_count || '', company_phones: [], mx_valid: mx.hasMx }
-          if (Array.isArray(parsed.people)) peopleList = parsed.people.filter(p => p.name && p.name.length > 1)
-        }
-      } catch {}
-    }
-
-    const websiteEmails = scrapeResult.emails
-    peopleList = peopleList.map(p => {
-      const patterns = generateEmailPatterns(p.name, domain)
-      const matchedWebsite = patterns.find(pat => websiteEmails.some(we => we.toLowerCase() === pat.toLowerCase()))
-      const bestEmail = matchedWebsite || patterns[0] || null
-      return { ...p, emails: bestEmail ? [bestEmail] : [] }
-    })
-
-    // Add website emails that don't belong to any found person
-    const assignedEmails = new Set(peopleList.flatMap(p => p.emails.map(e => e.toLowerCase())))
-    for (const we of websiteEmails) {
-      if (!assignedEmails.has(we.toLowerCase())) {
-        const localPart = we.split('@')[0]
-        // Skip generic prefixes like info@, skip if domain doesn't match
-        const emailDomain = we.split('@')[1]?.toLowerCase()
-        if (emailDomain && emailDomain === domain) {
-          peopleList.push({ name: localPart.replace(/[._]/g, ' '), title: '', emails: [we] })
-        }
-      }
-    }
-
+    const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
+    const result = await enrichment.domainSearch(domain)
+    companyInfo = result.company
+    peopleList = result.people
+    const mx = await checkMxRecords(domain)
+    companyInfo.mx_valid = mx.hasMx
+    await saveLearnedPattern(c.env.DB, domain, peopleList).catch(() => {})
     await setCachedDomain(c.env.DB, domain, {
-      company_info: companyInfo, people: peopleList, emails_raw: websiteEmails || [],
-      has_catchall: hasCatchAll, mx_provider: mx.mxHosts?.[0] || '',
+      company_info: companyInfo, people: peopleList,
+      emails_raw: peopleList.filter(p => p.email).map(p => p.email),
+      has_catchall: detectCatchAll(mx.mxHosts), mx_provider: mx.mxHosts[0] || '', provider: result.provider,
     })
   }
 
-  // Pick best contact - prefer real people, fallback to info@
   const seniorityOrder = ['C-Level', 'VP', 'Director', 'Manager', 'Staff']
   let bestPerson = peopleList[0]
   let bestRank = 99
   for (const p of peopleList) {
-    const rank = seniorityOrder.indexOf(classifySeniority(p.title))
+    const rank = seniorityOrder.indexOf(p.seniority || classifySeniority(p.title))
     if (rank >= 0 && rank < bestRank) { bestRank = rank; bestPerson = p }
   }
 
-  const contactEmail = bestPerson?.emails?.[0] || `info@${domain}`
+  const contactEmail = bestPerson?.email || `info@${domain}`
   const contactName = bestPerson?.name || 'Yetkili'
   const contactTitle = bestPerson?.title || ''
 
