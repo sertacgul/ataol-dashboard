@@ -78,6 +78,7 @@ Create (test_mode considerations): Pro (monthly $29 + yearly $290), Growth (mont
 ## B3: /billing route
 `routes/billing.js` + `app.route('/billing', ...)`:
 - `POST /billing/checkout` (authed): body `{ variant_id }`. Create LS checkout via `POST /v1/checkouts` with `checkout_data.custom = { user_id }`, `product_options.redirect_url`, `test_mode` per env. Return `{ url }`.
+  - **DISCOUNT (LAUNCH50 %50):** if the user has an active discount (`discount_percent=50` AND `discount_expires_at` in the future), apply a pre-created LS 50%-off discount to the checkout (via `checkout_data.discount_code` or the discount id). Create the 50% LS discount once via API in B2 and store its code/id in billing-config. So redeeming LAUNCH50 => 50% off list price at checkout, for 3 months.
 - `POST /billing/webhook` (public, no auth): verify HMAC-SHA256 signature header `X-Signature` against `LEMON_WEBHOOK_SECRET` over raw body. Handle:
   - `subscription_created`/`subscription_updated` (status active): set user.plan from variant map, reset credits to plan.
   - `subscription_cancelled`/`subscription_expired`: user.plan='free'.
