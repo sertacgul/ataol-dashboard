@@ -283,7 +283,7 @@ export default function Settings() {
     setSubmitting(true)
     setBillingErr('')
     try {
-      const { url } = await api.post('/billing/checkout', { variant_id: variantId })
+      const { url } = await api.post('/payments/checkout', { variant_id: variantId })
       if (url) window.location.href = url
     } catch (e) {
       setBillingErr(e.message)
