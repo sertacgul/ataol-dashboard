@@ -35,6 +35,7 @@ import Bmc from './pages/bmc/Bmc'
 import Competitors from './pages/competitors/Competitors'
 import EmailFinder from './pages/email-finder/EmailFinder'
 import Guide from './pages/Guide'
+import History from './pages/history/History'
 
 function App() {
   const [splashDone, setSplashDone] = useState(false)
@@ -75,6 +76,7 @@ function App() {
         <Route path="competitors" element={<Competitors />} />
         <Route path="email-finder" element={<EmailFinder />} />
         <Route path="guide" element={<Guide />} />
+        <Route path="history" element={<History />} />
         <Route path="settings" element={<Settings />} />
         <Route path="onboarding" element={<Onboarding />} />
       </Route>
