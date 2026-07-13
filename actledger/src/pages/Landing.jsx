@@ -852,6 +852,7 @@ export default function Landing() {
   const { t, lang, changeLang, languages } = useT()
   const isEn = lang !== 'tr'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const langOptions = languages.filter(l => l.code === 'tr' || l.code === 'en')
 
   return (
     <div className="min-h-screen bg-white text-[#111827]">
@@ -876,7 +877,7 @@ export default function Landing() {
               onChange={e => changeLang(e.target.value)}
               className="text-xs font-medium text-[#6B7280] hover:text-[#111827] border border-[#E5E7EB] rounded-md px-1.5 py-1.5 bg-white cursor-pointer focus:outline-none"
             >
-              {languages.map(l => (
+              {langOptions.map(l => (
                 <option key={l.code} value={l.code}>{l.name}</option>
               ))}
             </select>
@@ -898,7 +899,7 @@ export default function Landing() {
               onChange={e => changeLang(e.target.value)}
               className="text-xs font-medium text-[#6B7280] border border-[#E5E7EB] rounded-md px-1 py-1.5 bg-white cursor-pointer"
             >
-              {languages.map(l => (
+              {langOptions.map(l => (
                 <option key={l.code} value={l.code}>{l.code.toUpperCase()}</option>
               ))}
             </select>
