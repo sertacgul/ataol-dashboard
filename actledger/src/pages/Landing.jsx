@@ -25,6 +25,13 @@ const FEATURES = [
     descEn: 'Find companies in your target sector with Google Maps, analyze customer reviews, and add to your lead list in one click.',
   },
   {
+    icon: 'M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z',
+    titleTr: 'Google Yorum & Duygu Analizi',
+    titleEn: 'Google Reviews & Sentiment',
+    descTr: "Google Maps'ten hedef firmaları bul, müşteri yorumlarını AI ile analiz et. Genel duygu ve satış açısından nelere dikkat edeceğini öğren.",
+    descEn: 'Find target companies on Google Maps and analyze their reviews with AI. Get the overall sentiment and sales-angle insights before you reach out.',
+  },
+  {
     icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7',
     titleTr: 'CRM Pipeline',
     titleEn: 'CRM Pipeline',
@@ -86,6 +93,7 @@ const DEMO_SCREENS = [
   { id: 'emailfinder', label: 'Email Finder', route: 'email-finder', sidebarIcon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7' },
   { id: 'outreach', label: 'Outreach', route: 'outreach', sidebarIcon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
   { id: 'leads', label: 'Leads', route: 'leads', sidebarIcon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+  { id: 'sentiment', label: 'Sentiment', route: 'maps', sidebarIcon: 'M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z' },
   { id: 'pipeline', label: 'Pipeline', route: 'pipeline', sidebarIcon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7' },
   { id: 'dashboard', label: 'Dashboard', route: 'dashboard', sidebarIcon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
   { id: 'seo', label: 'SEO Content', route: 'seo-content', sidebarIcon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
@@ -191,6 +199,49 @@ function ScreenLeads() {
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  )
+}
+
+function ScreenSentiment() {
+  return (
+    <div className="p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm font-semibold text-[#111827]">Google Reviews & Sentiment</div>
+        <span className="text-[10px] font-medium text-[#2563EB] bg-[#EFF6FF] px-2 py-0.5 rounded-full">Google Maps</span>
+      </div>
+      <div className="border border-[#F3F4F6] rounded-lg p-3 mb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs font-semibold text-[#111827]">Yildiz Makine San. Ltd.</div>
+            <div className="text-[10px] text-[#6B7280]">Ostim OSB, Ankara</div>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-xs font-semibold text-[#F59E0B]">4.3</span>
+            <span className="text-[10px] text-[#F59E0B]">★★★★</span>
+            <span className="text-[10px] text-[#D1D5DB]">★</span>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-2 mb-3">
+        {[
+          { txt: 'Teslimat hizli, ekip cok ilgiliydi. Kesinlikle tavsiye ederim.', stars: 5 },
+          { txt: 'Fiyatlar biraz yuksek ama kalite gercekten iyi.', stars: 4 },
+        ].map((r, i) => (
+          <div key={i} className="border border-[#F3F4F6] rounded-lg px-3 py-2 flex items-start gap-2">
+            <span className="text-[10px] text-[#F59E0B] shrink-0 mt-0.5">{'★'.repeat(r.stars)}</span>
+            <span className="text-[11px] text-[#374151] leading-snug">{r.txt}</span>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-lg p-3" style={{ background: '#ECFDF5', border: '1px solid #A7F3D0' }}>
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <svg className="w-3.5 h-3.5 text-[#059669]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+          <span className="text-[11px] font-semibold text-[#059669]">AI Duygu Analizi / AI Sentiment</span>
+        </div>
+        <div className="text-xs font-medium text-[#065F46] mb-1">Genel kani: Olumlu / Overall: Positive</div>
+        <div className="text-[11px] text-[#047857] leading-snug">Satis ipucu / Sales tip: Hizli teslimat ve kaliteyi one cikar, fiyat itirazina hazir ol.</div>
       </div>
     </div>
   )
@@ -681,6 +732,7 @@ function ScreenCompetitors() {
 const SCREEN_COMPONENTS = {
   dashboard: ScreenDashboard,
   leads: ScreenLeads,
+  sentiment: ScreenSentiment,
   outreach: ScreenOutreach,
   emailfinder: ScreenEmailFinder,
   pipeline: ScreenPipeline,
