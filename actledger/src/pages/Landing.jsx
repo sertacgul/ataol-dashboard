@@ -1315,7 +1315,7 @@ export default function Landing() {
               <p className="text-xs text-[#F59E0B] font-medium mb-1">{isEn ? '7-day free trial' : '7 gün ücretsiz deneme'}</p>
               <p className="text-xs text-[#9CA3AF] mb-5">{isEn ? 'Credit card required' : 'Kredi kartı gerekli'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'25 credits/month':'25 kredi/ay', 'CRM Pipeline', isEn?'1 user':'1 kullanıcı'].map((item, i) => (
+                {[isEn?'10 credits/month':'10 kredi/ay', 'CRM Pipeline', isEn?'1 user':'1 kullanıcı'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}

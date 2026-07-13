@@ -1,4 +1,4 @@
-const PLAN_LIMITS = { free: 25, pro: 250, growth: 600, team: 600 }
+const PLAN_LIMITS = { free: 10, pro: 250, growth: 600, team: 600 }
 
 export { PLAN_LIMITS }
 
