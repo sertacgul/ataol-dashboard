@@ -1032,13 +1032,13 @@ export default function Landing() {
           </a>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-[#2563EB] mb-5 leading-[1.15] tracking-tight">
             {isEn
-              ? <>Find the right people,<br />reach them with AI</>
-              : <>Doğru kişiyi bul,<br />AI ile ulaş, toplantı al</>}
+              ? <>From target company<br />to first contact, one flow</>
+              : <>Hedef şirketten<br />ilk temasa, tek akışta</>}
           </h1>
           <p className="text-base text-[#6B7280] mb-8 max-w-xl mx-auto leading-relaxed">
             {isEn
-              ? 'The outbound engine for B2B founders: real verified emails + personalized AI emails. No guessing, no setup — first replies in minutes.'
-              : 'B2B kurucular için outbound motoru: gerçek doğrulanmış e-postalar + kişiye özel AI e-postaları. Tahmin yok, kurulum yok — dakikalar içinde ilk yanıtlar.'}
+              ? 'For B2B founders without a sales team: find the target company, get the verified email, and complete the personalized first touch in a single flow.'
+              : 'Satış ekibi olmayan B2B kurucular için: hedef şirketi bul, doğrulanmış e-postaya ulaş ve kişiselleştirilmiş ilk temayı tek akışta tamamla.'}
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
