@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { checkCredits, deductCredit } from '../lib/credits.js'
+import { logActivity } from '../lib/activity.js'
 
 const competitors = new Hono()
 competitors.use('*', authMiddleware)
@@ -51,19 +52,29 @@ competitors.post('/:id/analyze', async (c) => {
 
   const profileContext = await getProfileContext(c.env.DB, userId)
 
-  const prompt = `${profileContext ? `Firma Bağlamı:\n${profileContext}\n\n` : ''}Rakip firma analizi yap: ${competitor.name || ''}${competitor.website ? ` (${competitor.website})` : ''}
+  const prompt = `${profileContext ? `KENDI FIRMAM:\n${profileContext}\n\n` : ''}Rakip firma "${competitor.name || ''}"${competitor.website ? ` (${competitor.website})` : ''} için detaylı rekabet analizi yap. Kendi firmam ile karşılaştır.
 
-Aşağıdaki JSON formatında yanıt ver:
+Aşağıdaki JSON formatında yanıt ver. Puanlar 0-4 arası tam sayı (0=çok zayıf, 4=mükemmel). Kendi firmam ("own") için ${profileContext ? 'firma bağlamıma göre puanla' : 'bilgi yoksa makul tahmin yap'}.
+
 {
-  "name": "Firma adı",
+  "name": "Rakip firma adı",
   "sector": "Sektör",
-  "description": "2-3 cümlelik açıklama",
-  "strengths": ["Güçlü yön 1", "Güçlü yön 2"],
+  "description": "3-4 cümlelik detaylı açıklama",
+  "target_market": "Hedef pazar",
+  "strengths": ["Güçlü yön 1", "Güçlü yön 2", "Güçlü yön 3"],
   "weaknesses": ["Zayıf yön 1", "Zayıf yön 2"],
-  "opportunities": ["Fırsat 1", "Fırsat 2"]
+  "opportunities": ["Fırsat 1", "Fırsat 2"],
+  "scores": {
+    "competitor": { "product_quality": 0, "price_competitiveness": 0, "market_reach": 0, "brand_awareness": 0, "innovation": 0, "customer_experience": 0 },
+    "own": { "product_quality": 0, "price_competitiveness": 0, "market_reach": 0, "brand_awareness": 0, "innovation": 0, "customer_experience": 0 }
+  },
+  "competitor_position": "Pazar Lideri | Meydan Okuyan | Takipçi | Niş Oyuncu",
+  "own_position": "Pazar Lideri | Meydan Okuyan | Takipçi | Niş Oyuncu",
+  "position_summary": "Kendi firmamın rakibe göre pazar konumu, 2-3 cümle",
+  "improvement_areas": ["Aksiyon alınabilir gelişim alanı 1", "gelişim alanı 2", "gelişim alanı 3"]
 }
 
-Sadece JSON formatında yanıt ver, başka açıklama ekleme.`
+Sadece JSON döndür, başka açıklama ekleme.`
 
   const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: 'POST',
@@ -89,6 +100,7 @@ Sadece JSON formatında yanıt ver, başka açıklama ekleme.`
   ).bind(analysisStr, id).run()
 
   await deductCredit(c.env.DB, chk.userId, 2)
+  await logActivity(c.env.DB, userId, { module: 'competitors', action: 'analyze', title: competitor.name || 'Rakip', detail: analysis || analysisStr })
   return c.json({ analysis })
 })
 
