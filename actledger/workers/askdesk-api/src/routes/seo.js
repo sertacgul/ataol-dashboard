@@ -51,15 +51,11 @@ seo.post('/', async (c) => {
   const body = await c.req.json().catch(() => ({}))
   const id = crypto.randomUUID()
 
-  const chk = await checkCredits(c, 5)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
-
   await c.env.DB.prepare(
     `INSERT INTO seo_articles (id, user_id, title, topic, step, status)
      VALUES (?, ?, ?, ?, 1, 'draft')`
   ).bind(id, userId, body.title || null, body.topic || null).run()
 
-  await deductCredit(c.env.DB, chk.userId, 5)
   return c.json({ id }, 201)
 })
 
