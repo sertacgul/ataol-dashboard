@@ -19,6 +19,7 @@ import competitorsRoutes from './routes/competitors.js'
 import emailSettingsRoutes from './routes/email-settings.js'
 import blogRoutes from './routes/blog.js'
 import emailFinderRoutes from './routes/email-finder.js'
+import activityRoutes from './routes/activity.js'
 
 const app = new Hono()
 
@@ -52,6 +53,7 @@ app.route('/competitors', competitorsRoutes)
 app.route('/email-settings', emailSettingsRoutes)
 app.route('/blog', blogRoutes)
 app.route('/email-finder', emailFinderRoutes)
+app.route('/activity', activityRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
