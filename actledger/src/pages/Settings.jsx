@@ -58,8 +58,15 @@ function profileToForm(p) {
 }
 
 export default function Settings() {
-  const { t } = useT()
+  const { t, lang } = useT()
+  const isEn = lang === 'en'
   const { user } = useAuth()
+
+  // Discount code state
+  const [redeemCode, setRedeemCode] = useState('')
+  const [redeemSubmitting, setRedeemSubmitting] = useState(false)
+  const [redeemError, setRedeemError] = useState('')
+  const [redeemed, setRedeemed] = useState(null)
 
   const [profile, setProfile] = useState(null)
   const [profileLoading, setProfileLoading] = useState(true)
@@ -226,6 +233,24 @@ export default function Settings() {
     }
   }
 
+  async function handleRedeem(e) {
+    e.preventDefault()
+    setRedeemSubmitting(true)
+    setRedeemError('')
+    try {
+      const data = await api.post('/auth/redeem-code', { code: redeemCode })
+      setRedeemed({ discount_percent: data.discount_percent, discount_expires_at: data.discount_expires_at })
+    } catch (err) {
+      setRedeemError(err.message || (isEn ? 'Invalid discount code' : 'Geçersiz indirim kodu'))
+    } finally {
+      setRedeemSubmitting(false)
+    }
+  }
+
+  const discount = redeemed || (user?.discount_code
+    ? { discount_percent: user.discount_percent, discount_expires_at: user.discount_expires_at }
+    : null)
+
   const inputCls = 'w-full text-sm border border-[#D1D5DB] rounded-md px-3 py-2 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] placeholder-[#9CA3AF]'
   const textareaCls = inputCls + ' resize-none'
   const readValCls = 'text-sm text-[#111827]'
@@ -262,6 +287,30 @@ export default function Settings() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* İndirim Kodu */}
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-md mb-6">
+        <div className="text-xs font-semibold text-[#374151] mb-4">{isEn ? 'Discount Code' : 'İndirim Kodu'}</div>
+        {discount ? (
+          <div className="text-sm text-[#065F46] bg-[#D1FAE5] border border-[#6EE7B7] rounded-md px-3 py-2">
+            {isEn
+              ? `${discount.discount_percent}% discount active — until ${new Date(discount.discount_expires_at).toLocaleDateString('en-US')}`
+              : `%${discount.discount_percent} indirim aktif — ${new Date(discount.discount_expires_at).toLocaleDateString('tr-TR')} tarihine kadar`}
+          </div>
+        ) : (
+          <form onSubmit={handleRedeem} className="flex flex-col gap-3">
+            {redeemError && (
+              <div className="text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">{redeemError}</div>
+            )}
+            <div className="flex gap-2">
+              <input value={redeemCode} onChange={e => setRedeemCode(e.target.value)} className={inputCls + ' uppercase'} placeholder={isEn ? 'Enter code' : 'Kodu girin'} />
+              <button type="submit" disabled={redeemSubmitting || !redeemCode.trim()} className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2 whitespace-nowrap">
+                {redeemSubmitting ? (isEn ? 'Applying...' : 'Uygulanıyor...') : (isEn ? 'Apply' : 'Uygula')}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
 
       {/* Email Ayarları */}

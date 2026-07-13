@@ -37,8 +37,8 @@ export function AuthProvider({ children }) {
     return data
   }
 
-  async function register(email, password, name, company_name) {
-    const data = await api.post('/auth/register', { email, password, name, company_name })
+  async function register(email, password, name, company_name, discountCode) {
+    const data = await api.post('/auth/register', { email, password, name, company_name, discount_code: discountCode || undefined })
     setUser(data)
     setProfile(null)
     return data
