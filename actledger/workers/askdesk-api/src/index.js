@@ -55,7 +55,7 @@ app.route('/email-settings', emailSettingsRoutes)
 app.route('/blog', blogRoutes)
 app.route('/email-finder', emailFinderRoutes)
 app.route('/activity', activityRoutes)
-app.route('/billing', billingRoutes)
+app.route('/payments', billingRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
