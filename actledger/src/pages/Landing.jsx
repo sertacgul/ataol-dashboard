@@ -4,18 +4,18 @@ import { useT } from '../contexts/LanguageContext'
 
 const FEATURES = [
   {
-    icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-    titleTr: 'Tam Otomatik Outreach',
-    titleEn: 'Fully Automated Outreach',
-    descTr: 'Firma adını girin, AI sektör analizi yapsın, karar vericileri bulsun ve 300-500 kelimelik sektöre özel kişiselleştirilmiş email otomatik oluştursun. Açılma takibi dahil.',
-    descEn: 'Enter a company name. AI analyzes the sector, finds decision-makers, and auto-composes a 300-500 word sector-specific personalized email. Open tracking included.',
-  },
-  {
     icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7',
     titleTr: 'Kişi ve Email Bulucu',
     titleEn: 'People & Email Finder',
     descTr: 'Firma web sitesini ve AI bilgi tabanını tarayarak gerçek kişileri bulun: isim, unvan, email, telefon. Doğrulanmış email adresleri, toplu reveal ve CSV dışa aktarma.',
     descEn: 'Scan company websites and AI knowledge base to find real people: name, title, email, phone. Verified email addresses, bulk reveal, and CSV export.',
+  },
+  {
+    icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+    titleTr: 'Tam Otomatik Outreach',
+    titleEn: 'Fully Automated Outreach',
+    descTr: 'Firma adını girin, AI sektör analizi yapsın, karar vericileri bulsun ve 300-500 kelimelik sektöre özel kişiselleştirilmiş email otomatik oluştursun. Açılma takibi dahil.',
+    descEn: 'Enter a company name. AI analyzes the sector, finds decision-makers, and auto-composes a 300-500 word sector-specific personalized email. Open tracking included.',
   },
   {
     icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
@@ -69,10 +69,10 @@ const FEATURES = [
 ]
 
 const STATS = [
-  { value: '14+', labelTr: 'Entegre Modül', labelEn: 'Integrated Modules' },
-  { value: 'Verified', labelTr: 'Doğrulanmış Email', labelEn: 'Verified Emails' },
-  { value: '1-Click', labelTr: 'Otomatik Outreach', labelEn: 'Auto Outreach' },
-  { value: '6', labelTr: 'Adımlı SEO Süreci', labelEn: 'Step SEO Workflow' },
+  { value: 'Verified', labelTr: 'Doğrulanmış E-posta', labelEn: 'Verified Emails' },
+  { value: 'AI', labelTr: 'Kişiye Özel Outreach', labelEn: 'Personalized Outreach' },
+  { value: 'Dakikalar', labelTr: 'Kurulumdan İlk E-postaya', labelEn: 'Setup to First Email' },
+  { value: '0', labelTr: 'Kurulum / Kod', labelEn: 'Setup / Code' },
 ]
 
 const STEPS = [
@@ -1032,13 +1032,13 @@ export default function Landing() {
           </a>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-[#2563EB] mb-5 leading-[1.15] tracking-tight">
             {isEn
-              ? <>Find Customers,<br />Reach Them with AI</>
-              : <>Müşteri Bul,<br />AI ile Ulaş, Sat</>}
+              ? <>Find the right people,<br />reach them with AI</>
+              : <>Doğru kişiyi bul,<br />AI ile ulaş, toplantı al</>}
           </h1>
           <p className="text-base text-[#6B7280] mb-8 max-w-xl mx-auto leading-relaxed">
             {isEn
-              ? 'Find customers, run outreach campaigns, manage your pipeline, and make data-driven decisions in one platform. Featuring fully automated AI outreach.'
-              : 'Tek platformda müşteri bulun, outreach kampanyaları yürütün, pipeline yönetin ve veriye dayalı kararlar alın. Tam otomatik AI outreach dahil.'}
+              ? 'The outbound engine for B2B founders: real verified emails + personalized AI emails. No guessing, no setup — first replies in minutes.'
+              : 'B2B kurucular için outbound motoru: gerçek doğrulanmış e-postalar + kişiye özel AI e-postaları. Tahmin yok, kurulum yok — dakikalar içinde ilk yanıtlar.'}
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
@@ -1053,6 +1053,15 @@ export default function Landing() {
             >
               {isEn ? 'See Features' : 'Özellikleri Gör'}
             </a>
+          </div>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[#9CA3AF]">
+            <span>{isEn ? 'Built at ITU ARI Teknokent' : "ITÜ ARI Teknokent'te geliştirildi"}</span>
+            <span className="text-[#E5E7EB]">·</span>
+            <span>{isEn ? 'Real verified emails' : 'Gerçek doğrulanmış e-postalar'}</span>
+            <span className="text-[#E5E7EB]">·</span>
+            <span>{isEn ? 'No credit card to start' : 'Kredi kartsız başla'}</span>
+            <span className="text-[#E5E7EB]">·</span>
+            <span>256-bit SSL</span>
           </div>
         </div>
         <ProductShowcase isEn={isEn} />
