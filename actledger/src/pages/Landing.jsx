@@ -70,7 +70,7 @@ const FEATURES = [
 
 const STATS = [
   { value: '14+', labelTr: 'Entegre Modül', labelEn: 'Integrated Modules' },
-  { value: '28', labelTr: 'Dil Desteği', labelEn: 'Languages Supported' },
+  { value: 'Verified', labelTr: 'Doğrulanmış Email', labelEn: 'Verified Emails' },
   { value: '1-Click', labelTr: 'Otomatik Outreach', labelEn: 'Auto Outreach' },
   { value: '6', labelTr: 'Adımlı SEO Süreci', labelEn: 'Step SEO Workflow' },
 ]
@@ -1032,8 +1032,8 @@ export default function Landing() {
           </a>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-[#2563EB] mb-5 leading-[1.15] tracking-tight">
             {isEn
-              ? <>The Growth Platform<br />Built for Startups</>
-              : <>Startup'lar İçin<br />Büyüme Platformu</>}
+              ? <>Find Customers,<br />Reach Them with AI</>
+              : <>Müşteri Bul,<br />AI ile Ulaş, Sat</>}
           </h1>
           <p className="text-base text-[#6B7280] mb-8 max-w-xl mx-auto leading-relaxed">
             {isEn
@@ -1315,7 +1315,7 @@ export default function Landing() {
               <p className="text-xs text-[#F59E0B] font-medium mb-1">{isEn ? '7-day free trial' : '7 gün ücretsiz deneme'}</p>
               <p className="text-xs text-[#9CA3AF] mb-5">{isEn ? 'Credit card required' : 'Kredi kartı gerekli'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'20 leads':'20 lead',isEn?'20 emails/month':'20 email/ay',isEn?'25 email reveals/month':'25 email reveal/ay',isEn?'2 SEO articles':'2 SEO makale','CRM Pipeline',isEn?'5 AI uses/day':'5 AI/gün',isEn?'1 user':'1 kullanıcı'].map((item, i) => (
+                {[isEn?'10 credits/month':'10 kredi/ay', 'CRM Pipeline', isEn?'1 user':'1 kullanıcı'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1339,7 +1339,7 @@ export default function Landing() {
               </div>
               <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? '$250/year (save $50)' : '$250/yıl ($50 tasarruf)'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'500 leads':'500 lead',isEn?'200 emails/month':'200 email/ay',isEn?'250 email reveals/month':'250 email reveal/ay',isEn?'10 SEO articles':'10 SEO makale',isEn?'Unlimited AI':'Sınırsız AI','Email Finder',isEn?'Competitor Analysis':'Rakip Analizi'].map((item, i) => (
+                {[isEn?'250 credits/month':'250 kredi/ay', 'Email Finder', isEn?'Competitor Analysis':'Rakip Analizi', isEn?'Unlimited pipeline':'Sınırsız pipeline'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1360,7 +1360,7 @@ export default function Landing() {
               </div>
               <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? '$400/year (save $80)' : '$400/yıl ($80 tasarruf)'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'Unlimited leads':'Sınırsız lead',isEn?'Unlimited emails':'Sınırsız email',isEn?'600 email reveals/month':'600 email reveal/ay',isEn?'Unlimited SEO':'Sınırsız SEO',isEn?'All Pro features':'Tüm Pro',isEn?'API access':'API erişimi',isEn?'Dedicated support':'Özel destek'].map((item, i) => (
+                {[isEn?'600 credits/month':'600 kredi/ay', isEn?'API access':'API erişimi', isEn?'Priority support':'Öncelikli destek', isEn?'All Pro':'Tüm Pro'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1381,7 +1381,7 @@ export default function Landing() {
               </div>
               <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? 'Min. 3 users ($105/mo)' : 'Min. 3 kullanıcı ($105/ay)'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'All Growth features':'Tüm Growth',isEn?'600 reveals/user/month':'600 reveal/kullanıcı/ay',isEn?'Team collaboration':'Ekip işbirliği',isEn?'Shared pipeline':'Ortak pipeline',isEn?'Role-based access':'Rol bazlı erişim',isEn?'Admin panel':'Yönetici paneli',isEn?'Account manager':'Hesap yöneticisi'].map((item, i) => (
+                {[isEn?'600 credits/user/month':'600 kredi/kullanıcı/ay', isEn?'Team collaboration':'Ekip işbirliği', isEn?'Admin panel':'Yönetici paneli', isEn?'Role-based access':'Rol bazlı erişim'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1393,6 +1393,8 @@ export default function Landing() {
               </Link>
             </div>
           </div>
+
+          <p className="text-center text-xs text-[#9CA3AF] mb-8">{isEn ? '1 reveal = 1 credit · 1 AI email = 1 credit · 1 SEO article = 5 credits · 1 lead = 1 credit' : '1 reveal = 1 kredi · 1 AI email = 1 kredi · 1 SEO makale = 5 kredi · 1 lead = 1 kredi'}</p>
 
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-6 mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">

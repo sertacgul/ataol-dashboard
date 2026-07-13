@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
+import { checkCredits, deductCredit } from '../lib/credits.js'
 
 const competitors = new Hono()
 competitors.use('*', authMiddleware)
@@ -45,6 +46,9 @@ competitors.post('/:id/analyze', async (c) => {
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
+  const chk = await checkCredits(c, 2)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+
   const profileContext = await getProfileContext(c.env.DB, userId)
 
   const prompt = `${profileContext ? `Firma Bağlamı:\n${profileContext}\n\n` : ''}Rakip firma analizi yap: ${competitor.name || ''}${competitor.website ? ` (${competitor.website})` : ''}
@@ -84,6 +88,7 @@ Sadece JSON formatında yanıt ver, başka açıklama ekleme.`
     `UPDATE competitors SET analysis = ? WHERE id = ?`
   ).bind(analysisStr, id).run()
 
+  await deductCredit(c.env.DB, chk.userId, 2)
   return c.json({ analysis })
 })
 
