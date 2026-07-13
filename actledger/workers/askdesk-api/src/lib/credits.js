@@ -1,5 +1,6 @@
 // Two credit pools per user: "outreach" (reveal, AI email, lead) and
-// "content" (SEO, social). Limits come from the plan; usage is tracked per pool.
+// "content" (SEO, social). Each pool has a monthly plan allowance (resets each
+// month) plus a purchased balance (pay-as-you-go, does not reset).
 const PLAN_CREDITS = {
   free:   { outreach: 25,  content: 5 },
   pro:    { outreach: 300, content: 10 },
@@ -26,15 +27,15 @@ export async function getOrCreateCredits(db, userId, plan) {
   let row = await db.prepare('SELECT * FROM user_credits WHERE user_id = ?').bind(userId).first()
   if (!row) {
     const resetDate = getNextResetDate()
-    await db.prepare('INSERT INTO user_credits (user_id, monthly_limit, used_this_month, reset_date, outreach_used, content_used) VALUES (?, ?, 0, ?, 0, 0)')
+    await db.prepare('INSERT INTO user_credits (user_id, monthly_limit, used_this_month, reset_date, outreach_used, content_used, outreach_purchased, content_purchased) VALUES (?, ?, 0, ?, 0, 0, 0, 0)')
       .bind(userId, planCredits(plan).outreach, resetDate).run()
-    row = { user_id: userId, outreach_used: 0, content_used: 0, reset_date: resetDate, used_this_month: 0 }
+    row = { user_id: userId, outreach_used: 0, content_used: 0, outreach_purchased: 0, content_purchased: 0, reset_date: resetDate, used_this_month: 0 }
   }
   // One-time shim: carry a legacy single-pool balance into the outreach pool.
   if ((row.outreach_used == null || row.outreach_used === 0) && row.used_this_month > 0) {
     row.outreach_used = row.used_this_month
   }
-  // Monthly reset: zero both pools.
+  // Monthly reset: zero the plan usage but keep purchased balances.
   if (new Date(row.reset_date) <= new Date()) {
     const newReset = getNextResetDate()
     await db.prepare('UPDATE user_credits SET outreach_used = 0, content_used = 0, used_this_month = 0, reset_date = ? WHERE user_id = ?')
@@ -44,6 +45,8 @@ export async function getOrCreateCredits(db, userId, plan) {
   return {
     outreach_used: row.outreach_used || 0,
     content_used: row.content_used || 0,
+    outreach_purchased: row.outreach_purchased || 0,
+    content_purchased: row.content_purchased || 0,
     reset_date: row.reset_date,
     plan,
     limits: planCredits(plan),
@@ -53,18 +56,33 @@ export async function getOrCreateCredits(db, userId, plan) {
 export function hasCredits(credits, type, amount = 1) {
   const limit = credits.limits?.[type] ?? 0
   const used = credits[type + '_used'] ?? 0
-  return (limit - used) >= amount
+  const purchased = credits[type + '_purchased'] ?? 0
+  return ((limit - used) + purchased) >= amount
 }
 
+// Deduct from the monthly plan allowance first, then from the purchased balance.
 export async function deductCredit(db, userId, type, amount = 1) {
-  const col = type === 'content' ? 'content_used' : 'outreach_used'
-  await db.prepare(`UPDATE user_credits SET ${col} = ${col} + ? WHERE user_id = ?`).bind(amount, userId).run()
+  const t = type === 'content' ? 'content' : 'outreach'
+  const usedCol = t + '_used'
+  const purCol = t + '_purchased'
+  const row = await db.prepare(`SELECT ${usedCol} AS used, ${purCol} AS purchased FROM user_credits WHERE user_id = ?`).bind(userId).first()
+  const user = await db.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
+  const limit = planCredits(user?.plan || 'free')[t]
+  const used = row?.used || 0
+  const planRemaining = Math.max(0, limit - used)
+  if (planRemaining >= amount) {
+    await db.prepare(`UPDATE user_credits SET ${usedCol} = ${usedCol} + ? WHERE user_id = ?`).bind(amount, userId).run()
+  } else {
+    const fromPurchased = amount - planRemaining
+    await db.prepare(`UPDATE user_credits SET ${usedCol} = ?, ${purCol} = MAX(0, ${purCol} - ?) WHERE user_id = ?`)
+      .bind(limit, fromPurchased, userId).run()
+  }
 }
 
-// Grant credits (e.g. pay-as-you-go top-up) by reducing used, floored at 0.
+// Grant purchased (pay-as-you-go) credits on top of the plan allowance.
 export async function addCredits(db, userId, type, amount) {
-  const col = type === 'content' ? 'content_used' : 'outreach_used'
-  await db.prepare(`UPDATE user_credits SET ${col} = MAX(0, ${col} - ?) WHERE user_id = ?`).bind(amount, userId).run()
+  const purCol = (type === 'content' ? 'content' : 'outreach') + '_purchased'
+  await db.prepare(`UPDATE user_credits SET ${purCol} = ${purCol} + ? WHERE user_id = ?`).bind(amount, userId).run()
 }
 
 export async function checkCredits(c, type, amount = 1) {
@@ -72,4 +90,13 @@ export async function checkCredits(c, type, amount = 1) {
   const user = await c.env.DB.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
   const credits = await getOrCreateCredits(c.env.DB, userId, user?.plan || 'free')
   return { ok: hasCredits(credits, type, amount), userId, credits }
+}
+
+// Set a user's plan and reset their monthly plan usage (used on subscription
+// activation). Purchased balances are preserved.
+export async function setPlanAndReset(db, userId, plan) {
+  await db.prepare('UPDATE users SET plan = ? WHERE id = ?').bind(plan, userId).run()
+  await getOrCreateCredits(db, userId, plan) // ensure row exists
+  await db.prepare('UPDATE user_credits SET outreach_used = 0, content_used = 0, used_this_month = 0, reset_date = ? WHERE user_id = ?')
+    .bind(getNextResetDate(), userId).run()
 }
