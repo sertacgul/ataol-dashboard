@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
+import { checkCredits, deductCredit } from '../lib/credits.js'
 
 const ai = new Hono()
 ai.use('*', authMiddleware)
@@ -28,9 +29,13 @@ ai.post('/generate', async (c) => {
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
+  const chk = await checkCredits(c, 1)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+
   const fullPrompt = context ? `${context}\n\n${prompt}` : prompt
 
   const text = await callGemini(fullPrompt, apiKey)
+  await deductCredit(c.env.DB, chk.userId, 1)
   return c.json({ text })
 })
 
@@ -42,6 +47,9 @@ ai.post('/research', async (c) => {
 
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
+
+  const chk = await checkCredits(c, 1)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   const prompt = `"${company_name}"${website ? ` (${website})` : ''} şirketi hakkında araştırma yap ve aşağıdaki JSON formatında yanıt ver:
 
@@ -64,6 +72,7 @@ Sadece JSON formatında yanıt ver, başka açıklama ekleme.`
     // JSON parse başarısız olursa raw text döndür
   }
 
+  await deductCredit(c.env.DB, chk.userId, 1)
   return c.json({ research, raw: text })
 })
 
