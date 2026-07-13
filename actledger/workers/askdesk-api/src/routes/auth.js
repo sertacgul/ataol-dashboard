@@ -172,6 +172,34 @@ auth.post('/redeem-code', async (c) => {
   return c.json({ discount_percent: disc.percent, discount_expires_at: disc.expires_at })
 })
 
+// Change password for the current authenticated user
+auth.post('/change-password', async (c) => {
+  const cookie = c.req.header('Cookie') || ''
+  const match = cookie.match(/askdesk_token=([^;]+)/)
+  let userId = null
+  if (match) {
+    try {
+      const { jwtVerify } = await import('jose')
+      const key = new TextEncoder().encode(c.env.JWT_SECRET)
+      const { payload } = await jwtVerify(match[1], key)
+      userId = payload.sub
+    } catch {
+      userId = null
+    }
+  }
+  if (!userId) return c.json({ error: 'Yetkisiz' }, 401)
+  const { current_password, new_password } = await c.req.json()
+  if (!current_password || !new_password) return c.json({ error: 'Mevcut ve yeni şifre gerekli' }, 400)
+  if (new_password.length < 6) return c.json({ error: 'Yeni şifre en az 6 karakter olmalı' }, 400)
+  const user = await c.env.DB.prepare('SELECT password_hash FROM users WHERE id = ?').bind(userId).first()
+  if (!user) return c.json({ error: 'Kullanıcı bulunamadı' }, 404)
+  const ok = await verifyPassword(current_password, user.password_hash)
+  if (!ok) return c.json({ error: 'Mevcut şifre yanlış' }, 400)
+  const password_hash = await hashPassword(new_password)
+  await c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(password_hash, userId).run()
+  return c.json({ ok: true })
+})
+
 // Password reset - request token
 auth.post('/forgot-password', async (c) => {
   const { email } = await c.req.json()

@@ -52,7 +52,7 @@ export default function LeadNew() {
   const labelClass = 'block text-xs font-medium text-[#374151] mb-1'
 
   return (
-    <div className="max-w-xl">
+    <div className="max-w-3xl">
       <div className="flex items-center gap-3 mb-5">
         <Link to="/app/leads" className="text-xs text-[#6B7280] hover:text-[#111827]">Leads</Link>
         <span className="text-[#9CA3AF]">/</span>

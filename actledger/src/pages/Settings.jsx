@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../lib/api'
 import HelpButton from '../components/HelpButton'
+import PasswordInput from '../components/PasswordInput'
 import { useT } from '../contexts/LanguageContext'
 
 const EMPTY_EMAIL_SETTINGS = {
@@ -67,6 +68,13 @@ export default function Settings() {
   const [redeemSubmitting, setRedeemSubmitting] = useState(false)
   const [redeemError, setRedeemError] = useState('')
   const [redeemed, setRedeemed] = useState(null)
+
+  // Change password state
+  const [pwCurrent, setPwCurrent] = useState('')
+  const [pwNew, setPwNew] = useState('')
+  const [pwMsg, setPwMsg] = useState('')
+  const [pwErr, setPwErr] = useState('')
+  const [pwSubmitting, setPwSubmitting] = useState(false)
 
   const [profile, setProfile] = useState(null)
   const [profileLoading, setProfileLoading] = useState(true)
@@ -247,6 +255,23 @@ export default function Settings() {
     }
   }
 
+  async function handleChangePassword(e) {
+    e.preventDefault()
+    setPwSubmitting(true)
+    setPwMsg('')
+    setPwErr('')
+    try {
+      await api.post('/auth/change-password', { current_password: pwCurrent, new_password: pwNew })
+      setPwMsg(isEn ? 'Password updated' : 'Şifre güncellendi')
+      setPwCurrent('')
+      setPwNew('')
+    } catch (err) {
+      setPwErr(err.message || (isEn ? 'Update failed' : 'Güncelleme başarısız'))
+    } finally {
+      setPwSubmitting(false)
+    }
+  }
+
   const discount = redeemed || (user?.discount_code
     ? { discount_percent: user.discount_percent, discount_expires_at: user.discount_expires_at }
     : null)
@@ -261,7 +286,7 @@ export default function Settings() {
       <h1 className="text-base font-semibold text-[#111827] mb-4">{t('Ayarlar')}</h1>
 
       {/* Hesap Bilgileri */}
-      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-md mb-6">
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-2xl mb-6">
         <div className="text-xs font-semibold text-[#374151] mb-4">{t('Hesap Bilgileri')}</div>
         <div className="flex flex-col gap-3">
           <div>
@@ -290,7 +315,7 @@ export default function Settings() {
       </div>
 
       {/* İndirim Kodu */}
-      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-md mb-6">
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-2xl mb-6">
         <div className="text-xs font-semibold text-[#374151] mb-4">{isEn ? 'Discount Code' : 'İndirim Kodu'}</div>
         {discount ? (
           <div className="text-sm text-[#065F46] bg-[#D1FAE5] border border-[#6EE7B7] rounded-md px-3 py-2">
@@ -313,8 +338,34 @@ export default function Settings() {
         )}
       </div>
 
+      {/* Şifre Değiştir */}
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-2xl mb-6">
+        <div className="text-xs font-semibold text-[#374151] mb-4">{isEn ? 'Change Password' : 'Şifre Değiştir'}</div>
+        <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
+          {pwErr && (
+            <div className="text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">{pwErr}</div>
+          )}
+          {pwMsg && (
+            <div className="text-xs text-[#065F46] bg-[#D1FAE5] border border-[#6EE7B7] rounded-md px-3 py-2">{pwMsg}</div>
+          )}
+          <div>
+            <label className={labelCls}>{isEn ? 'Current Password' : 'Mevcut Şifre'}</label>
+            <PasswordInput value={pwCurrent} onChange={e => setPwCurrent(e.target.value)} />
+          </div>
+          <div>
+            <label className={labelCls}>{isEn ? 'New Password' : 'Yeni Şifre'}</label>
+            <PasswordInput value={pwNew} onChange={e => setPwNew(e.target.value)} />
+          </div>
+          <div>
+            <button type="submit" disabled={pwSubmitting || !pwCurrent || !pwNew} className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2">
+              {pwSubmitting ? (isEn ? 'Updating...' : 'Güncelleniyor...') : (isEn ? 'Update' : 'Güncelle')}
+            </button>
+          </div>
+        </form>
+      </div>
+
       {/* Email Ayarları */}
-      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-md mb-6">
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-2xl mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="text-xs font-semibold text-[#374151]">{t('Email Ayarları')}</div>
           {!emailLoading && emailSettings && !emailEditMode && (
@@ -415,7 +466,7 @@ export default function Settings() {
       </div>
 
       {/* Blog Ayarları */}
-      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-md mb-6">
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-2xl mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="text-xs font-semibold text-[#374151]">{t('Blog Ayarları')}</div>
           {!blogLoading && blogSettings && !blogEditMode && (

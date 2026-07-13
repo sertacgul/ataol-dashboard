@@ -53,7 +53,7 @@ export default function OutreachDetail() {
   }
 
   return (
-    <div className="max-w-xl">
+    <div className="max-w-3xl">
       <div className="flex items-center gap-3 mb-5">
         <Link to="/app/outreach" className="text-xs text-[#6B7280] hover:text-[#111827]">Outreach</Link>
         <span className="text-[#9CA3AF]">/</span>
