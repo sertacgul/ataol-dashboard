@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { translations, LANGUAGES } from '../lib/translations'
 
 const LanguageContext = createContext(null)
@@ -7,6 +7,12 @@ export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(() => {
     try { return localStorage.getItem('askdesk_lang') || 'tr' } catch { return 'tr' }
   })
+
+  // Keep <html lang> in sync so CSS text-transform: uppercase uses the right
+  // locale casing (Turkish maps i->İ; every other language must give i->I).
+  useEffect(() => {
+    try { document.documentElement.lang = lang } catch {}
+  }, [lang])
 
   const changeLang = useCallback((newLang) => {
     setLang(newLang)
