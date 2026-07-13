@@ -70,7 +70,7 @@ const FEATURES = [
 
 const STATS = [
   { value: '14+', labelTr: 'Entegre Modül', labelEn: 'Integrated Modules' },
-  { value: '28', labelTr: 'Dil Desteği', labelEn: 'Languages Supported' },
+  { value: 'Verified', labelTr: 'Doğrulanmış Email', labelEn: 'Verified Emails' },
   { value: '1-Click', labelTr: 'Otomatik Outreach', labelEn: 'Auto Outreach' },
   { value: '6', labelTr: 'Adımlı SEO Süreci', labelEn: 'Step SEO Workflow' },
 ]
@@ -1032,8 +1032,8 @@ export default function Landing() {
           </a>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-[#2563EB] mb-5 leading-[1.15] tracking-tight">
             {isEn
-              ? <>The Growth Platform<br />Built for Startups</>
-              : <>Startup'lar İçin<br />Büyüme Platformu</>}
+              ? <>Find Customers,<br />Reach Them with AI</>
+              : <>Müşteri Bul,<br />AI ile Ulaş, Sat</>}
           </h1>
           <p className="text-base text-[#6B7280] mb-8 max-w-xl mx-auto leading-relaxed">
             {isEn
