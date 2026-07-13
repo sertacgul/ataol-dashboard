@@ -1037,8 +1037,8 @@ export default function Landing() {
           </h1>
           <p className="text-base text-[#6B7280] mb-8 max-w-xl mx-auto leading-relaxed">
             {isEn
-              ? 'For B2B founders without a sales team: find the target company, get the verified email, and complete the personalized first touch in a single flow.'
-              : 'Satış ekibi olmayan B2B kurucular için: hedef şirketi bul, doğrulanmış e-postaya ulaş ve kişiselleştirilmiş ilk temayı tek akışta tamamla.'}
+              ? 'For B2B founders without a sales team: Find the target company, get the verified email, and complete the personalized first touch in a single flow.'
+              : 'Satış ekibi olmayan B2B kurucular için: Hedef şirketi bul, doğrulanmış e-postaya ulaş ve kişiselleştirilmiş ilk temayı tek akışta tamamla.'}
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
@@ -1312,6 +1312,9 @@ export default function Landing() {
             <p className="text-sm text-[#6B7280] max-w-lg mx-auto">
               {isEn ? 'Start free, upgrade as you grow. No hidden fees.' : 'Ücretsiz başlayın, büyüdükçe yükseltin. Gizli ücret yok.'}
             </p>
+            <p className="text-xs text-[#9CA3AF] max-w-lg mx-auto mt-2">
+              {isEn ? 'Every plan includes all tools (Email Finder, AI Outreach, CRM, SEO, Competitor Analysis). Plans differ by credits, users, and support.' : 'Tüm planlar tüm araçları içerir (Email Finder, AI Outreach, CRM, SEO, Rakip Analizi). Planlar kredi miktarı, kullanıcı sayısı ve destek ile ayrılır.'}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
@@ -1323,7 +1326,7 @@ export default function Landing() {
               </div>
               <p className="text-xs text-[#F59E0B] font-medium mb-5">{isEn ? '7-day free trial' : '7 gün ücretsiz deneme'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'25 outreach credits/mo':'25 outreach kredisi/ay', isEn?'5 content credits/mo':'5 content kredisi/ay', 'CRM Pipeline', isEn?'1 user':'1 kullanıcı'].map((item, i) => (
+                {[isEn?'25 outreach credits/mo':'25 outreach kredisi/ay', isEn?'5 content credits/mo':'5 content kredisi/ay', isEn?'All tools included':'Tüm araçlar dahil', isEn?'Email Finder (up to 25 reveals)':'Email Finder (25 reveal\'e kadar)', isEn?'1 user':'1 kullanıcı'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1347,7 +1350,7 @@ export default function Landing() {
               </div>
               <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? '$290/year (save $58)' : '$290/yıl ($58 tasarruf)'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'300 outreach credits/mo':'300 outreach kredisi/ay', isEn?'10 content credits/mo':'10 content kredisi/ay', 'Email Finder', isEn?'Competitor Analysis':'Rakip Analizi', isEn?'Unlimited pipeline':'Sınırsız pipeline'].map((item, i) => (
+                {[isEn?'300 outreach credits/mo':'300 outreach kredisi/ay', isEn?'10 content credits/mo':'10 content kredisi/ay', isEn?'All tools included':'Tüm araçlar dahil', isEn?'Unlimited AI usage':'Sınırsız AI kullanımı', isEn?'1 user':'1 kullanıcı'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1368,7 +1371,7 @@ export default function Landing() {
               </div>
               <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? '$490/year (save $98)' : '$490/yıl ($98 tasarruf)'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'750 outreach credits/mo':'750 outreach kredisi/ay', isEn?'25 content credits/mo':'25 content kredisi/ay', isEn?'API access':'API erişimi', isEn?'Priority support':'Öncelikli destek', isEn?'All Pro':'Tüm Pro'].map((item, i) => (
+                {[isEn?'750 outreach credits/mo':'750 outreach kredisi/ay', isEn?'25 content credits/mo':'25 content kredisi/ay', isEn?'All tools included':'Tüm araçlar dahil', isEn?'API access':'API erişimi', isEn?'Priority support':'Öncelikli destek'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1389,7 +1392,7 @@ export default function Landing() {
               </div>
               <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? 'Min. 2 users ($58/mo)' : 'Min. 2 kullanıcı ($58/ay)'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'300 outreach credits/user/mo':'300 outreach kredisi/kullanıcı/ay', isEn?'10 content credits/user/mo':'10 content kredisi/kullanıcı/ay', isEn?'Team collaboration':'Ekip işbirliği', isEn?'Admin panel':'Yönetici paneli', isEn?'Role-based access':'Rol bazlı erişim'].map((item, i) => (
+                {[isEn?'300 outreach credits/user/mo':'300 outreach kredisi/kullanıcı/ay', isEn?'10 content credits/user/mo':'10 content kredisi/kullanıcı/ay', isEn?'All tools included':'Tüm araçlar dahil', isEn?'Team collaboration + admin panel':'Ekip iş birliği + yönetici paneli', isEn?'Min. 2 users':'Min. 2 kullanıcı'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
