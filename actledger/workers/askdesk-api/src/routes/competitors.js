@@ -48,7 +48,7 @@ competitors.post('/:id/analyze', async (c) => {
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
-  const chk = await checkCredits(c, 2)
+  const chk = await checkCredits(c, 'outreach', 2)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   const profileContext = await getProfileContext(c.env.DB, userId)
@@ -101,7 +101,7 @@ Sadece JSON döndür, başka açıklama ekleme.`
     `UPDATE competitors SET analysis = ? WHERE id = ?`
   ).bind(analysisStr, id).run()
 
-  await deductCredit(c.env.DB, chk.userId, 2)
+  await deductCredit(c.env.DB, chk.userId, 'outreach', 2)
   await logActivity(c.env.DB, userId, { module: 'competitors', action: 'analyze', title: competitor.name || 'Rakip', detail: analysis || analysisStr })
   return c.json({ analysis })
 })

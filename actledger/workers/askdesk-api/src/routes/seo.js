@@ -143,7 +143,7 @@ seo.post('/:id/translate', async (c) => {
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
-  const chk = await checkCredits(c, 1)
+  const chk = await checkCredits(c, 'content', 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   const profileContext = await getProfileContext(c.env.DB, userId)
@@ -156,7 +156,7 @@ seo.post('/:id/translate', async (c) => {
     `UPDATE seo_articles SET body_en = ?, updated_at = datetime('now') WHERE id = ?`
   ).bind(body_en, id).run()
 
-  await deductCredit(c.env.DB, chk.userId, 1)
+  await deductCredit(c.env.DB, chk.userId, 'content', 1)
   await logActivity(c.env.DB, userId, { module: 'seo', action: 'translate', title: article.title || id, detail: {} })
   return c.json({ body_en })
 })
@@ -174,7 +174,7 @@ seo.post('/:id/check', async (c) => {
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
-  const chk = await checkCredits(c, 1)
+  const chk = await checkCredits(c, 'content', 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   const profileContext = await getProfileContext(c.env.DB, userId)
@@ -224,7 +224,7 @@ Sadece JSON formatında yanıt ver.`
     `UPDATE seo_articles SET seo_score = ?, updated_at = datetime('now') WHERE id = ?`
   ).bind(seo_score, id).run()
 
-  await deductCredit(c.env.DB, chk.userId, 1)
+  await deductCredit(c.env.DB, chk.userId, 'content', 1)
   await logActivity(c.env.DB, userId, { module: 'seo', action: 'check', title: article.title || id, detail: { score: seo_score } })
   return c.json({ score: seo_score, suggestions: result.suggestions || [] })
 })
