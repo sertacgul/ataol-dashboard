@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../lib/api'
 import { useT } from '../../contexts/LanguageContext'
+import HarveyBall from '../../components/HarveyBall'
+
+const SCORE_DIMENSIONS = [
+  ['product_quality', 'Ürün/Hizmet Kalitesi'],
+  ['price_competitiveness', 'Fiyat Rekabetçiliği'],
+  ['market_reach', 'Pazar Erişimi'],
+  ['brand_awareness', 'Marka Bilinirliği'],
+  ['innovation', 'İnovasyon'],
+  ['customer_experience', 'Müşteri Deneyimi'],
+]
 
 function Badge({ text, color }) {
   const styles = {
@@ -71,6 +81,56 @@ function CompetitorCard({ competitor, onAnalyze, onDelete, analyzing, t }) {
           )}
           {analysis.description && (
             <div className="text-xs text-[#6B7280]">{analysis.description}</div>
+          )}
+          {analysis.scores && (
+            <div className="space-y-2 pt-1">
+              {(analysis.competitor_position || analysis.own_position) && (
+                <div className="flex flex-wrap gap-1.5">
+                  {analysis.competitor_position && (
+                    <span className="inline-block text-xs px-2 py-0.5 rounded bg-[#FFF7ED] text-[#C2410C]">
+                      {t('Rakip')}: {analysis.competitor_position}
+                    </span>
+                  )}
+                  {analysis.own_position && (
+                    <span className="inline-block text-xs px-2 py-0.5 rounded bg-[#EFF6FF] text-[#2563EB]">
+                      {t('Sen')}: {analysis.own_position}
+                    </span>
+                  )}
+                </div>
+              )}
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-[#6B7280]">
+                    <th className="text-left font-medium py-1">{t('Boyut')}</th>
+                    <th className="text-center font-medium py-1">{t('Rakip')}</th>
+                    <th className="text-center font-medium py-1">{t('Sen')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SCORE_DIMENSIONS.map(([key, label]) => (
+                    <tr key={key} className="border-t border-[#F3F4F6]">
+                      <td className="py-1 text-[#374151]">{t(label)}</td>
+                      <td className="py-1 text-center"><HarveyBall value={analysis.scores.competitor?.[key]} /></td>
+                      <td className="py-1 text-center"><HarveyBall value={analysis.scores.own?.[key]} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {analysis.position_summary && (
+                <div>
+                  <div className="text-xs font-semibold text-[#374151] mb-1 uppercase tracking-wide">{t('Pazardaki Konumun')}</div>
+                  <div className="text-xs text-[#6B7280]">{analysis.position_summary}</div>
+                </div>
+              )}
+              {analysis.improvement_areas?.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-[#374151] mb-1 uppercase tracking-wide">{t('Geliştirmen Gereken Alanlar')}</div>
+                  <ul className="list-disc list-inside text-xs text-[#6B7280] space-y-0.5">
+                    {analysis.improvement_areas.map((a, i) => <li key={i}>{a}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
           )}
           {analysis.strengths?.length > 0 && (
             <div>

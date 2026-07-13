@@ -7,6 +7,7 @@ import {
 } from '../lib/enrichment/free.js'
 import { createEnrichment } from '../lib/enrichment/index.js'
 import { PLAN_LIMITS, getOrCreateCredits, deductCredit, checkCredits } from '../lib/credits.js'
+import { logActivity } from '../lib/activity.js'
 
 const router = new Hono()
 router.use('*', authMiddleware)
@@ -133,6 +134,13 @@ router.post('/search', async (c) => {
     }
   })
 
+  await logActivity(c.env.DB, userId, {
+    module: 'email-finder', action: 'search',
+    title: companyInfo?.name || domain,
+    detail: { domain, company: companyInfo, people_count: maskedPeople.length,
+      people: maskedPeople.map(p => ({ name: p.masked_name, title: p.title, department: p.department, email: p.masked_email })) },
+  })
+
   return c.json({
     company: companyInfo,
     people: maskedPeople,
@@ -212,6 +220,12 @@ router.post('/reveal', async (c) => {
 
   // Deduct credit
   await deductCredit(c.env.DB, userId)
+
+  await logActivity(c.env.DB, userId, {
+    module: 'email-finder', action: 'reveal',
+    title: `${person.name} · ${domain}`,
+    detail: { email, person_name: person.name, title: person.title, phone: person.phone || null, domain },
+  })
 
   return c.json({
     person_name: person.name,
@@ -438,6 +452,11 @@ JSON formatinda don:
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
       await deductCredit(c.env.DB, chk.userId, 1)
+      await logActivity(c.env.DB, userId, {
+        module: 'outreach', action: 'compose',
+        title: `${person_name || 'Yetkili'} · ${company_name || ''}`.trim(),
+        detail: { subject: parsed.subject || '', email, company_name },
+      })
       return c.json({ subject: parsed.subject || '', body: parsed.body || '' })
     }
     return c.json({ error: 'Email olusturulamadi' }, 500)
@@ -610,6 +629,12 @@ Respond in JSON only:
       ).bind(emailId, userId, subject, body).run()
 
       await deductCredit(c.env.DB, chk.userId, 1)
+
+      await logActivity(c.env.DB, userId, {
+        module: 'outreach', action: 'compose',
+        title: `${contactName || 'Yetkili'} · ${companyInfo?.name || domain}`,
+        detail: { subject, contact_email: contactEmail, company: companyInfo?.name },
+      })
 
       return c.json({
         company: companyInfo,
