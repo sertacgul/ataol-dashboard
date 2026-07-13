@@ -116,6 +116,20 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
         <div className="my-3 border-t border-[#E5E7EB]" />
         <NavItem {...settingsItem} t={t} onNavigate={onClose} />
       </nav>
+      {user?.plan !== 'team' && (
+        <div className="px-3 pt-3 border-t border-[#E5E7EB]">
+          <NavLink
+            to="/app/settings"
+            onClick={onClose}
+            className="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-md bg-[#2563EB] text-white text-xs font-semibold hover:bg-[#1D4ED8] transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+            {lang === 'en' ? 'Upgrade' : 'Yükselt'}
+          </NavLink>
+        </div>
+      )}
       {credits && (credits.outreach || credits.content) && (
         <div className="px-3 py-2.5 border-t border-[#E5E7EB] space-y-2">
           {credits.outreach && (
