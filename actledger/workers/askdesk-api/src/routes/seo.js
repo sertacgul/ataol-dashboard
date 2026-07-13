@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
+import { checkCredits, deductCredit } from '../lib/credits.js'
 
 const seo = new Hono()
 seo.use('*', authMiddleware)
@@ -50,11 +51,15 @@ seo.post('/', async (c) => {
   const body = await c.req.json().catch(() => ({}))
   const id = crypto.randomUUID()
 
+  const chk = await checkCredits(c, 5)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+
   await c.env.DB.prepare(
     `INSERT INTO seo_articles (id, user_id, title, topic, step, status)
      VALUES (?, ?, ?, ?, 1, 'draft')`
   ).bind(id, userId, body.title || null, body.topic || null).run()
 
+  await deductCredit(c.env.DB, chk.userId, 5)
   return c.json({ id }, 201)
 })
 
@@ -140,6 +145,9 @@ seo.post('/:id/translate', async (c) => {
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
+  const chk = await checkCredits(c, 1)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+
   const profileContext = await getProfileContext(c.env.DB, userId)
 
   const prompt = `Aşağıdaki Türkçe blog yazısını İngilizce'ye çevir. Çeviri profesyonel, akıcı ve SEO uyumlu olsun. Başlık dahil tüm içeriği çevir. Kesinlikle markdown kullanma (# * ** __ gibi isaret kullanma).${profileContext ? `\n\nFirma Bağlamı:\n${profileContext}` : ''}\n\nÇevirilecek Türkçe İçerik:\n${article.body_tr}`
@@ -150,6 +158,7 @@ seo.post('/:id/translate', async (c) => {
     `UPDATE seo_articles SET body_en = ?, updated_at = datetime('now') WHERE id = ?`
   ).bind(body_en, id).run()
 
+  await deductCredit(c.env.DB, chk.userId, 1)
   return c.json({ body_en })
 })
 
@@ -165,6 +174,9 @@ seo.post('/:id/check', async (c) => {
 
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
+
+  const chk = await checkCredits(c, 1)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   const profileContext = await getProfileContext(c.env.DB, userId)
 
@@ -213,6 +225,7 @@ Sadece JSON formatında yanıt ver.`
     `UPDATE seo_articles SET seo_score = ?, updated_at = datetime('now') WHERE id = ?`
   ).bind(seo_score, id).run()
 
+  await deductCredit(c.env.DB, chk.userId, 1)
   return c.json({ score: seo_score, suggestions: result.suggestions || [] })
 })
 
