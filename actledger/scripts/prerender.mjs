@@ -28,9 +28,10 @@ async function waitForServer(port, timeout = 15000) {
 
 async function main() {
   // Start vite preview server
-  const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
+  const viteBin = join(__dirname, '..', 'node_modules', 'vite', 'bin', 'vite.js')
+  const server = spawn(process.execPath, [viteBin, 'preview', '--port', String(PORT), '--strictPort'], {
     stdio: 'ignore',
-    shell: true,
+    shell: false,
     detached: false,
   })
 
