@@ -1037,8 +1037,8 @@ export default function Landing() {
           </h1>
           <p className="text-base text-[#6B7280] mb-8 max-w-xl mx-auto leading-relaxed">
             {isEn
-              ? 'For B2B founders without a sales team: find the target company, get the verified email, and complete the personalized first touch in a single flow.'
-              : 'Satış ekibi olmayan B2B kurucular için: hedef şirketi bul, doğrulanmış e-postaya ulaş ve kişiselleştirilmiş ilk temayı tek akışta tamamla.'}
+              ? 'For B2B founders without a sales team: Find the target company, get the verified email, and complete the personalized first touch in a single flow.'
+              : 'Satış ekibi olmayan B2B kurucular için: Hedef şirketi bul, doğrulanmış e-postaya ulaş ve kişiselleştirilmiş ilk temayı tek akışta tamamla.'}
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
@@ -1312,6 +1312,9 @@ export default function Landing() {
             <p className="text-sm text-[#6B7280] max-w-lg mx-auto">
               {isEn ? 'Start free, upgrade as you grow. No hidden fees.' : 'Ücretsiz başlayın, büyüdükçe yükseltin. Gizli ücret yok.'}
             </p>
+            <p className="text-xs text-[#9CA3AF] max-w-lg mx-auto mt-2">
+              {isEn ? 'Every plan includes all tools (Email Finder, AI Outreach, CRM, SEO, Competitor Analysis). Plans differ by credits, users, and support.' : 'Tüm planlar tüm araçları içerir (Email Finder, AI Outreach, CRM, SEO, Rakip Analizi). Planlar kredi miktarı, kullanıcı sayısı ve destek ile ayrılır.'}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
@@ -1321,10 +1324,9 @@ export default function Landing() {
               <div className="flex items-baseline gap-1 mb-1">
                 <span className="text-3xl font-extrabold text-[#111827]">$0</span>
               </div>
-              <p className="text-xs text-[#F59E0B] font-medium mb-1">{isEn ? '7-day free trial' : '7 gün ücretsiz deneme'}</p>
-              <p className="text-xs text-[#9CA3AF] mb-5">{isEn ? 'Credit card required' : 'Kredi kartı gerekli'}</p>
+              <p className="text-xs text-[#F59E0B] font-medium mb-5">{isEn ? '7-day free trial' : '7 gün ücretsiz deneme'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'10 credits/month':'10 kredi/ay', 'CRM Pipeline', isEn?'1 user':'1 kullanıcı'].map((item, i) => (
+                {[isEn?'25 outreach credits/mo':'25 outreach kredisi/ay', isEn?'5 content credits/mo':'5 content kredisi/ay', isEn?'All tools included':'Tüm araçlar dahil', isEn?'Email Finder (up to 25 reveals)':'Email Finder (25 reveal\'e kadar)', isEn?'1 user':'1 kullanıcı'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1343,12 +1345,12 @@ export default function Landing() {
               </div>
               <div className="text-xs font-medium text-[#2563EB] uppercase tracking-wider mb-3">Pro</div>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-3xl font-extrabold text-[#111827]">$25</span>
+                <span className="text-3xl font-extrabold text-[#111827]">$29</span>
                 <span className="text-sm text-[#9CA3AF]">/{isEn ? 'mo' : 'ay'}</span>
               </div>
-              <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? '$250/year (save $50)' : '$250/yıl ($50 tasarruf)'}</p>
+              <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? '$290/year (save $58)' : '$290/yıl ($58 tasarruf)'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'250 credits/month':'250 kredi/ay', 'Email Finder', isEn?'Competitor Analysis':'Rakip Analizi', isEn?'Unlimited pipeline':'Sınırsız pipeline'].map((item, i) => (
+                {[isEn?'300 outreach credits/mo':'300 outreach kredisi/ay', isEn?'10 content credits/mo':'10 content kredisi/ay', isEn?'All tools included':'Tüm araçlar dahil', isEn?'Unlimited AI usage':'Sınırsız AI kullanımı', isEn?'1 user':'1 kullanıcı'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1364,12 +1366,12 @@ export default function Landing() {
             <div className="bg-white border border-[#E5E7EB] rounded-xl p-6">
               <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-wider mb-3">Growth</div>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-3xl font-extrabold text-[#111827]">$40</span>
+                <span className="text-3xl font-extrabold text-[#111827]">$49</span>
                 <span className="text-sm text-[#9CA3AF]">/{isEn ? 'mo' : 'ay'}</span>
               </div>
-              <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? '$400/year (save $80)' : '$400/yıl ($80 tasarruf)'}</p>
+              <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? '$490/year (save $98)' : '$490/yıl ($98 tasarruf)'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'600 credits/month':'600 kredi/ay', isEn?'API access':'API erişimi', isEn?'Priority support':'Öncelikli destek', isEn?'All Pro':'Tüm Pro'].map((item, i) => (
+                {[isEn?'750 outreach credits/mo':'750 outreach kredisi/ay', isEn?'25 content credits/mo':'25 content kredisi/ay', isEn?'All tools included':'Tüm araçlar dahil', isEn?'API access':'API erişimi', isEn?'Priority support':'Öncelikli destek'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1385,12 +1387,12 @@ export default function Landing() {
             <div className="bg-white border border-[#E5E7EB] rounded-xl p-6">
               <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-wider mb-3">Team</div>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-3xl font-extrabold text-[#111827]">$35</span>
+                <span className="text-3xl font-extrabold text-[#111827]">$29</span>
                 <span className="text-sm text-[#9CA3AF]">/{isEn ? 'user/mo' : 'kullanıcı/ay'}</span>
               </div>
-              <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? 'Min. 3 users ($105/mo)' : 'Min. 3 kullanıcı ($105/ay)'}</p>
+              <p className="text-xs text-[#059669] font-medium mb-5">{isEn ? 'Min. 2 users ($58/mo)' : 'Min. 2 kullanıcı ($58/ay)'}</p>
               <ul className="space-y-2 mb-6">
-                {[isEn?'600 credits/user/month':'600 kredi/kullanıcı/ay', isEn?'Team collaboration':'Ekip işbirliği', isEn?'Admin panel':'Yönetici paneli', isEn?'Role-based access':'Rol bazlı erişim'].map((item, i) => (
+                {[isEn?'300 outreach credits/user/mo':'300 outreach kredisi/kullanıcı/ay', isEn?'10 content credits/user/mo':'10 content kredisi/kullanıcı/ay', isEn?'All tools included':'Tüm araçlar dahil', isEn?'Team collaboration + admin panel':'Ekip iş birliği + yönetici paneli', isEn?'Min. 2 users':'Min. 2 kullanıcı'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#374151]">
                     <svg className="w-3.5 h-3.5 text-[#2563EB] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     {item}
@@ -1403,7 +1405,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <p className="text-center text-xs text-[#9CA3AF] mb-8">{isEn ? '1 reveal = 1 credit · 1 AI email = 1 credit · 1 SEO article = 5 credits · 1 lead = 1 credit' : '1 reveal = 1 kredi · 1 AI email = 1 kredi · 1 SEO makale = 5 kredi · 1 lead = 1 kredi'}</p>
+          <p className="text-center text-xs text-[#9CA3AF] mb-8">{isEn ? '1 outreach credit = reveal, AI email, lead · 1 content credit = SEO article, social post' : '1 outreach kredisi = reveal, AI email, lead · 1 content kredisi = SEO makale, sosyal medya postu'}</p>
 
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-6 mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
@@ -1416,14 +1418,14 @@ export default function Landing() {
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[{c:'50',p:'$12'},{c:'200',p:'$40'},{c:'1,000',p:'$150'}].map((pk,i) => (
+              {[{c:'40',p:'$10'},{c:'200',p:'$35'},{c:'1,000',p:'$120'}].map((pk,i) => (
                 <div key={i} className="border border-[#F3F4F6] rounded-lg p-4 text-center">
                   <div className="text-2xl font-extrabold text-[#111827]">{pk.p}</div>
                   <div className="text-xs text-[#6B7280] mt-1">{pk.c} {isEn ? 'credits' : 'kredi'}</div>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-[#9CA3AF] mt-3">{isEn ? '1 credit = 1 verified email reveal. Credits valid 12 months.' : '1 kredi = 1 doğrulanmış email reveal. Krediler 12 ay geçerli.'}</p>
+            <p className="text-xs text-[#9CA3AF] mt-3">{isEn ? '1 outreach credit tops up your outreach pool. Credits valid 12 months.' : '1 outreach kredisi outreach havuzunu doldurur. Krediler 12 ay geçerli.'}</p>
           </div>
 
           <div className="flex items-center justify-center gap-2 text-xs text-[#9CA3AF]">

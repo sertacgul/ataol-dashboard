@@ -31,13 +31,13 @@ ai.post('/generate', async (c) => {
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
-  const chk = await checkCredits(c, 1)
+  const chk = await checkCredits(c, 'content', 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   const fullPrompt = context ? `${context}\n\n${prompt}` : prompt
 
   const text = await callGemini(fullPrompt, apiKey)
-  await deductCredit(c.env.DB, chk.userId, 1)
+  await deductCredit(c.env.DB, chk.userId, 'content', 1)
   await logActivity(c.env.DB, chk.userId, { module: 'ai', action: 'generate', title: prompt.slice(0, 60), detail: { result: (text || '').slice(0, 500) } })
   return c.json({ text: cleanAiText(text) })
 })
@@ -51,7 +51,7 @@ ai.post('/research', async (c) => {
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
-  const chk = await checkCredits(c, 1)
+  const chk = await checkCredits(c, 'content', 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   const prompt = `"${company_name}"${website ? ` (${website})` : ''} şirketi hakkında araştırma yap ve aşağıdaki JSON formatında yanıt ver:
@@ -76,7 +76,7 @@ Sadece JSON formatında yanıt ver, başka açıklama ekleme.`
     // JSON parse başarısız olursa raw text döndür
   }
 
-  await deductCredit(c.env.DB, chk.userId, 1)
+  await deductCredit(c.env.DB, chk.userId, 'content', 1)
   await logActivity(c.env.DB, chk.userId, { module: 'ai', action: 'research', title: company_name, detail: { result: (text || '').slice(0, 500) } })
   return c.json({ research, raw: text })
 })

@@ -6,7 +6,7 @@ import {
   saveLearnedPattern,
 } from '../lib/enrichment/free.js'
 import { createEnrichment } from '../lib/enrichment/index.js'
-import { PLAN_LIMITS, getOrCreateCredits, deductCredit, checkCredits } from '../lib/credits.js'
+import { PLAN_LIMITS, getOrCreateCredits, deductCredit, checkCredits, hasCredits } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
 import { cleanAiText } from '../lib/sanitize.js'
 
@@ -193,20 +193,14 @@ router.post('/reveal', async (c) => {
       verification_status: existing.verification_status,
       confidence_score: existing.confidence_score,
       source: existing.source,
-      credits_remaining: credits.monthly_limit - credits.used_this_month,
+      credits_remaining: credits.limits.outreach - credits.outreach_used,
       already_revealed: true,
     })
   }
 
   // Credit check
   const credits = await getOrCreateCredits(c.env.DB, userId, plan)
-  if (credits.used_this_month >= credits.monthly_limit) {
-    return c.json({
-      error: 'Aylik krediniz doldu. Paketinizi yukseltin.',
-      credits_remaining: 0,
-      monthly_limit: credits.monthly_limit,
-    }, 403)
-  }
+  if (!hasCredits(credits, 'outreach', 1)) return c.json({ error: 'Aylik krediniz doldu. Paketinizi yukseltin.', credit_type: 'outreach' }, 402)
 
   // Compute verification
   const vStatus = person.verification_status || 'unknown'
@@ -220,7 +214,7 @@ router.post('/reveal', async (c) => {
   ).bind(revealId, userId, domain, person.name, person.title || '', email, vStatus, vConfidence, person.source || 'pattern').run()
 
   // Deduct credit
-  await deductCredit(c.env.DB, userId)
+  await deductCredit(c.env.DB, userId, 'outreach', 1)
 
   await logActivity(c.env.DB, userId, {
     module: 'email-finder', action: 'reveal',
@@ -236,7 +230,7 @@ router.post('/reveal', async (c) => {
     verification_status: vStatus,
     confidence_score: vConfidence,
     source: person.source || 'pattern',
-    credits_remaining: credits.monthly_limit - credits.used_this_month - 1,
+    credits_remaining: credits.limits.outreach - credits.outreach_used - 1,
     already_revealed: false,
   })
 })
@@ -267,7 +261,7 @@ router.post('/bulk-reveal', async (c) => {
     if (!existing) toReveal.push({ idx, person, email: person.email })
   }
 
-  const available = credits.monthly_limit - credits.used_this_month
+  const available = credits.limits.outreach - credits.outreach_used
   if (toReveal.length > available) {
     return c.json({
       error: `Yetersiz kredi. ${toReveal.length} reveal icin krediniz yok (kalan: ${available}).`,
@@ -284,7 +278,7 @@ router.post('/bulk-reveal', async (c) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(crypto.randomUUID(), userId, domain, item.person.name, item.person.title || '',
       item.email, vStatus, vConfidence, item.person.source || 'pattern').run()
-    await deductCredit(c.env.DB, userId)
+    await deductCredit(c.env.DB, userId, 'outreach', 1)
     revealed.push({
       person_id: `${domain}-${item.idx}`,
       person_name: item.person.name,
@@ -311,11 +305,9 @@ router.get('/credits', async (c) => {
   const user = await c.env.DB.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
   const credits = await getOrCreateCredits(c.env.DB, userId, user?.plan || 'free')
   return c.json({
-    monthly_limit: credits.monthly_limit,
-    used_this_month: credits.used_this_month,
-    remaining: credits.monthly_limit - credits.used_this_month,
-    reset_date: credits.reset_date,
-    plan: user?.plan || 'free',
+    outreach: { limit: credits.limits.outreach, used: credits.outreach_used, remaining: credits.limits.outreach - credits.outreach_used },
+    content: { limit: credits.limits.content, used: credits.content_used, remaining: credits.limits.content - credits.content_used },
+    reset_date: credits.reset_date, plan: credits.plan,
   })
 })
 
@@ -405,7 +397,7 @@ router.post('/compose', async (c) => {
 
   if (!email || !company_name) return c.json({ error: 'Email ve firma adi gerekli' }, 400)
 
-  const chk = await checkCredits(c, 1)
+  const chk = await checkCredits(c, 'outreach', 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   const apiKey = c.env.GEMINI_API_KEY
@@ -452,7 +444,7 @@ JSON formatinda don:
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
-      await deductCredit(c.env.DB, chk.userId, 1)
+      await deductCredit(c.env.DB, chk.userId, 'outreach', 1)
       await logActivity(c.env.DB, userId, {
         module: 'outreach', action: 'compose',
         title: `${person_name || 'Yetkili'} · ${company_name || ''}`.trim(),
@@ -491,7 +483,7 @@ Ton: ${profile.tone || 'professional'}` : ''
 
   if (!q && !hasCriteria) return c.json({ error: 'En az bir kriter girin (firma adi, sektor, buyukluk veya lokasyon)' }, 400)
 
-  const chk = await checkCredits(c, 1)
+  const chk = await checkCredits(c, 'outreach', 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   // Find company, analyze, and compose targeted email
@@ -629,7 +621,7 @@ Respond in JSON only:
         `INSERT INTO emails (id, user_id, subject, body, status) VALUES (?, ?, ?, ?, 'draft')`
       ).bind(emailId, userId, subject, body).run()
 
-      await deductCredit(c.env.DB, chk.userId, 1)
+      await deductCredit(c.env.DB, chk.userId, 'outreach', 1)
 
       await logActivity(c.env.DB, userId, {
         module: 'outreach', action: 'compose',

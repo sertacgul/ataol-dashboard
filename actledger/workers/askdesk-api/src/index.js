@@ -20,6 +20,7 @@ import emailSettingsRoutes from './routes/email-settings.js'
 import blogRoutes from './routes/blog.js'
 import emailFinderRoutes from './routes/email-finder.js'
 import activityRoutes from './routes/activity.js'
+import billingRoutes from './routes/billing.js'
 
 const app = new Hono()
 
@@ -54,6 +55,7 @@ app.route('/email-settings', emailSettingsRoutes)
 app.route('/blog', blogRoutes)
 app.route('/email-finder', emailFinderRoutes)
 app.route('/activity', activityRoutes)
+app.route('/payments', billingRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 

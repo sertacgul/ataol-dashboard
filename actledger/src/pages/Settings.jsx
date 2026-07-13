@@ -27,6 +27,25 @@ const PROFILE_FIELDS = [
   'competitors', 'usps', 'tone', 'sample_content',
 ]
 
+const VARIANTS = {
+  pro: { month: '1904790', year: '1904803' },
+  growth: { month: '1904815', year: '1904807' },
+  team: { month: '1904872', year: '1904858' },
+  packs: { c40: '1904911', c200: '1904915', c1000: '1904921' },
+}
+
+const PLANS = [
+  { key: 'pro', name: 'Pro', priceMonth: '$29/mo', priceYear: '$290/yr' },
+  { key: 'growth', name: 'Growth', priceMonth: '$49/mo', priceYear: '$490/yr' },
+  { key: 'team', name: 'Team', priceMonth: '$29/user/mo', priceYear: '$290/user/yr' },
+]
+
+const CREDIT_PACKS = [
+  { variant: VARIANTS.packs.c40, credits: 40, price: '$10' },
+  { variant: VARIANTS.packs.c200, credits: 200, price: '$35' },
+  { variant: VARIANTS.packs.c1000, credits: 1000, price: '$120' },
+]
+
 function arrToLines(val) {
   if (Array.isArray(val)) return val.join('\n')
   if (typeof val === 'string') {
@@ -68,6 +87,11 @@ export default function Settings() {
   const [redeemSubmitting, setRedeemSubmitting] = useState(false)
   const [redeemError, setRedeemError] = useState('')
   const [redeemed, setRedeemed] = useState(null)
+
+  // Plan & billing state
+  const [billingCycle, setBillingCycle] = useState('month')
+  const [submitting, setSubmitting] = useState(false)
+  const [billingErr, setBillingErr] = useState('')
 
   // Change password state
   const [pwCurrent, setPwCurrent] = useState('')
@@ -255,6 +279,19 @@ export default function Settings() {
     }
   }
 
+  async function goCheckout(variantId) {
+    setSubmitting(true)
+    setBillingErr('')
+    try {
+      const { url } = await api.post('/payments/checkout', { variant_id: variantId })
+      if (url) window.location.href = url
+    } catch (e) {
+      setBillingErr(e.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   async function handleChangePassword(e) {
     e.preventDefault()
     setPwSubmitting(true)
@@ -336,6 +373,81 @@ export default function Settings() {
             </div>
           </form>
         )}
+      </div>
+
+      {/* Plan & Faturalama */}
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-2xl mb-6">
+        <div className="text-xs font-semibold text-[#374151] mb-4">{isEn ? 'Plan & Billing' : 'Plan & Faturalama'}</div>
+
+        <div className="text-sm text-[#111827] mb-4">
+          {isEn ? 'Current plan: ' : 'Mevcut plan: '}
+          <span className="font-medium">
+            {user?.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : 'Free'}
+          </span>
+        </div>
+
+        {billingErr && (
+          <div className="text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2 mb-4">{billingErr}</div>
+        )}
+
+        {/* Aylık / Yıllık toggle */}
+        <div className="inline-flex border border-[#E5E7EB] rounded-md overflow-hidden mb-4">
+          <button
+            onClick={() => setBillingCycle('month')}
+            className={`text-xs font-medium px-4 py-1.5 ${billingCycle === 'month' ? 'bg-[#2563EB] text-white' : 'bg-white text-[#374151] hover:bg-[#F9FAFB]'}`}
+          >
+            {isEn ? 'Monthly' : 'Aylık'}
+          </button>
+          <button
+            onClick={() => setBillingCycle('year')}
+            className={`text-xs font-medium px-4 py-1.5 ${billingCycle === 'year' ? 'bg-[#2563EB] text-white' : 'bg-white text-[#374151] hover:bg-[#F9FAFB]'}`}
+          >
+            {isEn ? 'Yearly' : 'Yıllık'}
+          </button>
+        </div>
+
+        {/* Plan satırları */}
+        <div className="flex flex-col gap-2 mb-6">
+          {PLANS.map(plan => {
+            const isCurrent = user?.plan === plan.key
+            return (
+              <div key={plan.key} className="flex items-center justify-between border border-[#E5E7EB] rounded-md px-4 py-3">
+                <div>
+                  <div className="text-sm font-medium text-[#111827]">{plan.name}</div>
+                  <div className="text-xs text-[#6B7280]">{billingCycle === 'month' ? plan.priceMonth : plan.priceYear}</div>
+                </div>
+                {isCurrent ? (
+                  <button disabled className="text-xs font-medium text-[#6B7280] border border-[#E5E7EB] bg-[#F9FAFB] rounded-md px-4 py-2 cursor-default">
+                    {isEn ? 'Current plan' : 'Mevcut plan'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => goCheckout(VARIANTS[plan.key][billingCycle])}
+                    disabled={submitting}
+                    className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2"
+                  >
+                    {isEn ? 'Upgrade' : 'Yükselt'}
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Kredi Paketleri */}
+        <div className="text-xs font-semibold text-[#374151] mb-3">{isEn ? 'Credit Packs (Pay as you go)' : 'Kredi Paketi (Kullandıkça Öde)'}</div>
+        <div className="flex flex-wrap gap-2">
+          {CREDIT_PACKS.map(pack => (
+            <button
+              key={pack.variant}
+              onClick={() => goCheckout(pack.variant)}
+              disabled={submitting}
+              className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] disabled:opacity-50 rounded-md px-4 py-2"
+            >
+              {pack.credits} {isEn ? 'credits' : 'kredi'} · {pack.price}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Şifre Değiştir */}

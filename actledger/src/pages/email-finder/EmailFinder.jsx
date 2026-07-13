@@ -41,15 +41,16 @@ function CopyBtn({ text }) {
 // ─── Credits Display ─────────────────────────────────────────
 
 function CreditsBar({ credits }) {
-  if (!credits) return null
-  const pct = Math.round((credits.used_this_month / credits.monthly_limit) * 100)
+  if (!credits || !credits.outreach) return null
+  const { used, limit, remaining } = credits.outreach
+  const pct = Math.round((used / limit) * 100)
   return (
     <div className="flex items-center gap-2 text-xs">
       <div className="w-24 h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: pct > 90 ? '#DC2626' : pct > 70 ? '#D97706' : '#2563EB' }} />
       </div>
       <span className="text-[#6B7280] whitespace-nowrap">
-        {credits.monthly_limit - credits.used_this_month}/{credits.monthly_limit}
+        {remaining}/{limit}
       </span>
     </div>
   )
@@ -177,7 +178,7 @@ export default function EmailFinder() {
         confidence_score: data.confidence_score,
         source: data.source,
       } : p))
-      setCredits(prev => prev ? { ...prev, used_this_month: prev.monthly_limit - data.credits_remaining } : prev)
+      setCredits(prev => prev && prev.outreach ? { ...prev, outreach: { ...prev.outreach, remaining: data.credits_remaining, used: prev.outreach.limit - data.credits_remaining } } : prev)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -205,7 +206,7 @@ export default function EmailFinder() {
         confidence_score: revealedMap[p.id].confidence_score,
         source: revealedMap[p.id].source,
       } : p))
-      setCredits(prev => prev ? { ...prev, used_this_month: prev.monthly_limit - data.credits_remaining } : prev)
+      setCredits(prev => prev && prev.outreach ? { ...prev, outreach: { ...prev.outreach, remaining: data.credits_remaining, used: prev.outreach.limit - data.credits_remaining } } : prev)
       setSelected(new Set())
     } catch (err) {
       setError(err.message)

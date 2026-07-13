@@ -27,7 +27,7 @@ maps.post('/search', async (c) => {
   const apiKey = c.env.GOOGLE_MAPS_API_KEY
   if (!apiKey) return c.json({ error: 'GOOGLE_MAPS_API_KEY yapılandırılmamış' }, 500)
 
-  const chk = await checkCredits(c, 1)
+  const chk = await checkCredits(c, 'outreach', 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   // Places API (New) — Text Search
@@ -56,7 +56,7 @@ maps.post('/search', async (c) => {
     location: p.location ? { lat: p.location.latitude, lng: p.location.longitude } : undefined,
   }))
 
-  await deductCredit(c.env.DB, chk.userId, 1)
+  await deductCredit(c.env.DB, chk.userId, 'outreach', 1)
   await logActivity(c.env.DB, chk.userId, { module: 'maps', action: 'search', title: query, detail: { count: places.length } })
   return c.json({ places })
 })
@@ -68,7 +68,7 @@ maps.post('/details', async (c) => {
   const apiKey = c.env.GOOGLE_MAPS_API_KEY
   if (!apiKey) return c.json({ error: 'GOOGLE_MAPS_API_KEY yapılandırılmamış' }, 500)
 
-  const chk = await checkCredits(c, 1)
+  const chk = await checkCredits(c, 'outreach', 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   // Places API (New) — Place Details
@@ -85,7 +85,7 @@ maps.post('/details', async (c) => {
   }
 
   const r = data
-  await deductCredit(c.env.DB, chk.userId, 1)
+  await deductCredit(c.env.DB, chk.userId, 'outreach', 1)
   return c.json({
     name: r.displayName?.text,
     address: r.formattedAddress,
@@ -109,7 +109,7 @@ maps.post('/sentiment', async (c) => {
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
-  const chk = await checkCredits(c, 1)
+  const chk = await checkCredits(c, 'outreach', 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   const reviewText = reviews.map((r, i) => `${i + 1}. (${r.rating}/5) ${r.text}`).join('\n')
@@ -120,7 +120,7 @@ ${reviewText}
 Genel kanı pozitif mi, negatif mi, yoksa karışık mı? Satış perspektifinden bu firmaya yaklaşırken nelere dikkat edilmeli?`
 
   const result = await callGemini(prompt, apiKey)
-  await deductCredit(c.env.DB, chk.userId, 1)
+  await deductCredit(c.env.DB, chk.userId, 'outreach', 1)
   return c.json({ result: cleanAiText(result) })
 })
 
