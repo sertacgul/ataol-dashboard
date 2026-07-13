@@ -86,6 +86,10 @@ export default function EmailFinder() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Search history
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [history, setHistory] = useState([])
+
   // Results
   const [company, setCompany] = useState(null)
   const [people, setPeople] = useState([])
@@ -123,17 +127,22 @@ export default function EmailFinder() {
     } catch {}
   }
 
-  // Search
-  async function handleSearch(e) {
-    e?.preventDefault()
-    if (!query.trim()) return
+  // Load search history
+  async function loadHistory() {
+    try { const data = await api.get('/activity?module=email-finder&action=search&limit=20'); setHistory(data.items || []) } catch {}
+  }
+
+  // Core search runner
+  async function runSearch(searchQuery) {
+    const q = (searchQuery || '').trim()
+    if (!q) return
     setLoading(true)
     setError('')
     setCompany(null)
     setPeople([])
     setSelected(new Set())
     try {
-      const data = await api.post('/email-finder/search', { query: query.trim(), domain: query.includes('.') ? query.trim() : undefined })
+      const data = await api.post('/email-finder/search', { query: q, domain: q.includes('.') ? q : undefined })
       setCompany(data.company)
       setPeople(data.people || [])
       setTotalCount(data.total_count || 0)
@@ -142,6 +151,12 @@ export default function EmailFinder() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Search
+  async function handleSearch(e) {
+    e?.preventDefault()
+    runSearch(query)
   }
 
   // Reveal single
@@ -312,6 +327,37 @@ export default function EmailFinder() {
               ) : t('Ara')}
             </button>
           </form>
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => { setHistoryOpen(o => !o); if (!historyOpen) loadHistory() }}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#6B7280] border border-[#E5E7EB] rounded-md px-3 py-2 hover:bg-[#F9FAFB]"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {t('Arama Geçmişi')}
+            </button>
+            {historyOpen && (
+              <div className="absolute right-0 mt-1 w-64 max-h-80 overflow-y-auto bg-white border border-[#E5E7EB] rounded-md shadow-lg z-20">
+                {history.length === 0 ? (
+                  <div className="px-3 py-3 text-xs text-[#9CA3AF] text-center">{t('Geçmiş yok')}</div>
+                ) : (
+                  history.map(item => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => { setQuery(item.title); setHistoryOpen(false); runSearch(item.title) }}
+                      className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-[#F9FAFB] border-b border-[#F3F4F6] last:border-0"
+                    >
+                      <span className="text-[#111827] truncate">{item.title}</span>
+                      <span className="text-[10px] text-[#9CA3AF] whitespace-nowrap">{new Date(item.created_at).toLocaleDateString('tr-TR')}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
           <CreditsBar credits={credits} />
         </div>
       </div>
