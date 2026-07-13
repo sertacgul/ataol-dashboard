@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { checkCredits, deductCredit } from '../lib/credits.js'
+import { logActivity } from '../lib/activity.js'
 
 const profile = new Hono()
 profile.use('*', authMiddleware)
@@ -114,6 +115,7 @@ Sadece JSON formatında yanıt ver, başka açıklama ekleme.`
   }
 
   await deductCredit(c.env.DB, chk.userId, 1)
+  await logActivity(c.env.DB, chk.userId, { module: 'profile', action: 'analyze', title: website, detail: {} })
   return c.json({ draft, raw: text })
 })
 

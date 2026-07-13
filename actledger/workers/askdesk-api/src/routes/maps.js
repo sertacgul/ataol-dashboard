@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { checkCredits, deductCredit } from '../lib/credits.js'
+import { logActivity } from '../lib/activity.js'
 
 const maps = new Hono()
 maps.use('*', authMiddleware)
@@ -49,6 +50,7 @@ maps.post('/search', async (c) => {
   }))
 
   await deductCredit(c.env.DB, chk.userId, 1)
+  await logActivity(c.env.DB, chk.userId, { module: 'maps', action: 'search', title: query, detail: { count: places.length } })
   return c.json({ places })
 })
 

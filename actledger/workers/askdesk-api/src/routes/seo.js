@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { checkCredits, deductCredit } from '../lib/credits.js'
+import { logActivity } from '../lib/activity.js'
 
 const seo = new Hono()
 seo.use('*', authMiddleware)
@@ -155,6 +156,7 @@ seo.post('/:id/translate', async (c) => {
   ).bind(body_en, id).run()
 
   await deductCredit(c.env.DB, chk.userId, 1)
+  await logActivity(c.env.DB, userId, { module: 'seo', action: 'translate', title: article.title || id, detail: {} })
   return c.json({ body_en })
 })
 
@@ -222,6 +224,7 @@ Sadece JSON formatında yanıt ver.`
   ).bind(seo_score, id).run()
 
   await deductCredit(c.env.DB, chk.userId, 1)
+  await logActivity(c.env.DB, userId, { module: 'seo', action: 'check', title: article.title || id, detail: { score: seo_score } })
   return c.json({ score: seo_score, suggestions: result.suggestions || [] })
 })
 
