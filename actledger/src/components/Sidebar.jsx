@@ -116,21 +116,42 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
         <div className="my-3 border-t border-[#E5E7EB]" />
         <NavItem {...settingsItem} t={t} onNavigate={onClose} />
       </nav>
-      {credits && (
-        <div className="px-3 py-2.5 border-t border-[#E5E7EB]">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-medium text-[#6B7280]">{t('Kredi')}</span>
-            <span className="text-[11px] text-[#9CA3AF]">{credits.remaining}/{credits.monthly_limit}</span>
-          </div>
-          <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${Math.min(100, Math.round((credits.used_this_month / credits.monthly_limit) * 100))}%`,
-                background: (credits.used_this_month / credits.monthly_limit) > 0.9 ? '#DC2626' : (credits.used_this_month / credits.monthly_limit) > 0.7 ? '#D97706' : '#2563EB',
-              }}
-            />
-          </div>
+      {credits && (credits.outreach || credits.content) && (
+        <div className="px-3 py-2.5 border-t border-[#E5E7EB] space-y-2">
+          {credits.outreach && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-medium text-[#6B7280]">Outreach</span>
+                <span className="text-[11px] text-[#9CA3AF]">{credits.outreach.remaining}/{credits.outreach.limit}</span>
+              </div>
+              <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.min(100, Math.round((credits.outreach.used / credits.outreach.limit) * 100))}%`,
+                    background: (credits.outreach.used / credits.outreach.limit) > 0.9 ? '#DC2626' : (credits.outreach.used / credits.outreach.limit) > 0.7 ? '#D97706' : '#2563EB',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          {credits.content && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-medium text-[#6B7280]">Content</span>
+                <span className="text-[11px] text-[#9CA3AF]">{credits.content.remaining}/{credits.content.limit}</span>
+              </div>
+              <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.min(100, Math.round((credits.content.used / credits.content.limit) * 100))}%`,
+                    background: (credits.content.used / credits.content.limit) > 0.9 ? '#DC2626' : (credits.content.used / credits.content.limit) > 0.7 ? '#D97706' : '#2563EB',
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
       <div className="px-3 py-3 border-t border-[#E5E7EB]">
