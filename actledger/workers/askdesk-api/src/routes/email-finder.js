@@ -12,7 +12,7 @@ router.use('*', authMiddleware)
 
 // ─── Constants ───────────────────────────────────────────────
 
-const PLAN_LIMITS = { free: 25, pro: 300, growth: 1500, team: 1000 }
+const PLAN_LIMITS = { free: 25, pro: 250, growth: 600, team: 600 }
 const CACHE_TTL_HOURS = 168
 
 // ─── Credits ─────────────────────────────────────────────────

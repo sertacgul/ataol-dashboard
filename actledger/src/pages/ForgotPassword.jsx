@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useT } from '../contexts/LanguageContext'
+import PasswordInput from '../components/PasswordInput'
 
 export default function ForgotPassword() {
   const { t, lang } = useT()
@@ -102,8 +103,7 @@ export default function ForgotPassword() {
                 <label className="block text-sm font-medium text-[#374151] mb-1">
                   {isEn ? 'New Password' : 'Yeni Şifre'}
                 </label>
-                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6}
-                  className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent" />
+                <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
               </div>
               <button type="submit" disabled={submitting}
                 className="w-full py-2 text-sm font-medium text-white bg-[#2563EB] rounded-md hover:bg-[#1D4ED8] disabled:opacity-50">

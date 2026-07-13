@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useT } from '../contexts/LanguageContext'
+import PasswordInput from '../components/PasswordInput'
 
 const FREE_DOMAINS = [
   'gmail.com', 'googlemail.com', 'hotmail.com', 'outlook.com', 'live.com',
@@ -15,7 +16,7 @@ const FREE_DOMAINS = [
 export default function Register() {
   const { t, lang } = useT()
   const isEn = lang === 'en'
-  const [form, setForm] = useState({ name: '', email: '', password: '', company_name: '' })
+  const [form, setForm] = useState({ name: '', email: '', password: '', company_name: '', discount_code: '' })
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const { register } = useAuth()
@@ -45,7 +46,7 @@ export default function Register() {
     if (!validateEmail()) return
     setSubmitting(true)
     try {
-      await register(form.email, form.password, form.name, form.company_name)
+      await register(form.email, form.password, form.name, form.company_name, form.discount_code)
       navigate('/app/dashboard')
     } catch (err) {
       setError(err.message)
@@ -102,8 +103,13 @@ export default function Register() {
             </div>
             <div>
               <label className="block text-sm font-medium text-[#374151] mb-1">{t('Şifre')}</label>
-              <input type="password" value={form.password} onChange={update('password')} required minLength={6}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent" />
+              <PasswordInput value={form.password} onChange={update('password')} required minLength={6} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#374151] mb-1">{isEn ? 'Discount Code' : 'İndirim Kodu'}</label>
+              <input type="text" value={form.discount_code} onChange={update('discount_code')}
+                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent uppercase"
+                placeholder={isEn ? 'Optional' : 'İsteğe bağlı'} />
             </div>
             <button type="submit" disabled={submitting}
               className="w-full py-2 text-sm font-medium text-white bg-[#2563EB] rounded-md hover:bg-[#1D4ED8] disabled:opacity-50">

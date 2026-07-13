@@ -4,6 +4,17 @@ import { sendEmail, passwordResetEmail, welcomeEmail } from '../lib/mail.js'
 
 const auth = new Hono()
 
+const DISCOUNT_CODES = { LAUNCH50: { percent: 50, months: 3 } }
+
+function computeDiscount(code) {
+  if (!code) return null
+  const cfg = DISCOUNT_CODES[String(code).trim().toUpperCase()]
+  if (!cfg) return null
+  const exp = new Date()
+  exp.setMonth(exp.getMonth() + cfg.months)
+  return { percent: cfg.percent, expires_at: exp.toISOString(), code: String(code).trim().toUpperCase() }
+}
+
 const FREE_EMAIL_DOMAINS = [
   'gmail.com', 'googlemail.com', 'hotmail.com', 'outlook.com', 'live.com',
   'yahoo.com', 'yahoo.co.uk', 'yahoo.com.tr', 'yandex.com', 'yandex.com.tr',
@@ -41,7 +52,7 @@ async function verifyPassword(password, stored) {
 }
 
 auth.post('/register', async (c) => {
-  const { email, password, name, company_name } = await c.req.json()
+  const { email, password, name, company_name, discount_code } = await c.req.json()
   if (!email || !password || !name) {
     return c.json({ error: 'Email, şifre ve isim gerekli' }, 400)
   }
@@ -64,13 +75,16 @@ auth.post('/register', async (c) => {
     return c.json({ error: 'Bu domain ile zaten bir ücretsiz hesap bulunuyor. Lütfen mevcut hesabınıza giriş yapın veya bir ücretli plana geçiş yapın.' }, 409)
   }
 
+  const disc = discount_code ? computeDiscount(discount_code) : null
+  if (discount_code && !disc) return c.json({ error: 'Geçersiz indirim kodu' }, 400)
+
   const id = crypto.randomUUID()
   const password_hash = await hashPassword(password)
   const trialExpires = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
 
   await c.env.DB.prepare(
-    'INSERT INTO users (id, email, password_hash, name, company_name, role, email_domain, plan, trial_expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  ).bind(id, email, password_hash, name, company_name || null, 'member', domain, 'free', trialExpires).run()
+    'INSERT INTO users (id, email, password_hash, name, company_name, role, email_domain, plan, trial_expires_at, discount_percent, discount_expires_at, discount_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(id, email, password_hash, name, company_name || null, 'member', domain, 'free', trialExpires, disc?.percent || 0, disc?.expires_at || null, disc?.code || null).run()
 
   const token = await createToken(id, 'member', c.env.JWT_SECRET)
   c.header('Set-Cookie', `askdesk_token=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=604800`)
@@ -79,7 +93,7 @@ auth.post('/register', async (c) => {
   const welcome = welcomeEmail(name, trialExpires)
   c.executionCtx.waitUntil(sendEmail(c.env, { to: email, ...welcome }))
 
-  return c.json({ id, email, name, company_name, role: 'member', plan: 'free', trial_expires_at: trialExpires }, 201)
+  return c.json({ id, email, name, company_name, role: 'member', plan: 'free', trial_expires_at: trialExpires, discount_percent: disc?.percent || 0, discount_expires_at: disc?.expires_at || null }, 201)
 })
 
 auth.post('/login', async (c) => {
@@ -115,12 +129,47 @@ auth.get('/me', async (c) => {
     const key = new TextEncoder().encode(c.env.JWT_SECRET)
     const { payload } = await jwtVerify(match[1], key)
     const user = await c.env.DB.prepare(
-      'SELECT id, email, name, company_name, role, plan, trial_expires_at, created_at FROM users WHERE id = ?'
+      'SELECT id, email, name, company_name, role, plan, trial_expires_at, created_at, discount_percent, discount_expires_at, discount_code FROM users WHERE id = ?'
     ).bind(payload.sub).first()
-    return c.json({ user: user || null })
+    return c.json({
+      user: user ? {
+        ...user,
+        discount_percent: user.discount_percent || 0,
+        discount_expires_at: user.discount_expires_at || null,
+        discount_code: user.discount_code || null,
+      } : null,
+    })
   } catch {
     return c.json({ user: null })
   }
+})
+
+// Redeem a discount code for the current authenticated user
+auth.post('/redeem-code', async (c) => {
+  const cookie = c.req.header('Cookie') || ''
+  const match = cookie.match(/askdesk_token=([^;]+)/)
+  let userId = null
+  if (match) {
+    try {
+      const { jwtVerify } = await import('jose')
+      const key = new TextEncoder().encode(c.env.JWT_SECRET)
+      const { payload } = await jwtVerify(match[1], key)
+      userId = payload.sub
+    } catch {
+      userId = null
+    }
+  }
+  if (!userId) return c.json({ error: 'Yetkisiz' }, 401)
+
+  const { code } = await c.req.json()
+  const existing = await c.env.DB.prepare('SELECT discount_code FROM users WHERE id = ?').bind(userId).first()
+  if (!existing) return c.json({ error: 'Kullanıcı bulunamadı' }, 404)
+  if (existing.discount_code) return c.json({ error: 'Bu hesap indirim kodunu zaten kullandı' }, 409)
+  const disc = computeDiscount(code)
+  if (!disc) return c.json({ error: 'Geçersiz indirim kodu' }, 400)
+  await c.env.DB.prepare('UPDATE users SET discount_percent = ?, discount_expires_at = ?, discount_code = ? WHERE id = ?')
+    .bind(disc.percent, disc.expires_at, disc.code, userId).run()
+  return c.json({ discount_percent: disc.percent, discount_expires_at: disc.expires_at })
 })
 
 // Password reset - request token
