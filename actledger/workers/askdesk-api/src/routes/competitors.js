@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { checkCredits, deductCredit } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
+import { cleanAiText } from '../lib/sanitize.js'
 
 const competitors = new Hono()
 competitors.use('*', authMiddleware)
@@ -85,15 +86,16 @@ Sadece JSON döndür, başka açıklama ekleme.`
   if (!res.ok) return c.json({ error: data.error?.message || 'Analiz başarısız' }, 500)
 
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+  const text2 = cleanAiText(text)
   let analysis = null
   try {
-    const match = text.match(/\{[\s\S]*\}/)
+    const match = text2.match(/\{[\s\S]*\}/)
     if (match) analysis = JSON.parse(match[0])
   } catch {
     // JSON parse başarısız
   }
 
-  const analysisStr = analysis ? JSON.stringify(analysis) : text
+  const analysisStr = analysis ? JSON.stringify(analysis) : text2
 
   await c.env.DB.prepare(
     `UPDATE competitors SET analysis = ? WHERE id = ?`

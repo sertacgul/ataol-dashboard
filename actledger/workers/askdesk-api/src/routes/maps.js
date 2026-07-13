@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { checkCredits, deductCredit } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
+import { cleanAiText } from '../lib/sanitize.js'
 
 const maps = new Hono()
 maps.use('*', authMiddleware)
@@ -120,7 +121,7 @@ Genel kanı pozitif mi, negatif mi, yoksa karışık mı? Satış perspektifinde
 
   const result = await callGemini(prompt, apiKey)
   await deductCredit(c.env.DB, chk.userId, 1)
-  return c.json({ result })
+  return c.json({ result: cleanAiText(result) })
 })
 
 export default maps

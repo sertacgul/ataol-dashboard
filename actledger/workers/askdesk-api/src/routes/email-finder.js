@@ -8,6 +8,7 @@ import {
 import { createEnrichment } from '../lib/enrichment/index.js'
 import { PLAN_LIMITS, getOrCreateCredits, deductCredit, checkCredits } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
+import { cleanAiText } from '../lib/sanitize.js'
 
 const router = new Hono()
 router.use('*', authMiddleware)
@@ -457,7 +458,7 @@ JSON formatinda don:
         title: `${person_name || 'Yetkili'} · ${company_name || ''}`.trim(),
         detail: { subject: parsed.subject || '', email, company_name },
       })
-      return c.json({ subject: parsed.subject || '', body: parsed.body || '' })
+      return c.json({ subject: cleanAiText(parsed.subject || ''), body: cleanAiText(parsed.body || '') })
     }
     return c.json({ error: 'Email olusturulamadi' }, 500)
   } catch {
@@ -619,8 +620,8 @@ Respond in JSON only:
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
-      const subject = parsed.subject || ''
-      const body = parsed.body || ''
+      const subject = cleanAiText(parsed.subject || '')
+      const body = cleanAiText(parsed.body || '')
 
       // Save to outreach as draft
       const emailId = crypto.randomUUID()
@@ -642,7 +643,7 @@ Respond in JSON only:
         people_count: peopleList.length,
         subject,
         body,
-        value_proposition: parsed.value_proposition || '',
+        value_proposition: cleanAiText(parsed.value_proposition || ''),
         outreach_id: emailId,
       })
     }

@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { checkCredits, deductCredit } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
+import { cleanAiText } from '../lib/sanitize.js'
 
 const seo = new Hono()
 seo.use('*', authMiddleware)
@@ -149,7 +150,7 @@ seo.post('/:id/translate', async (c) => {
 
   const prompt = `Aşağıdaki Türkçe blog yazısını İngilizce'ye çevir. Çeviri profesyonel, akıcı ve SEO uyumlu olsun. Başlık dahil tüm içeriği çevir. Kesinlikle markdown kullanma (# * ** __ gibi isaret kullanma).${profileContext ? `\n\nFirma Bağlamı:\n${profileContext}` : ''}\n\nÇevirilecek Türkçe İçerik:\n${article.body_tr}`
 
-  const body_en = await callGemini(prompt, apiKey)
+  const body_en = cleanAiText(await callGemini(prompt, apiKey))
 
   await c.env.DB.prepare(
     `UPDATE seo_articles SET body_en = ?, updated_at = datetime('now') WHERE id = ?`
@@ -207,7 +208,7 @@ Kontrol edilecek kriterler:
 
 Sadece JSON formatında yanıt ver.`
 
-  const text = await callGemini(prompt, apiKey)
+  const text = cleanAiText(await callGemini(prompt, apiKey))
 
   let result = { score: 0, suggestions: [] }
   try {

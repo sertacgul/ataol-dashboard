@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { checkCredits, deductCredit } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
+import { cleanAiText } from '../lib/sanitize.js'
 
 const ai = new Hono()
 ai.use('*', authMiddleware)
@@ -38,7 +39,7 @@ ai.post('/generate', async (c) => {
   const text = await callGemini(fullPrompt, apiKey)
   await deductCredit(c.env.DB, chk.userId, 1)
   await logActivity(c.env.DB, chk.userId, { module: 'ai', action: 'generate', title: prompt.slice(0, 60), detail: { result: (text || '').slice(0, 500) } })
-  return c.json({ text })
+  return c.json({ text: cleanAiText(text) })
 })
 
 ai.post('/research', async (c) => {
@@ -64,7 +65,8 @@ ai.post('/research', async (c) => {
 
 Sadece JSON formatında yanıt ver, başka açıklama ekleme.`
 
-  const text = await callGemini(prompt, apiKey)
+  const rawText = await callGemini(prompt, apiKey)
+  const text = cleanAiText(rawText)
 
   let research = null
   try {
