@@ -6,49 +6,14 @@ import {
   saveLearnedPattern,
 } from '../lib/enrichment/free.js'
 import { createEnrichment } from '../lib/enrichment/index.js'
+import { PLAN_LIMITS, getOrCreateCredits, deductCredit, checkCredits } from '../lib/credits.js'
 
 const router = new Hono()
 router.use('*', authMiddleware)
 
 // ─── Constants ───────────────────────────────────────────────
 
-const PLAN_LIMITS = { free: 25, pro: 250, growth: 600, team: 600 }
 const CACHE_TTL_HOURS = 168
-
-// ─── Credits ─────────────────────────────────────────────────
-
-async function getOrCreateCredits(db, userId, plan) {
-  let credits = await db.prepare('SELECT * FROM user_credits WHERE user_id = ?').bind(userId).first()
-  if (!credits) {
-    const limit = PLAN_LIMITS[plan] || PLAN_LIMITS.free
-    const resetDate = getNextResetDate()
-    await db.prepare('INSERT INTO user_credits (user_id, monthly_limit, used_this_month, reset_date) VALUES (?, ?, 0, ?)')
-      .bind(userId, limit, resetDate).run()
-    credits = { user_id: userId, monthly_limit: limit, used_this_month: 0, reset_date: resetDate }
-  }
-  // Check if we need to reset
-  if (new Date(credits.reset_date) <= new Date()) {
-    const newReset = getNextResetDate()
-    const limit = PLAN_LIMITS[plan] || credits.monthly_limit
-    await db.prepare('UPDATE user_credits SET used_this_month = 0, reset_date = ?, monthly_limit = ? WHERE user_id = ?')
-      .bind(newReset, limit, userId).run()
-    credits.used_this_month = 0
-    credits.reset_date = newReset
-    credits.monthly_limit = limit
-  }
-  return credits
-}
-
-function getNextResetDate() {
-  const now = new Date()
-  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-  return next.toISOString().split('T')[0]
-}
-
-async function deductCredit(db, userId) {
-  await db.prepare('UPDATE user_credits SET used_this_month = used_this_month + 1 WHERE user_id = ?')
-    .bind(userId).run()
-}
 
 // ─── Domain Cache ────────────────────────────────────────────
 
@@ -425,6 +390,9 @@ router.post('/compose', async (c) => {
 
   if (!email || !company_name) return c.json({ error: 'Email ve firma adi gerekli' }, 400)
 
+  const chk = await checkCredits(c, 1)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'AI servisi yapilandirilmamis' }, 500)
 
@@ -469,6 +437,7 @@ JSON formatinda don:
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
+      await deductCredit(c.env.DB, chk.userId, 1)
       return c.json({ subject: parsed.subject || '', body: parsed.body || '' })
     }
     return c.json({ error: 'Email olusturulamadi' }, 500)
@@ -501,6 +470,9 @@ Ton: ${profile.tone || 'professional'}` : ''
   const hasCriteria = sector || company_size || location
 
   if (!q && !hasCriteria) return c.json({ error: 'En az bir kriter girin (firma adi, sektor, buyukluk veya lokasyon)' }, 400)
+
+  const chk = await checkCredits(c, 1)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   // Find company, analyze, and compose targeted email
   let domain = null
@@ -636,6 +608,8 @@ Respond in JSON only:
       await c.env.DB.prepare(
         `INSERT INTO emails (id, user_id, subject, body, status) VALUES (?, ?, ?, ?, 'draft')`
       ).bind(emailId, userId, subject, body).run()
+
+      await deductCredit(c.env.DB, chk.userId, 1)
 
       return c.json({
         company: companyInfo,
