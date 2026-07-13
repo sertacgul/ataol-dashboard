@@ -20,7 +20,7 @@ async function callGemini(prompt, apiKey) {
 }
 
 maps.post('/search', async (c) => {
-  const { query, location } = await c.req.json()
+  const { query } = await c.req.json()
   if (!query) return c.json({ error: 'query gerekli' }, 400)
 
   const apiKey = c.env.GOOGLE_MAPS_API_KEY
@@ -29,24 +29,30 @@ maps.post('/search', async (c) => {
   const chk = await checkCredits(c, 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
-  const params = new URLSearchParams({ query, key: apiKey })
-  if (location) params.set('location', location)
-
-  const res = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?${params}`)
+  // Places API (New) — Text Search
+  const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.location',
+    },
+    body: JSON.stringify({ textQuery: query }),
+  })
   const data = await res.json()
 
-  if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-    return c.json({ error: data.error_message || data.status }, 500)
+  if (!res.ok) {
+    return c.json({ error: data.error?.message || 'Places API hatası' }, 500)
   }
 
-  const places = (data.results || []).map(p => ({
-    place_id: p.place_id,
-    name: p.name,
-    address: p.formatted_address,
+  const places = (data.places || []).map(p => ({
+    place_id: p.id,
+    name: p.displayName?.text,
+    address: p.formattedAddress,
     rating: p.rating,
-    user_ratings_total: p.user_ratings_total,
+    user_ratings_total: p.userRatingCount,
     types: p.types,
-    location: p.geometry?.location,
+    location: p.location ? { lat: p.location.latitude, lng: p.location.longitude } : undefined,
   }))
 
   await deductCredit(c.env.DB, chk.userId, 1)
@@ -64,30 +70,33 @@ maps.post('/details', async (c) => {
   const chk = await checkCredits(c, 1)
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
-  const fields = 'name,formatted_address,formatted_phone_number,website,reviews,rating,user_ratings_total'
-  const params = new URLSearchParams({ place_id, fields, key: apiKey })
-
-  const res = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?${params}`)
+  // Places API (New) — Place Details
+  const res = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(place_id)}`, {
+    headers: {
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'id,displayName,formattedAddress,nationalPhoneNumber,internationalPhoneNumber,websiteUri,rating,userRatingCount,reviews',
+    },
+  })
   const data = await res.json()
 
-  if (data.status !== 'OK') {
-    return c.json({ error: data.error_message || data.status }, 500)
+  if (!res.ok) {
+    return c.json({ error: data.error?.message || 'Places API hatası' }, 500)
   }
 
-  const r = data.result
+  const r = data
   await deductCredit(c.env.DB, chk.userId, 1)
   return c.json({
-    name: r.name,
-    address: r.formatted_address,
-    phone: r.formatted_phone_number,
-    website: r.website,
+    name: r.displayName?.text,
+    address: r.formattedAddress,
+    phone: r.nationalPhoneNumber || r.internationalPhoneNumber || null,
+    website: r.websiteUri || null,
     rating: r.rating,
-    user_ratings_total: r.user_ratings_total,
+    user_ratings_total: r.userRatingCount,
     reviews: (r.reviews || []).slice(0, 5).map(rv => ({
-      author: rv.author_name,
+      author: rv.authorAttribution?.displayName,
       rating: rv.rating,
-      text: rv.text,
-      time: rv.relative_time_description,
+      text: rv.text?.text,
+      time: rv.relativePublishTimeDescription,
     })),
   })
 })
