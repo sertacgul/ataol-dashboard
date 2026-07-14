@@ -8,6 +8,13 @@ export default function LegalShell({ title, updated, children }) {
   const isEn = lang === 'en'
   const navigate = useNavigate()
 
+  // Go back in history when there is somewhere to go back to; otherwise (page
+  // opened directly, via bookmark, or in a new tab) fall back to the home page.
+  function goBack() {
+    if (window.history.length > 1) navigate(-1)
+    else navigate('/')
+  }
+
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex flex-col">
       <header className="border-b border-[#E5E7EB] bg-white">
@@ -17,7 +24,7 @@ export default function LegalShell({ title, updated, children }) {
             <span className="text-base font-semibold tracking-tight text-[#111827]">AskDesk</span>
           </Link>
           <button
-            onClick={() => navigate(-1)}
+            onClick={goBack}
             className="text-sm text-[#6B7280] hover:text-[#2563EB] transition-colors"
           >
             ← {isEn ? 'Back' : 'Geri'}
