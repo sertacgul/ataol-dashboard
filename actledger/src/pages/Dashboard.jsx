@@ -22,18 +22,13 @@ export default function Dashboard() {
     return <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yükleniyor...')}</div>
   }
 
-  const openRate = stats?.total_sent > 0
-    ? Math.round((stats.total_opened / stats.total_sent) * 100) + '%'
-    : '-'
-
   return (
     <div>
       <h1 className="text-base font-semibold text-[#111827] mb-4">Dashboard</h1>
 
-      <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-4">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         <StatCard label={t('Toplam Lead')} value={stats?.total_companies ?? '-'} />
-        <StatCard label={t('Gönderilen Email')} value={stats?.total_sent ?? '-'} />
-        <StatCard label={t('Açılma Oranı (%)')} value={openRate} />
+        <StatCard label={t('Gönderildi İşaretli')} value={stats?.total_sent ?? '-'} />
         <StatCard label={t('Toplam Email')} value={stats?.total_emails ?? '-'} />
       </div>
 
@@ -67,7 +62,7 @@ export default function Dashboard() {
                     </Link>
                   </td>
                   <td className="px-4 py-2.5">
-                    <Badge status={email.opened ? 'opened' : email.status} />
+                    <Badge status={email.status} />
                   </td>
                   <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">
                     {email.created_at ? new Date(email.created_at).toLocaleDateString('tr-TR') : '-'}

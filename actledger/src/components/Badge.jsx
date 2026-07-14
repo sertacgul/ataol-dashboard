@@ -4,7 +4,6 @@ const styles = {
   approved: 'bg-[#DCFCE7] text-[#166534]',
   sent: 'bg-[#DBEAFE] text-[#1E40AF]',
   rejected: 'bg-[#FEE2E2] text-[#991B1B]',
-  opened: 'bg-[#EDE9FE] text-[#5B21B6]',
 }
 
 const labels = {
@@ -13,7 +12,6 @@ const labels = {
   approved: 'Onaylı',
   sent: 'Gönderildi',
   rejected: 'Reddedildi',
-  opened: 'Açıldı',
 }
 
 export default function Badge({ status }) {

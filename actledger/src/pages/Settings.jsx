@@ -6,10 +6,6 @@ import HelpButton from '../components/HelpButton'
 import PasswordInput from '../components/PasswordInput'
 import { useT } from '../contexts/LanguageContext'
 
-const EMPTY_EMAIL_SETTINGS = {
-  smtp_host: '', smtp_port: '587', smtp_user: '', smtp_pass: '', from_name: '', from_email: '',
-}
-
 const EMPTY_BLOG_SETTINGS = {
   platform: 'wordpress', blog_url: '', api_username: '', api_password: '',
 }
@@ -109,15 +105,6 @@ export default function Settings() {
   const [saveError, setSaveError] = useState('')
   const [saveSuccess, setSaveSuccess] = useState(false)
 
-  // Email settings state
-  const [emailSettings, setEmailSettings] = useState(null)
-  const [emailLoading, setEmailLoading] = useState(true)
-  const [emailEditMode, setEmailEditMode] = useState(false)
-  const [emailForm, setEmailForm] = useState(EMPTY_EMAIL_SETTINGS)
-  const [emailSaving, setEmailSaving] = useState(false)
-  const [emailError, setEmailError] = useState('')
-  const [emailSuccess, setEmailSuccess] = useState('')
-  const [emailTesting, setEmailTesting] = useState(false)
 
   // Blog settings state
   const [blogSettings, setBlogSettings] = useState(null)
@@ -137,20 +124,6 @@ export default function Settings() {
     }).finally(() => {
       setProfileLoading(false)
     })
-
-    api.get('/email-settings').then(data => {
-      setEmailSettings(data.settings || null)
-      if (data.settings) {
-        setEmailForm({
-          smtp_host: data.settings.smtp_host || '',
-          smtp_port: String(data.settings.smtp_port || 587),
-          smtp_user: data.settings.smtp_user || '',
-          smtp_pass: data.settings.smtp_pass || '',
-          from_name: data.settings.from_name || '',
-          from_email: data.settings.from_email || '',
-        })
-      }
-    }).catch(() => setEmailSettings(null)).finally(() => setEmailLoading(false))
 
     api.get('/blog').then(data => {
       setBlogSettings(data.settings || null)
@@ -202,44 +175,6 @@ export default function Settings() {
       setSaveError(err.message || 'Kayıt başarısız')
     } finally {
       setSaving(false)
-    }
-  }
-
-  async function handleEmailSave(e) {
-    e.preventDefault()
-    setEmailSaving(true)
-    setEmailError('')
-    setEmailSuccess('')
-    try {
-      const payload = { ...emailForm, smtp_port: Number(emailForm.smtp_port) || 587 }
-      if (emailSettings) {
-        await api.put('/email-settings', payload)
-      } else {
-        await api.post('/email-settings', payload)
-      }
-      // Refresh
-      const data = await api.get('/email-settings')
-      setEmailSettings(data.settings || null)
-      setEmailEditMode(false)
-      setEmailSuccess('Email ayarları kaydedildi.')
-    } catch (err) {
-      setEmailError(err.message || 'Kayıt başarısız')
-    } finally {
-      setEmailSaving(false)
-    }
-  }
-
-  async function handleEmailTest() {
-    setEmailTesting(true)
-    setEmailError('')
-    setEmailSuccess('')
-    try {
-      const data = await api.post('/email-settings/test', {})
-      setEmailSuccess(data.message || 'Test emaili gönderildi.')
-    } catch (err) {
-      setEmailError(err.message || 'Test gönderilemedi')
-    } finally {
-      setEmailTesting(false)
     }
   }
 
@@ -474,107 +409,6 @@ export default function Settings() {
             </button>
           </div>
         </form>
-      </div>
-
-      {/* Email Ayarları */}
-      <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-2xl mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-xs font-semibold text-[#374151]">{t('Email Ayarları')}</div>
-          {!emailLoading && emailSettings && !emailEditMode && (
-            <button
-              onClick={() => { setEmailEditMode(true); setEmailError(''); setEmailSuccess('') }}
-              className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
-            >
-              {t('Düzenle')}
-            </button>
-          )}
-        </div>
-        {emailLoading ? (
-          <div className="text-xs text-[#9CA3AF]">{t('Yükleniyor...')}</div>
-        ) : !emailSettings || emailEditMode ? (
-          <form onSubmit={handleEmailSave} className="flex flex-col gap-3">
-            {emailError && (
-              <div className="text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2">{emailError}</div>
-            )}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <label className={labelCls}>{t('SMTP Sunucu')}</label>
-                <input value={emailForm.smtp_host} onChange={e => setEmailForm(p => ({ ...p, smtp_host: e.target.value }))} className={inputCls} placeholder="smtp.gmail.com" />
-              </div>
-              <div>
-                <label className={labelCls}>{t('Port')}</label>
-                <input value={emailForm.smtp_port} onChange={e => setEmailForm(p => ({ ...p, smtp_port: e.target.value }))} className={inputCls} placeholder="587" type="number" />
-              </div>
-              <div>
-                <label className={labelCls}>{t('Kullanıcı Adı')}</label>
-                <input value={emailForm.smtp_user} onChange={e => setEmailForm(p => ({ ...p, smtp_user: e.target.value }))} className={inputCls} placeholder="user@domain.com" />
-              </div>
-              <div className="col-span-2">
-                <label className={labelCls}>{t('Şifre')}</label>
-                <input type="password" value={emailForm.smtp_pass} onChange={e => setEmailForm(p => ({ ...p, smtp_pass: e.target.value }))} className={inputCls} placeholder="••••••••" />
-              </div>
-              <div>
-                <label className={labelCls}>{t('Gönderici Adı')}</label>
-                <input value={emailForm.from_name} onChange={e => setEmailForm(p => ({ ...p, from_name: e.target.value }))} className={inputCls} placeholder="Firma Adı" />
-              </div>
-              <div>
-                <label className={labelCls}>{t('Gönderici Email')}</label>
-                <input value={emailForm.from_email} onChange={e => setEmailForm(p => ({ ...p, from_email: e.target.value }))} className={inputCls} placeholder="hello@firma.com" />
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end pt-1">
-              {emailEditMode && (
-                <button type="button" onClick={() => setEmailEditMode(false)} className="text-xs font-medium text-[#374151] border border-[#E5E7EB] rounded-md px-4 py-2 hover:bg-[#F9FAFB]">{t('İptal')}</button>
-              )}
-              <button type="submit" disabled={emailSaving} className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2">
-                {emailSaving ? t('Kaydediliyor...') : t('Kaydet')}
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {emailSuccess && (
-              <div className="text-xs text-[#065F46] bg-[#D1FAE5] border border-[#6EE7B7] rounded-md px-3 py-2">{emailSuccess}</div>
-            )}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">{t('SMTP Sunucu')}</div>
-                <div className="text-sm text-[#111827]">{emailSettings.smtp_host || '-'}</div>
-              </div>
-              <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">{t('Port')}</div>
-                <div className="text-sm text-[#111827]">{emailSettings.smtp_port || 587}</div>
-              </div>
-              <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">{t('Kullanıcı Adı')}</div>
-                <div className="text-sm text-[#111827]">{emailSettings.smtp_user || '-'}</div>
-              </div>
-              <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">{t('Şifre')}</div>
-                <div className="text-sm text-[#111827]">{emailSettings.smtp_pass || '-'}</div>
-              </div>
-              <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">{t('Gönderici Adı')}</div>
-                <div className="text-sm text-[#111827]">{emailSettings.from_name || '-'}</div>
-              </div>
-              <div>
-                <div className="text-xs text-[#6B7280] mb-0.5">{t('Gönderici Email')}</div>
-                <div className="text-sm text-[#111827]">{emailSettings.from_email || '-'}</div>
-              </div>
-            </div>
-            <div className="pt-2">
-              <button
-                onClick={handleEmailTest}
-                disabled={emailTesting}
-                className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] disabled:opacity-50 rounded-md px-3 py-1.5"
-              >
-                {emailTesting ? t('Gönderiliyor...') : t('Test Emaili Gönder')}
-              </button>
-              {emailError && <div className="text-xs text-[#991B1B] mt-2">{emailError}</div>}
-              {emailSuccess && <div className="text-xs text-[#065F46] mt-2">{emailSuccess}</div>}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Blog Ayarları */}

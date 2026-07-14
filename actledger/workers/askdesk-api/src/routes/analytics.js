@@ -22,45 +22,34 @@ analytics.get('/overview', async (c) => {
   ).bind(...userParams).first()
 
   let sentSql = `SELECT COUNT(*) as count FROM emails WHERE status = 'sent'`
-  let openedSql = `SELECT COUNT(*) as count FROM emails WHERE status = 'sent' AND opened = 1`
   let replySql = `SELECT COUNT(*) as count FROM emails WHERE status IN ('replied', 'converted')`
 
   const sentParams = []
-  const openedParams = []
   const replyParams = []
 
   if (!isSuperadmin) {
     sentSql += ' AND user_id = ?'
-    openedSql += ' AND user_id = ?'
     replySql += ' AND user_id = ?'
     sentParams.push(userId)
-    openedParams.push(userId)
     replyParams.push(userId)
   }
 
   if (from && to) {
     sentSql += ' AND sent_at BETWEEN ? AND ?'
-    openedSql += ' AND sent_at BETWEEN ? AND ?'
     sentParams.push(from, to)
-    openedParams.push(from, to)
   }
 
-  const [sentResult, openedResult, replyResult] = await Promise.all([
+  const [sentResult, replyResult] = await Promise.all([
     c.env.DB.prepare(sentSql).bind(...sentParams).first(),
-    c.env.DB.prepare(openedSql).bind(...openedParams).first(),
     c.env.DB.prepare(replySql).bind(...replyParams).first(),
   ])
 
   const sentCount = sentResult?.count ?? 0
-  const openedCount = openedResult?.count ?? 0
-  const openRate = sentCount > 0 ? Math.round((openedCount / sentCount) * 100) : 0
 
   return c.json({
     total_companies: totalCompanies?.count ?? 0,
     total_emails: totalEmails?.count ?? 0,
     sent_emails: sentCount,
-    opened_emails: openedCount,
-    open_rate: openRate,
     reply_count: replyResult?.count ?? 0,
   })
 })
@@ -205,7 +194,7 @@ analytics.get('/top-outreach', async (c) => {
     params.push(userId)
   }
 
-  sql += ' ORDER BY e.opened DESC, e.created_at DESC LIMIT ?'
+  sql += ' ORDER BY e.created_at DESC LIMIT ?'
   params.push(parseInt(limit, 10))
 
   const result = await c.env.DB.prepare(sql).bind(...params).all()

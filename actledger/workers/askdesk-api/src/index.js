@@ -16,7 +16,6 @@ import calendarRoutes from './routes/calendar.js'
 import analyticsRoutes from './routes/analytics.js'
 import bmcRoutes from './routes/bmc.js'
 import competitorsRoutes from './routes/competitors.js'
-import emailSettingsRoutes from './routes/email-settings.js'
 import blogRoutes from './routes/blog.js'
 import emailFinderRoutes from './routes/email-finder.js'
 import activityRoutes from './routes/activity.js'
@@ -51,7 +50,6 @@ app.route('/calendar', calendarRoutes)
 app.route('/analytics', analyticsRoutes)
 app.route('/bmc', bmcRoutes)
 app.route('/competitors', competitorsRoutes)
-app.route('/email-settings', emailSettingsRoutes)
 app.route('/blog', blogRoutes)
 app.route('/email-finder', emailFinderRoutes)
 app.route('/activity', activityRoutes)
