@@ -70,8 +70,22 @@ const FEATURES = [
     icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
     titleTr: 'Rakip Analizi',
     titleEn: 'Competitor Analysis',
-    descTr: 'Rakip firmaların web sitelerini AI ile analiz edin. SWOT raporu ile stratejik konumlanmanızı belirleyin.',
-    descEn: 'Analyze competitor websites with AI. Determine strategic positioning with SWOT reports.',
+    descTr: 'Rakip firmaların web sitelerini AI ile analiz edin. Harvey Ball karşılaştırması ve pazar konumu ile stratejinizi belirleyin.',
+    descEn: 'Analyze competitor websites with AI. Determine your strategy with Harvey Ball comparison and market positioning.',
+  },
+  {
+    icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z',
+    titleTr: 'Şablon Kütüphanesi',
+    titleEn: 'Template Library',
+    descTr: 'Sık kullandığınız email ve mesaj şablonlarını kaydedin, tek tıkla yeniden kullanın. Ekibinizle tutarlı iletişim kurun.',
+    descEn: 'Save your frequently used email and message templates and reuse them in one click for consistent team messaging.',
+  },
+  {
+    icon: 'M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2',
+    titleTr: 'Newsletter & Bülten',
+    titleEn: 'Newsletter',
+    descTr: 'Abonelerinize düzenli bülten gönderin. AI ile içerik üretin, açılma oranlarını ve etkileşimi takip edin.',
+    descEn: 'Send regular newsletters to your subscribers. Generate content with AI and track open rates and engagement.',
   },
 ]
 
@@ -214,8 +228,8 @@ function ScreenSentiment() {
       <div className="border border-[#F3F4F6] rounded-lg p-3 mb-3">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-xs font-semibold text-[#111827]">Yildiz Makine San. Ltd.</div>
-            <div className="text-[10px] text-[#6B7280]">Ostim OSB, Ankara</div>
+            <div className="text-xs font-semibold text-[#111827]">Titan Machinery Ltd.</div>
+            <div className="text-[10px] text-[#6B7280]">Ostim, Ankara</div>
           </div>
           <div className="flex items-center gap-1">
             <span className="text-xs font-semibold text-[#F59E0B]">4.3</span>
@@ -226,8 +240,8 @@ function ScreenSentiment() {
       </div>
       <div className="space-y-2 mb-3">
         {[
-          { txt: 'Teslimat hizli, ekip cok ilgiliydi. Kesinlikle tavsiye ederim.', stars: 5 },
-          { txt: 'Fiyatlar biraz yuksek ama kalite gercekten iyi.', stars: 4 },
+          { txt: 'Fast delivery and the team was very helpful. Highly recommend.', stars: 5 },
+          { txt: 'Prices are a bit high but the quality is genuinely good.', stars: 4 },
         ].map((r, i) => (
           <div key={i} className="border border-[#F3F4F6] rounded-lg px-3 py-2 flex items-start gap-2">
             <span className="text-[10px] text-[#F59E0B] shrink-0 mt-0.5">{'★'.repeat(r.stars)}</span>
@@ -238,10 +252,10 @@ function ScreenSentiment() {
       <div className="rounded-lg p-3" style={{ background: '#ECFDF5', border: '1px solid #A7F3D0' }}>
         <div className="flex items-center gap-1.5 mb-1.5">
           <svg className="w-3.5 h-3.5 text-[#059669]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-          <span className="text-[11px] font-semibold text-[#059669]">AI Duygu Analizi / AI Sentiment</span>
+          <span className="text-[11px] font-semibold text-[#059669]">AI Sentiment</span>
         </div>
-        <div className="text-xs font-medium text-[#065F46] mb-1">Genel kani: Olumlu / Overall: Positive</div>
-        <div className="text-[11px] text-[#047857] leading-snug">Satis ipucu / Sales tip: Hizli teslimat ve kaliteyi one cikar, fiyat itirazina hazir ol.</div>
+        <div className="text-xs font-medium text-[#065F46] mb-1">Overall: Positive</div>
+        <div className="text-[11px] text-[#047857] leading-snug">Sales tip: Lead with fast delivery and quality, and be ready for price objections.</div>
       </div>
     </div>
   )
@@ -1090,7 +1104,7 @@ export default function Landing() {
           <p className="text-base text-[#6B7280] mb-8 max-w-xl mx-auto leading-relaxed">
             {isEn
               ? 'For B2B founders without a sales team: Find the target company, get the verified email, and complete the personalized first touch in a single flow.'
-              : 'Satış ekibi olmayan B2B kurucular için: Hedef şirketi bul, doğrulanmış e-postaya ulaş ve kişiselleştirilmiş ilk temayı tek akışta tamamla.'}
+              : 'Satış ekibi olmayan B2B kurucular için: Hedef şirketi bul, doğrulanmış e‑postaya ulaş ve kişiselleştirilmiş ilk temayı tek akışta tamamla.'}
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
