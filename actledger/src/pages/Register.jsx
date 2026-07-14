@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useT } from '../contexts/LanguageContext'
 import PasswordInput from '../components/PasswordInput'
+import AuthLayout from '../components/AuthLayout'
 
 const FREE_DOMAINS = [
   'gmail.com', 'googlemail.com', 'hotmail.com', 'outlook.com', 'live.com',
@@ -60,109 +61,72 @@ export default function Register() {
     }
   }
 
+  const inputCls = 'w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent'
+
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col">
-      <header className="border-b border-[#E5E7EB] bg-white">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/assets/logo.svg" alt="AskDesk" className="w-7 h-7" />
-            <span className="text-base font-semibold tracking-tight text-[#111827]">AskDesk</span>
-          </Link>
-          <Link to="/" className="text-sm text-[#6B7280] hover:text-[#2563EB] transition-colors">
-            ← {t('Ana Sayfa')}
-          </Link>
+    <AuthLayout
+      title={t('Kayıt Ol')}
+      subtitle={isEn ? '7-day free trial. Corporate email required. No credit card.' : '7 gün ücretsiz deneme. Kurumsal email gerekli. Kredi kartı gerekmez.'}
+      altText={t('Zaten hesabınız var mı?')}
+      altLinkText={t('Giriş Yap')}
+      altLinkTo="/login"
+    >
+      {error && (
+        <div className="text-sm text-[#DC2626] bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4">
+          {error}
         </div>
-      </header>
+      )}
 
-      <div className="flex-1 flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm">
-        <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <img src="/assets/logo.svg" alt="AskDesk" className="w-8 h-8" />
-          <span className="text-xl font-semibold tracking-tight text-[#111827]">AskDesk</span>
-        </Link>
-
-        <div className="bg-white border border-[#E5E7EB] rounded-md p-6">
-          <h1 className="text-lg font-semibold text-[#111827] mb-1">{t('Kayıt Ol')}</h1>
-          <p className="text-sm text-[#6B7280] mb-1">{t('Yeni hesap oluşturun')}</p>
-          <p className="text-xs text-[#9CA3AF] mb-6">
-            {isEn
-              ? '7-day free trial. Corporate email required. No credit card required.'
-              : '7 gün ücretsiz deneme. Kurumsal email gerekli. Kredi kartı gerekmez.'}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-[#374151] mb-1">{t('Ad Soyad')}</label>
+          <input type="text" value={form.name} onChange={update('name')} required className={inputCls} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#374151] mb-1">{t('Firma Adı')}</label>
+          <input type="text" value={form.company_name} onChange={update('company_name')} className={inputCls} placeholder={t('İsteğe bağlı')} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#374151] mb-1">{isEn ? 'Corporate Email' : 'Kurumsal Email'}</label>
+          <input type="email" value={form.email} onChange={update('email')} onBlur={validateEmail} required className={inputCls} placeholder="ad@firmaniz.com" />
+          <p className="text-xs text-[#9CA3AF] mt-1">
+            {isEn ? 'Gmail, Hotmail, Yahoo etc. are not accepted' : 'Gmail, Hotmail, Yahoo vb. kabul edilmez'}
           </p>
-
-          {error && (
-            <div className="text-sm text-[#DC2626] bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">{t('Ad Soyad')}</label>
-              <input type="text" value={form.name} onChange={update('name')} required
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">{t('Firma Adı')}</label>
-              <input type="text" value={form.company_name} onChange={update('company_name')}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
-                placeholder={t('İsteğe bağlı')} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">
-                {isEn ? 'Corporate Email' : 'Kurumsal Email'}
-              </label>
-              <input type="email" value={form.email} onChange={update('email')} onBlur={validateEmail} required
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
-                placeholder="ad@firmaniz.com" />
-              <p className="text-xs text-[#9CA3AF] mt-1">
-                {isEn ? 'Gmail, Hotmail, Yahoo etc. are not accepted' : 'Gmail, Hotmail, Yahoo vb. kabul edilmez'}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">{t('Şifre')}</label>
-              <PasswordInput value={form.password} onChange={update('password')} required minLength={6} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-1">{isEn ? 'Discount Code' : 'İndirim Kodu'}</label>
-              <input type="text" value={form.discount_code} onChange={update('discount_code')}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent uppercase"
-                placeholder={isEn ? 'Optional' : 'İsteğe bağlı'} />
-            </div>
-            <div className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                id="terms"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-[#D1D5DB] text-[#2563EB] focus:ring-[#2563EB]"
-              />
-              <label htmlFor="terms" className="text-xs text-[#6B7280]">
-                {isEn ? (
-                  <>I have read and agree to the <Link to="/terms" target="_blank" className="text-[#2563EB] font-medium">Terms of Use</Link>.</>
-                ) : (
-                  <><Link to="/terms" target="_blank" className="text-[#2563EB] font-medium">Kullanım Koşulları</Link>'nı okudum ve kabul ediyorum.</>
-                )}
-              </label>
-            </div>
-            <button type="submit" disabled={submitting || !agreed}
-              className="w-full py-2 text-sm font-medium text-white bg-[#2563EB] rounded-md hover:bg-[#1D4ED8] disabled:opacity-50">
-              {submitting ? t('Kayıt yapılıyor...') : t('Kayıt Ol')}
-            </button>
-          </form>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#374151] mb-1">{t('Şifre')}</label>
+          <PasswordInput value={form.password} onChange={update('password')} required minLength={6} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[#374151] mb-1">{isEn ? 'Discount Code' : 'İndirim Kodu'}</label>
+          <input type="text" value={form.discount_code} onChange={update('discount_code')} className={`${inputCls} uppercase`} placeholder={isEn ? 'Optional' : 'İsteğe bağlı'} />
         </div>
 
-        <p className="text-sm text-[#6B7280] text-center mt-4">
-          {t('Zaten hesabınız var mı?')} <Link to="/login" className="text-[#2563EB] font-medium">{t('Giriş Yap')}</Link>
-        </p>
-
-        <div className="flex items-center justify-center gap-4 mt-6 text-xs text-[#9CA3AF]">
-          <Link to="/terms" className="hover:text-[#2563EB]">{t('Kullanım Koşulları')}</Link>
-          <span>·</span>
-          <Link to="/privacy" className="hover:text-[#2563EB]">{t('Gizlilik')}</Link>
+        <div className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            id="terms"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-[#D1D5DB] text-[#7C3AED] focus:ring-[#7C3AED]"
+          />
+          <label htmlFor="terms" className="text-xs text-[#6B7280]">
+            {isEn ? (
+              <>I have read and agree to the <Link to="/terms" target="_blank" className="text-[#7C3AED] font-medium">Terms of Use</Link>.</>
+            ) : (
+              <><Link to="/terms" target="_blank" className="text-[#7C3AED] font-medium">Kullanım Koşulları</Link>'nı okudum ve kabul ediyorum.</>
+            )}
+          </label>
         </div>
-      </div>
-      </div>
-    </div>
+
+        <button type="submit" disabled={submitting || !agreed}
+          className="w-full py-2.5 text-sm font-semibold text-white rounded-md disabled:opacity-50 transition-colors"
+          style={{ background: '#7C3AED' }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = '#6D28D9')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = '#7C3AED')}>
+          {submitting ? t('Kayıt yapılıyor...') : t('Kayıt Ol')}
+        </button>
+      </form>
+    </AuthLayout>
   )
 }

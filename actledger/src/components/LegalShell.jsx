@@ -16,8 +16,9 @@ export default function LegalShell({ title, updated, children }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex flex-col">
-      <header className="border-b border-[#E5E7EB] bg-white">
+    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(180deg, #faf5ff 0%, #f5f9ff 40%, #F9FAFB 100%)' }}>
+      <div style={{ height: '4px', background: 'linear-gradient(90deg, #7e14ff 0%, #47bfff 100%)' }} />
+      <header className="bg-white/70 backdrop-blur border-b border-[#EAE4F5]">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src="/assets/logo.svg" alt="AskDesk" className="w-7 h-7" />
@@ -25,30 +26,30 @@ export default function LegalShell({ title, updated, children }) {
           </Link>
           <button
             onClick={goBack}
-            className="text-sm text-[#6B7280] hover:text-[#2563EB] transition-colors"
+            className="text-sm text-[#6B7280] hover:text-[#7C3AED] transition-colors"
           >
             ← {isEn ? 'Back' : 'Geri'}
           </button>
         </div>
       </header>
 
-      <main className="flex-1 py-10 px-4">
+      <main className="flex-1 py-12 px-4">
         <div className="max-w-3xl mx-auto">
-          <div className="bg-white border border-[#E5E7EB] rounded-md p-8">
-            <h1 className="text-2xl font-semibold text-[#111827] mb-2">{title}</h1>
+          <div className="bg-white border border-[#EAE4F5] rounded-xl shadow-[0_1px_3px_rgba(124,58,237,0.06),0_8px_24px_rgba(124,58,237,0.06)] p-8 sm:p-10">
+            <h1 className="text-2xl font-bold text-[#111827] mb-2">{title}</h1>
             {updated && <p className="text-xs text-[#9CA3AF] mb-8">{updated}</p>}
             {children}
           </div>
         </div>
       </main>
 
-      <footer className="border-t border-[#E5E7EB] bg-white">
+      <footer className="border-t border-[#EAE4F5] bg-white/70 backdrop-blur">
         <div className="max-w-3xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span className="text-xs text-[#9CA3AF]">© 2026 ATAOL AI Techs · askdesk.app</span>
           <div className="flex items-center gap-4 text-xs">
-            <Link to="/" className="text-[#6B7280] hover:text-[#2563EB]">{isEn ? 'Home' : 'Ana Sayfa'}</Link>
-            <Link to="/terms" className="text-[#6B7280] hover:text-[#2563EB]">{isEn ? 'Terms' : 'Kullanım Koşulları'}</Link>
-            <Link to="/privacy" className="text-[#6B7280] hover:text-[#2563EB]">{isEn ? 'Privacy' : 'Gizlilik'}</Link>
+            <Link to="/" className="text-[#6B7280] hover:text-[#7C3AED]">{isEn ? 'Home' : 'Ana Sayfa'}</Link>
+            <Link to="/terms" className="text-[#6B7280] hover:text-[#7C3AED]">{isEn ? 'Terms' : 'Kullanım Koşulları'}</Link>
+            <Link to="/privacy" className="text-[#6B7280] hover:text-[#7C3AED]">{isEn ? 'Privacy' : 'Gizlilik'}</Link>
           </div>
         </div>
       </footer>
