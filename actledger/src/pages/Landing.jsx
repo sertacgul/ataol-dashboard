@@ -84,8 +84,8 @@ const FEATURES = [
     icon: 'M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2',
     titleTr: 'Newsletter & Bülten',
     titleEn: 'Newsletter',
-    descTr: 'Abonelerinize düzenli bülten gönderin. AI ile içerik üretin, açılma oranlarını ve etkileşimi takip edin.',
-    descEn: 'Send regular newsletters to your subscribers. Generate content with AI and track open rates and engagement.',
+    descTr: 'AI ile bülten içeriği üretin, düzenleyin ve kendi bülten aracınızdan yayınlamak için hazır hale getirin.',
+    descEn: 'Generate and edit newsletter content with AI, ready to publish from your own newsletter tool.',
   },
 ]
 
