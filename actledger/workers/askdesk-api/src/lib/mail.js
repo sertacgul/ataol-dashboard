@@ -62,7 +62,7 @@ export function welcomeEmail(name, trialEndDate) {
         <p style="color: #6B7280; font-size: 14px;">AskDesk'e hoş geldiniz! 7 günlük ücretsiz deneme süreniz başladı.</p>
         <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 16px; margin: 20px 0;">
           <p style="color: #1D4ED8; font-size: 14px; margin: 0;"><strong>Deneme süreniz:</strong> ${formattedDate} tarihine kadar</p>
-          <p style="color: #6B7280; font-size: 13px; margin: 8px 0 0 0;">Deneme süresi sonunda seçtiğiniz plana göre ödeme otomatik olarak alınacaktır.</p>
+          <p style="color: #6B7280; font-size: 13px; margin: 8px 0 0 0;">Kredi kartı istemiyoruz ve otomatik ödeme yoktur. Deneme sonunda dilerseniz bir plan seçerek devam edebilirsiniz.</p>
         </div>
         <p style="color: #6B7280; font-size: 14px;">Hemen başlamak için:</p>
         <ul style="color: #6B7280; font-size: 14px; padding-left: 20px;">
@@ -90,7 +90,7 @@ export function trialExpiryReminderEmail(name, daysLeft) {
           <span style="color:#111827; font-weight:bold; font-size:18px; vertical-align:middle; margin-left:8px;">AskDesk</span>
         </div>
         <p style="color: #111827; font-size: 15px;">Merhaba ${name},</p>
-        <p style="color: #6B7280; font-size: 14px;">Ücretsiz deneme sürenizin bitmesine <strong>${daysLeft} gün</strong> kaldı. Deneme süresi sonunda seçtiğiniz plana göre ödeme otomatik olarak alınacaktır.</p>
+        <p style="color: #6B7280; font-size: 14px;">Ücretsiz deneme sürenizin bitmesine <strong>${daysLeft} gün</strong> kaldı. Kesintisiz erişim için dilediğiniz zaman bir plana geçebilirsiniz; otomatik ödeme yoktur.</p>
         <p style="color: #6B7280; font-size: 14px;">Kesintisiz erişim için planınızı şimdi yükseltin:</p>
         <div style="text-align: center; margin: 24px 0;">
           <a href="https://askdesk.app/app/settings" style="display: inline-block; background: #2563EB; color: white; text-decoration: none; padding: 12px 32px; border-radius: 6px; font-size: 14px; font-weight: 500;">Planımı Yükselt</a>
