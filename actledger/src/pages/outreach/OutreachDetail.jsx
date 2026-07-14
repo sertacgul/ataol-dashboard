@@ -11,6 +11,16 @@ export default function OutreachDetail() {
   const [email, setEmail] = useState(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  function copyEmail() {
+    const text = `${t('Konu')}: ${email.subject || ''}\n\n${email.body || ''}`
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    }).catch(() => {})
+  }
 
   useEffect(() => {
     api.get(`/outreach/${id}`)
@@ -31,9 +41,12 @@ export default function OutreachDetail() {
 
   async function handleSend() {
     setActionLoading(true)
+    setError('')
     try {
       await api.post(`/outreach/${id}/send`, {})
       setEmail(prev => ({ ...prev, status: 'sent', sent_at: new Date().toISOString() }))
+    } catch (e) {
+      setError(e.message)
     } finally {
       setActionLoading(false)
     }
@@ -60,6 +73,12 @@ export default function OutreachDetail() {
         <span className="text-sm font-semibold text-[#111827]">{email.subject || t('(konu yok)')}</span>
       </div>
 
+      {error && (
+        <div className="text-sm text-[#92400E] bg-[#FFFBEB] border border-[#FDE68A] rounded-md px-3 py-2 mb-4">
+          {error}
+        </div>
+      )}
+
       <div className="bg-white border border-[#E5E7EB] rounded-md p-4 mb-4">
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -76,6 +95,12 @@ export default function OutreachDetail() {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={copyEmail}
+              className="text-xs font-medium text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB] rounded-md px-3 py-1.5"
+            >
+              {copied ? t('Kopyalandı') : t('Kopyala')}
+            </button>
             {email.status === 'pending' && (
               <>
                 <button

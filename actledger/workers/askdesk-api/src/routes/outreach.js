@@ -101,6 +101,11 @@ outreach.put('/:id', async (c) => {
   return c.json({ ok: true })
 })
 
+// Email sending is disabled until a real, domain-authenticated provider is wired.
+// MailChannels' free Workers tier was discontinued (returns 401), so sending
+// does not work. We must NOT pretend an email was sent.
+const SENDING_ENABLED = false
+
 outreach.post('/:id/send', async (c) => {
   const userId = c.get('userId')
   const role = c.get('userRole')
@@ -115,52 +120,47 @@ outreach.post('/:id/send', async (c) => {
   if (!email) return c.json({ error: 'Email bulunamadı' }, 404)
   if (role !== 'superadmin' && email.user_id !== userId) return c.json({ error: 'Yetkisiz' }, 403)
 
+  // Sending is under maintenance: never mark as sent, never fail silently.
+  if (!SENDING_ENABLED) {
+    return c.json({
+      error: 'E-posta gönderimi şu anda bakımda. E-postanızı kopyalayabilir veya dışa aktarabilirsiniz.',
+      maintenance: true,
+    }, 503)
+  }
+
   if (!email.contact_email) return c.json({ error: 'Alıcı email adresi bulunamadı. Lütfen iletişim kişisi ekleyin.' }, 400)
 
   const settings = await c.env.DB.prepare('SELECT * FROM email_settings WHERE user_id = ?').bind(userId).first()
   if (!settings) return c.json({ error: 'Email ayarları yapılandırılmamış. Ayarlar sayfasından SMTP bilgilerinizi girin.' }, 400)
 
-  // NOTE: Cloudflare Workers cannot do raw SMTP connections.
-  // Options: MailChannels (free, requires domain SPF setup), Resend API, or any transactional email API.
-  // MailChannels free tier for CF Workers requires domain ownership verification via SPF/DKIM records.
-  // To use Resend: replace this fetch with https://api.resend.com/emails using Authorization: Bearer {RESEND_API_KEY}
+  // Attempt to send. On ANY failure, mark 'failed' with the reason — never 'sent'.
+  let sendError = null
   try {
     const mailRes = await fetch('https://api.mailchannels.net/tx/v1/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        personalizations: [{
-          to: [{ email: email.contact_email, name: email.contact_name || '' }],
-        }],
+        personalizations: [{ to: [{ email: email.contact_email, name: email.contact_name || '' }] }],
         from: { email: settings.from_email, name: settings.from_name || '' },
         subject: email.subject,
-        content: [{
-          type: 'text/plain',
-          value: email.body,
-        }],
+        content: [{ type: 'text/plain', value: email.body }],
       }),
     })
-
     if (!mailRes.ok) {
-      const errText = await mailRes.text()
-      // Fall back to just marking as sent if MailChannels fails
-      await c.env.DB.prepare(
-        "UPDATE emails SET status = 'sent', sent_at = datetime('now') WHERE id = ?"
-      ).bind(id).run()
-      return c.json({ ok: true, warning: 'Email servisi hatası: ' + errText })
+      sendError = `HTTP ${mailRes.status}: ${(await mailRes.text()).slice(0, 300)}`
     }
-  } catch {
-    // Service unavailable — mark as sent anyway
-    await c.env.DB.prepare(
-      "UPDATE emails SET status = 'sent', sent_at = datetime('now') WHERE id = ?"
-    ).bind(id).run()
-    return c.json({ ok: true, warning: 'Email servisi erişilemedi, durum güncellendi.' })
+  } catch (e) {
+    sendError = e?.message || 'E-posta servisine erişilemedi'
+  }
+
+  if (sendError) {
+    await c.env.DB.prepare("UPDATE emails SET status = 'failed', error = ? WHERE id = ?").bind(sendError, id).run()
+    return c.json({ error: 'E-posta gönderilemedi: ' + sendError }, 502)
   }
 
   await c.env.DB.prepare(
-    "UPDATE emails SET status = 'sent', sent_at = datetime('now') WHERE id = ?"
+    "UPDATE emails SET status = 'sent', sent_at = datetime('now'), error = NULL WHERE id = ?"
   ).bind(id).run()
-
   return c.json({ ok: true })
 })
 
