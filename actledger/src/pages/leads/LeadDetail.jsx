@@ -11,6 +11,9 @@ export default function LeadDetail() {
   const [contacts, setContacts] = useState([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [firstStageId, setFirstStageId] = useState(null)
+  const [inPipeline, setInPipeline] = useState(false)
+  const [addingPipeline, setAddingPipeline] = useState(false)
 
   useEffect(() => {
     api.get(`/leads/${id}`)
@@ -21,6 +24,26 @@ export default function LeadDetail() {
       .catch(() => setCompany(null))
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    api.get('/pipeline')
+      .then(data => {
+        setFirstStageId(data.stages?.[0]?.id || null)
+        setInPipeline((data.items || []).some(i => i.company_id === id))
+      })
+      .catch(() => {})
+  }, [id])
+
+  async function addToPipeline() {
+    if (!firstStageId || inPipeline || addingPipeline) return
+    setAddingPipeline(true)
+    try {
+      await api.post('/pipeline/items', { company_id: id, stage_id: firstStageId })
+      setInPipeline(true)
+    } catch { /* ignore */ } finally {
+      setAddingPipeline(false)
+    }
+  }
 
   async function handleDelete() {
     if (!window.confirm(t('Bu lead\'i silmek istediğinizden emin misiniz?'))) return
@@ -64,6 +87,13 @@ export default function LeadDetail() {
             >
               {t('Email Gönder')}
             </Link>
+            <button
+              onClick={addToPipeline}
+              disabled={inPipeline || addingPipeline || !firstStageId}
+              className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] disabled:opacity-60 rounded-md px-3 py-1.5"
+            >
+              {inPipeline ? t('Pipeline\'da') : addingPipeline ? t('Ekleniyor...') : t('Pipeline\'a Ekle')}
+            </button>
             <button
               onClick={handleDelete}
               disabled={deleting}
