@@ -2,16 +2,18 @@
 // "content" (SEO, social). Each pool has a monthly plan allowance (resets each
 // month) plus a purchased balance (pay-as-you-go, does not reset).
 const PLAN_CREDITS = {
-  free:   { outreach: 25,  content: 5 },
-  pro:    { outreach: 300, content: 10 },
-  growth: { outreach: 750, content: 25 },
-  team:   { outreach: 300, content: 10 },
+  free:      { outreach: 25,      content: 5 },
+  pro:       { outreach: 300,     content: 10 },
+  growth:    { outreach: 750,     content: 25 },
+  team:      { outreach: 300,     content: 10 },
+  // Internal ATAOL / StrategyThrust team: effectively unlimited.
+  unlimited: { outreach: 1000000, content: 1000000 },
 }
 
 export { PLAN_CREDITS }
 
 // Back-compat: outreach limit per plan (legacy callers importing PLAN_LIMITS).
-export const PLAN_LIMITS = { free: 25, pro: 300, growth: 750, team: 300 }
+export const PLAN_LIMITS = { free: 25, pro: 300, growth: 750, team: 300, unlimited: 1000000 }
 
 export function getNextResetDate() {
   const now = new Date()

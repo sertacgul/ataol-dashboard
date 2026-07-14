@@ -39,6 +39,7 @@ import History from './pages/history/History'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Admin from './pages/Admin'
+import Ataol from './pages/Ataol'
 
 function App() {
   const [splashDone, setSplashDone] = useState(false)
@@ -84,6 +85,7 @@ function App() {
         <Route path="history" element={<History />} />
         <Route path="settings" element={<Settings />} />
         <Route path="admin" element={<Admin />} />
+        <Route path="ataol" element={<Ataol />} />
         <Route path="onboarding" element={<Onboarding />} />
       </Route>
       </Routes>
