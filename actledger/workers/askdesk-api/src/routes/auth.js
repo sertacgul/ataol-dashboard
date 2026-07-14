@@ -52,9 +52,12 @@ async function verifyPassword(password, stored) {
 }
 
 auth.post('/register', async (c) => {
-  const { email, password, name, company_name, discount_code } = await c.req.json()
+  const { email, password, name, company_name, discount_code, terms_accepted } = await c.req.json()
   if (!email || !password || !name) {
     return c.json({ error: 'Email, şifre ve isim gerekli' }, 400)
+  }
+  if (!terms_accepted) {
+    return c.json({ error: 'Kullanım Koşulları kabul edilmeden kayıt yapılamaz.' }, 400)
   }
 
   const domain = getEmailDomain(email)
@@ -80,11 +83,11 @@ auth.post('/register', async (c) => {
 
   const id = crypto.randomUUID()
   const password_hash = await hashPassword(password)
-  const trialExpires = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+  const trialExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
 
   await c.env.DB.prepare(
-    'INSERT INTO users (id, email, password_hash, name, company_name, role, email_domain, plan, trial_expires_at, discount_percent, discount_expires_at, discount_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  ).bind(id, email, password_hash, name, company_name || null, 'member', domain, 'free', trialExpires, disc?.percent || 0, disc?.expires_at || null, disc?.code || null).run()
+    'INSERT INTO users (id, email, password_hash, name, company_name, role, email_domain, plan, trial_expires_at, discount_percent, discount_expires_at, discount_code, terms_accepted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(id, email, password_hash, name, company_name || null, 'member', domain, 'free', trialExpires, disc?.percent || 0, disc?.expires_at || null, disc?.code || null, new Date().toISOString()).run()
 
   const token = await createToken(id, 'member', c.env.JWT_SECRET)
   c.header('Set-Cookie', `askdesk_token=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=604800`)

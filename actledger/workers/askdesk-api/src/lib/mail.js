@@ -30,9 +30,8 @@ export function passwordResetEmail(name, resetCode) {
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
         <div style="text-align: center; margin-bottom: 24px;">
-          <div style="display: inline-block; background: #2563EB; border-radius: 8px; padding: 8px 12px;">
-            <span style="color: white; font-weight: bold; font-size: 16px;">AskDesk</span>
-          </div>
+          <img src="https://askdesk.app/assets/favicon-192.png" alt="AskDesk" width="40" height="40" style="display:inline-block; vertical-align:middle; border:0;" />
+          <span style="color:#111827; font-weight:bold; font-size:18px; vertical-align:middle; margin-left:8px;">AskDesk</span>
         </div>
         <p style="color: #111827; font-size: 15px;">Merhaba ${name},</p>
         <p style="color: #6B7280; font-size: 14px;">Şifre sıfırlama talebiniz alındı. Aşağıdaki kodu kullanarak yeni şifrenizi belirleyebilirsiniz:</p>
@@ -56,12 +55,11 @@ export function welcomeEmail(name, trialEndDate) {
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
         <div style="text-align: center; margin-bottom: 24px;">
-          <div style="display: inline-block; background: #2563EB; border-radius: 8px; padding: 8px 12px;">
-            <span style="color: white; font-weight: bold; font-size: 16px;">AskDesk</span>
-          </div>
+          <img src="https://askdesk.app/assets/favicon-192.png" alt="AskDesk" width="40" height="40" style="display:inline-block; vertical-align:middle; border:0;" />
+          <span style="color:#111827; font-weight:bold; font-size:18px; vertical-align:middle; margin-left:8px;">AskDesk</span>
         </div>
         <p style="color: #111827; font-size: 15px;">Merhaba ${name},</p>
-        <p style="color: #6B7280; font-size: 14px;">AskDesk'e hoş geldiniz! 14 günlük ücretsiz deneme süreniz başladı.</p>
+        <p style="color: #6B7280; font-size: 14px;">AskDesk'e hoş geldiniz! 7 günlük ücretsiz deneme süreniz başladı.</p>
         <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 16px; margin: 20px 0;">
           <p style="color: #1D4ED8; font-size: 14px; margin: 0;"><strong>Deneme süreniz:</strong> ${formattedDate} tarihine kadar</p>
           <p style="color: #6B7280; font-size: 13px; margin: 8px 0 0 0;">Deneme süresi sonunda seçtiğiniz plana göre ödeme otomatik olarak alınacaktır.</p>
@@ -88,9 +86,8 @@ export function trialExpiryReminderEmail(name, daysLeft) {
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
         <div style="text-align: center; margin-bottom: 24px;">
-          <div style="display: inline-block; background: #2563EB; border-radius: 8px; padding: 8px 12px;">
-            <span style="color: white; font-weight: bold; font-size: 16px;">AskDesk</span>
-          </div>
+          <img src="https://askdesk.app/assets/favicon-192.png" alt="AskDesk" width="40" height="40" style="display:inline-block; vertical-align:middle; border:0;" />
+          <span style="color:#111827; font-weight:bold; font-size:18px; vertical-align:middle; margin-left:8px;">AskDesk</span>
         </div>
         <p style="color: #111827; font-size: 15px;">Merhaba ${name},</p>
         <p style="color: #6B7280; font-size: 14px;">Ücretsiz deneme sürenizin bitmesine <strong>${daysLeft} gün</strong> kaldı. Deneme süresi sonunda seçtiğiniz plana göre ödeme otomatik olarak alınacaktır.</p>

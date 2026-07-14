@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   trial_expires_at TEXT,
   reset_token TEXT,
   reset_token_expires TEXT,
+  terms_accepted_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
