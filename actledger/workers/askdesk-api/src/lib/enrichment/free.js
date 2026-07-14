@@ -78,10 +78,21 @@ export function generateEmailPatterns(personName, domain) {
   const parts = ascii.toLowerCase().replace(/[^a-z\s]/g, '').trim().split(/\s+/)
   if (parts.length < 2) return parts[0] ? [`${parts[0]}@${clean}`] : []
   const first = parts[0], last = parts[parts.length - 1]
+  const fi = first[0], li = last[0]
+  // Ordered by real-world commonality so verify-and-pick hits the real
+  // address in the fewest verification calls.
   const patterns = [
-    `${first}.${last}@${clean}`, `${first}${last}@${clean}`,
-    `${first[0]}.${last}@${clean}`, `${first}_${last}@${clean}`,
-    `${first}.${last[0]}@${clean}`, `${first}@${clean}`, `${last}@${clean}`,
+    `${first}.${last}@${clean}`,   // first.last
+    `${first}${last}@${clean}`,    // firstlast
+    `${fi}${last}@${clean}`,       // flast
+    `${fi}.${last}@${clean}`,      // f.last
+    `${first}_${last}@${clean}`,   // first_last
+    `${first}-${last}@${clean}`,   // first-last
+    `${last}.${first}@${clean}`,   // last.first
+    `${last}${first}@${clean}`,    // lastfirst
+    `${first}.${li}@${clean}`,     // first.l
+    `${first}@${clean}`,           // first
+    `${last}@${clean}`,            // last
   ]
   return [...new Set(patterns)]
 }

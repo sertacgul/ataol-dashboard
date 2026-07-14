@@ -169,13 +169,25 @@ router.post('/reveal', async (c) => {
 
   const person = cached.people[idx]
   let email = person.email
-  if (!email) {
+  // A website-scraped email is already real. For anything else (a pattern
+  // guess or a missing address) run pattern + verification to return the
+  // real, confirmed email.
+  if (!email || person.source !== 'website') {
     const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
-    const found = await enrichment.findEmail(person.first_name || person.name?.split(' ')[0] || '', person.last_name || person.name?.split(' ').slice(-1)[0] || '', domain)
-    if (!found?.email) return c.json({ error: 'Bu kisi icin email adresi bulunamadi' }, 404)
-    email = found.email
-    person.verification_status = person.verification_status || 'unknown'
-    person.confidence = found.confidence
+    const found = await enrichment.findVerifiedEmail(person.name, domain, c.env.DB)
+    if (found?.email) {
+      email = found.email
+      person.verification_status = found.verification_status || person.verification_status || 'unknown'
+      person.confidence = found.confidence
+      person.source = found.source
+      if (found.verification_status === 'verified') {
+        await saveLearnedPattern(c.env.DB, domain, [{
+          email, name: person.name, email_type: 'personal',
+          verification_status: 'verified', confidence: found.confidence,
+        }]).catch(() => {})
+      }
+    }
+    if (!email) return c.json({ error: 'Bu kisi icin email adresi bulunamadi' }, 404)
   }
 
   // Check if already revealed by this user
@@ -588,16 +600,14 @@ RECIPIENT COMPANY:
 SENDER COMPANY:
 ${senderInfo || '(No sender profile configured)'}
 
-EMAIL FORMAT - FOLLOW THIS STRUCTURE EXACTLY:
-1. Start with "Sayin Yoneticiler merhaba," (or equivalent formal greeting in the target language)
-2. Reference the company's industry standing or trade chamber/association membership if relevant
-3. Acknowledge the company's leadership and achievements in their sector - be specific to their actual business, not generic
-4. Identify exactly 3 SPECIFIC operational challenges that companies in this EXACT sector face. Be very industry-specific (e.g., for steel: furnace efficiency, quality control in rolling, maintenance scheduling; for textiles: yarn waste optimization, dyeing consistency, supply chain visibility). Number them 1, 2, 3.
-5. For each of the 3 challenges, propose a concrete solution from the sender's products/services. Format as bullet points with quantified benefits (e.g., "OEE %15 artis", "bakim maliyetlerinde %30 tasarruf", "%25 verimlilik artisi", "enerji tuketiminde %20 azalma")
-6. End with a SOFT call-to-action: offer to send a 1-page flow chart or brief summary document. Do NOT request a meeting or phone call.
-7. Sign off with "Saygilarimla," and sender company name
-8. Do NOT use any markdown formatting (no #, *, ** symbols)
-9. Email body should be 300-500 words - detailed and substantive, NOT a short cold email
+EMAIL RULES:
+- Body 60-120 words. Do not write longer; it will be read on mobile.
+- Subject line 4-7 words; intriguing but not spammy.
+- Open with a short, specific reference to the recipient company's actual business or a current situation in their sector. No generic praise, no trade chamber or association references.
+- Identify ONE concrete challenge relevant to them and connect it to one thing the sender offers.
+- Exactly one clear call to action (offer a short call, or to send a brief summary). Do not stack multiple asks.
+- Do not use repeated template phrases; the email must not read like a form letter.
+- Natural, human tone. No markdown, no # * symbols, no long dashes.
 ${langInstruction}
 
 Respond in JSON only:
