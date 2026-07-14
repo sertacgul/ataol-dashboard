@@ -18,6 +18,7 @@ import bmcRoutes from './routes/bmc.js'
 import competitorsRoutes from './routes/competitors.js'
 import blogRoutes from './routes/blog.js'
 import adminRoutes from './routes/admin.js'
+import ataolRoutes from './routes/ataol.js'
 import emailFinderRoutes from './routes/email-finder.js'
 import activityRoutes from './routes/activity.js'
 import billingRoutes from './routes/billing.js'
@@ -53,6 +54,7 @@ app.route('/bmc', bmcRoutes)
 app.route('/competitors', competitorsRoutes)
 app.route('/blog', blogRoutes)
 app.route('/admin', adminRoutes)
+app.route('/ataol', ataolRoutes)
 app.route('/email-finder', emailFinderRoutes)
 app.route('/activity', activityRoutes)
 app.route('/payments', billingRoutes)

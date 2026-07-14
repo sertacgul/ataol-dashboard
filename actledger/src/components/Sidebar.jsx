@@ -36,6 +36,13 @@ const analyticsItems = [
   { to: '/app/competitors', label: 'Rakip Analizi', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
 ]
 
+const ATAOL_PLATFORMS = [
+  { key: 'strategythrust', name: 'StrategyThrust' },
+  { key: 'actledger', name: 'ActLedger' },
+  { key: 'ataol_lab', name: 'ATAOL AI Lab' },
+  { key: 'ataol_institute', name: 'ATAOL AI Institute' },
+]
+
 function NavIcon({ d }) {
   return (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -64,6 +71,7 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
   const { t, lang, changeLang, languages } = useT()
   const navigate = useNavigate()
   const [credits, setCredits] = useState(null)
+  const isAtaol = !!user?.email && user.email.toLowerCase().endsWith('@strategythrust.com')
 
   useEffect(() => {
     async function loadCredits() {
@@ -107,6 +115,22 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
         </div>
       </div>
       <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
+        {isAtaol && (
+          <>
+            <div className="px-3 pb-2 mb-1">
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-[#9CA3AF] mb-1.5">ATAOL AI Techs</div>
+              <select
+                value=""
+                onChange={(e) => { if (e.target.value) { navigate(`/app/ataol?platform=${e.target.value}`); onClose() } }}
+                className="w-full text-xs border border-[#BFDBFE] bg-[#EFF6FF] rounded-md px-2 py-1.5 text-[#1D4ED8] font-medium focus:outline-none focus:border-[#2563EB] cursor-pointer"
+              >
+                <option value="">{t('Platform seçin...')}</option>
+                {ATAOL_PLATFORMS.map((p) => <option key={p.key} value={p.key}>{p.name}</option>)}
+              </select>
+            </div>
+            <div className="my-2 border-t border-[#E5E7EB]" />
+          </>
+        )}
         {navItems.map((item) => <NavItem key={item.to} {...item} t={t} onNavigate={onClose} />)}
         <div className="my-3 border-t border-[#E5E7EB]" />
         {secondaryItems.map((item) => <NavItem key={item.to} {...item} t={t} onNavigate={onClose} />)}
@@ -127,7 +151,7 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
           />
         )}
       </nav>
-      {user?.plan !== 'team' && (
+      {user?.plan !== 'team' && user?.plan !== 'unlimited' && (
         <div className="px-3 pt-3 border-t border-[#E5E7EB]">
           <NavLink
             to="/app/settings"
@@ -141,7 +165,16 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
           </NavLink>
         </div>
       )}
-      {credits && (credits.outreach || credits.content) && (
+      {user?.plan === 'unlimited' ? (
+        <div className="px-3 py-2.5 border-t border-[#E5E7EB]">
+          <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#059669]">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            {t('Sınırsız kullanım')}
+          </div>
+        </div>
+      ) : credits && (credits.outreach || credits.content) && (
         <div className="px-3 py-2.5 border-t border-[#E5E7EB] space-y-2">
           {credits.outreach && (
             <div>
