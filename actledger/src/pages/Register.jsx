@@ -70,6 +70,7 @@ export default function Register() {
       altText={t('Zaten hesabınız var mı?')}
       altLinkText={t('Giriş Yap')}
       altLinkTo="/login"
+      showLegalLinks={false}
     >
       {error && (
         <div className="text-sm text-[#DC2626] bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4">
@@ -112,9 +113,9 @@ export default function Register() {
           />
           <label htmlFor="terms" className="text-xs text-[#6B7280]">
             {isEn ? (
-              <>I have read and agree to the <Link to="/terms" target="_blank" className="text-[#2563EB] font-medium">Terms of Use</Link>.</>
+              <>I have read and agree to the <Link to="/terms" target="_blank" className="text-[#2563EB] font-medium">Terms of Use</Link> and <Link to="/privacy" target="_blank" className="text-[#2563EB] font-medium">Privacy Policy</Link>.</>
             ) : (
-              <><Link to="/terms" target="_blank" className="text-[#2563EB] font-medium">Kullanım Koşulları</Link>'nı okudum ve kabul ediyorum.</>
+              <><Link to="/terms" target="_blank" className="text-[#2563EB] font-medium">Kullanım Koşulları</Link> ve <Link to="/privacy" target="_blank" className="text-[#2563EB] font-medium">Gizlilik Politikası</Link>'nı okudum ve kabul ediyorum.</>
             )}
           </label>
         </div>

@@ -4,7 +4,7 @@ import { useT } from '../contexts/LanguageContext'
 // Premium split layout for auth pages: a brand-gradient panel (logo colors)
 // on the left, a clean form on the right. Collapses to a single column on
 // mobile with a compact logo header.
-export default function AuthLayout({ title, subtitle, children, altText, altLinkText, altLinkTo }) {
+export default function AuthLayout({ title, subtitle, children, altText, altLinkText, altLinkTo, showLegalLinks = true }) {
   const { t, lang } = useT()
   const isEn = lang === 'en'
 
@@ -77,11 +77,13 @@ export default function AuthLayout({ title, subtitle, children, altText, altLink
               </p>
             )}
 
-            <div className="flex items-center justify-center gap-4 mt-6 text-xs text-[#9CA3AF]">
-              <Link to="/terms" className="hover:text-[#2563EB]">{t('Kullanım Koşulları')}</Link>
-              <span>·</span>
-              <Link to="/privacy" className="hover:text-[#2563EB]">{t('Gizlilik')}</Link>
-            </div>
+            {showLegalLinks && (
+              <div className="flex items-center justify-center gap-4 mt-6 text-xs text-[#9CA3AF]">
+                <Link to="/terms" className="hover:text-[#2563EB]">{isEn ? 'Terms of Use' : 'Kullanım Koşulları'}</Link>
+                <span>·</span>
+                <Link to="/privacy" className="hover:text-[#2563EB]">{isEn ? 'Privacy' : 'Gizlilik'}</Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
