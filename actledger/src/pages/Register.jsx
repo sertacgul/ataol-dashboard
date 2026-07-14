@@ -61,12 +61,25 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#F9FAFB] flex flex-col">
+      <header className="border-b border-[#E5E7EB] bg-white">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/assets/logo.svg" alt="AskDesk" className="w-7 h-7" />
+            <span className="text-base font-semibold tracking-tight text-[#111827]">AskDesk</span>
+          </Link>
+          <Link to="/" className="text-sm text-[#6B7280] hover:text-[#2563EB] transition-colors">
+            ← {t('Ana Sayfa')}
+          </Link>
+        </div>
+      </header>
+
+      <div className="flex-1 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
-        <div className="flex items-center justify-center gap-2 mb-8">
+        <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <img src="/assets/logo.svg" alt="AskDesk" className="w-8 h-8" />
           <span className="text-xl font-semibold tracking-tight text-[#111827]">AskDesk</span>
-        </div>
+        </Link>
 
         <div className="bg-white border border-[#E5E7EB] rounded-md p-6">
           <h1 className="text-lg font-semibold text-[#111827] mb-1">{t('Kayıt Ol')}</h1>
@@ -142,6 +155,13 @@ export default function Register() {
         <p className="text-sm text-[#6B7280] text-center mt-4">
           {t('Zaten hesabınız var mı?')} <Link to="/login" className="text-[#2563EB] font-medium">{t('Giriş Yap')}</Link>
         </p>
+
+        <div className="flex items-center justify-center gap-4 mt-6 text-xs text-[#9CA3AF]">
+          <Link to="/terms" className="hover:text-[#2563EB]">{t('Kullanım Koşulları')}</Link>
+          <span>·</span>
+          <Link to="/privacy" className="hover:text-[#2563EB]">{t('Gizlilik')}</Link>
+        </div>
+      </div>
       </div>
     </div>
   )

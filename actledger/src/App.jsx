@@ -37,6 +37,7 @@ import EmailFinder from './pages/email-finder/EmailFinder'
 import Guide from './pages/Guide'
 import History from './pages/history/History'
 import Terms from './pages/Terms'
+import Privacy from './pages/Privacy'
 import Admin from './pages/Admin'
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<Dashboard />} />

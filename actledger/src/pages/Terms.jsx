@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import LegalShell, { LegalSection as Section } from '../components/LegalShell'
 import { useT } from '../contexts/LanguageContext'
 
 export default function Terms() {
@@ -6,36 +6,12 @@ export default function Terms() {
   const isEn = lang === 'en'
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <Link to="/" className="flex items-center gap-2 mb-8">
-          <img src="/assets/logo.svg" alt="AskDesk" className="w-8 h-8" />
-          <span className="text-xl font-semibold tracking-tight text-[#111827]">AskDesk</span>
-        </Link>
-
-        <div className="bg-white border border-[#E5E7EB] rounded-md p-8">
-          <h1 className="text-2xl font-semibold text-[#111827] mb-2">
-            {isEn ? 'Terms of Use' : 'Kullanım Koşulları'}
-          </h1>
-          <p className="text-xs text-[#9CA3AF] mb-8">
-            {isEn ? 'Last updated: July 2026' : 'Son güncelleme: Temmuz 2026'}
-          </p>
-
-          {isEn ? <TermsEn /> : <TermsTr />}
-        </div>
-
-        <p className="text-xs text-[#9CA3AF] text-center mt-6">ATAOL AI Techs · askdesk.app</p>
-      </div>
-    </div>
-  )
-}
-
-function Section({ title, children }) {
-  return (
-    <section className="mb-6">
-      <h2 className="text-sm font-semibold text-[#111827] mb-2">{title}</h2>
-      <div className="text-sm text-[#4B5563] leading-relaxed space-y-2">{children}</div>
-    </section>
+    <LegalShell
+      title={isEn ? 'Terms of Use' : 'Kullanım Koşulları'}
+      updated={isEn ? 'Last updated: July 2026' : 'Son güncelleme: Temmuz 2026'}
+    >
+      {isEn ? <TermsEn /> : <TermsTr />}
+    </LegalShell>
   )
 }
 
