@@ -19,7 +19,7 @@ function PrivacyTr() {
   return (
     <>
       <Section title="1. Veri Sorumlusu">
-        <p>AskDesk hizmeti, ATAOL AI Techs ("Şirket") tarafından işletilmektedir. 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamında veri sorumlusu Şirket'tir. İletişim: captsertacgul@gmail.com</p>
+        <p>AskDesk hizmeti, ATAOL AI Techs ("Şirket") tarafından işletilmektedir. 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamında veri sorumlusu Şirket'tir. İletişim: info@ataolai.tech</p>
       </Section>
       <Section title="2. İşlenen Kişisel Veriler">
         <p>Kayıt ve kullanım sırasında; ad soyad, kurumsal e-posta adresi, firma adı, şifrenizin güvenli özeti (hash) ve hesap etkinliğinize ilişkin kayıtlar işlenir. Hizmet'i kullanarak arattığınız firmalara ait alan adı, kişi adı ve iş e-postası gibi veriler de sistemde işlenir.</p>
@@ -40,7 +40,7 @@ function PrivacyTr() {
         <p>Hizmet aracılığıyla eriştiğiniz üçüncü kişilere ait iletişim verilerini işlerken veri sorumlusu sıfatıyla hareket edersiniz. Bu verileri hukuka ve KVKK ile spam/veri koruma kurallarına uygun kullanmakla yükümlüsünüz.</p>
       </Section>
       <Section title="8. İlgili Kişi Hakları (KVKK md. 11)">
-        <p>Kişisel verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme, düzeltilmesini veya silinmesini isteme, işlemeye itiraz etme ve zararın giderilmesini talep etme haklarına sahipsiniz. Taleplerinizi captsertacgul@gmail.com adresine iletebilirsiniz.</p>
+        <p>Kişisel verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme, düzeltilmesini veya silinmesini isteme, işlemeye itiraz etme ve zararın giderilmesini talep etme haklarına sahipsiniz. Taleplerinizi info@ataolai.tech adresine iletebilirsiniz.</p>
       </Section>
       <Section title="9. Çerezler">
         <p>Oturumunuzu sürdürmek için gerekli çerezler (örneğin kimlik doğrulama çerezi) kullanılır. Bu çerezler hizmetin çalışması için zorunludur.</p>
@@ -49,7 +49,7 @@ function PrivacyTr() {
         <p>Şifreler yalnızca güvenli özet (hash) olarak saklanır. Verilerin korunması için makul teknik ve idari tedbirler alınır.</p>
       </Section>
       <Section title="11. Değişiklikler ve İletişim">
-        <p>Bu metin güncellenebilir; önemli değişiklikler bildirilir. Sorularınız için: captsertacgul@gmail.com</p>
+        <p>Bu metin güncellenebilir; önemli değişiklikler bildirilir. Sorularınız için: info@ataolai.tech</p>
       </Section>
     </>
   )
@@ -59,7 +59,7 @@ function PrivacyEn() {
   return (
     <>
       <Section title="1. Data Controller">
-        <p>The AskDesk service is operated by ATAOL AI Techs (the "Company"), which acts as data controller under Turkey's Personal Data Protection Law (KVKK, Law No. 6698) and applicable data-protection law. Contact: captsertacgul@gmail.com</p>
+        <p>The AskDesk service is operated by ATAOL AI Techs (the "Company"), which acts as data controller under Turkey's Personal Data Protection Law (KVKK, Law No. 6698) and applicable data-protection law. Contact: info@ataolai.tech</p>
       </Section>
       <Section title="2. Personal Data We Process">
         <p>At registration and during use we process your name, corporate email address, company name, a secure hash of your password, and records of your account activity. Data about the companies you search, such as domain, person name, and business email, is also processed within the service.</p>
@@ -80,7 +80,7 @@ function PrivacyEn() {
         <p>When you process contact data of third parties obtained through the service, you act as data controller for that data and must use it in compliance with applicable law and anti-spam and data-protection rules.</p>
       </Section>
       <Section title="8. Your Rights">
-        <p>You have the right to learn whether your data is processed, request information, request correction or deletion, object to processing, and seek remedy for damages. Send requests to captsertacgul@gmail.com</p>
+        <p>You have the right to learn whether your data is processed, request information, request correction or deletion, object to processing, and seek remedy for damages. Send requests to info@ataolai.tech</p>
       </Section>
       <Section title="9. Cookies">
         <p>We use cookies necessary to maintain your session (for example an authentication cookie). These cookies are required for the service to function.</p>
@@ -89,7 +89,7 @@ function PrivacyEn() {
         <p>Passwords are stored only as a secure hash. We apply reasonable technical and organizational measures to protect data.</p>
       </Section>
       <Section title="11. Changes and Contact">
-        <p>This policy may be updated; material changes will be communicated. Questions: captsertacgul@gmail.com</p>
+        <p>This policy may be updated; material changes will be communicated. Questions: info@ataolai.tech</p>
       </Section>
     </>
   )

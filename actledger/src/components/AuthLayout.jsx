@@ -5,7 +5,7 @@ import { useT } from '../contexts/LanguageContext'
 // on the left, a clean form on the right. Collapses to a single column on
 // mobile with a compact logo header.
 export default function AuthLayout({ title, subtitle, children, altText, altLinkText, altLinkTo, showLegalLinks = true }) {
-  const { t, lang } = useT()
+  const { lang } = useT()
   const isEn = lang === 'en'
 
   const bullets = isEn
@@ -60,7 +60,7 @@ export default function AuthLayout({ title, subtitle, children, altText, altLink
             <span className="text-base font-semibold tracking-tight text-[#111827]">AskDesk</span>
           </Link>
           <Link to="/" className="text-sm text-[#6B7280] hover:text-[#2563EB] transition-colors">
-            ← {t('Ana Sayfa')}
+            ← {isEn ? 'Home' : 'Ana Sayfa'}
           </Link>
         </header>
 

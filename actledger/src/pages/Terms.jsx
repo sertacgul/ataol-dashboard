@@ -46,7 +46,7 @@ function TermsTr() {
         <p>Şirket, bu Kullanım Koşulları'nı güncelleyebilir. Önemli değişiklikler Kullanıcı'ya bildirilir. Güncellemeden sonra Hizmet'in kullanılmaya devam edilmesi, yeni koşulların kabulü anlamına gelir.</p>
       </Section>
       <Section title="10. Uygulanacak Hukuk ve İletişim">
-        <p>Bu koşullar Türkiye Cumhuriyeti hukukuna tabidir. Sorularınız için: captsertacgul@gmail.com</p>
+        <p>Bu koşullar Türkiye Cumhuriyeti hukukuna tabidir. Sorularınız için: info@ataolai.tech</p>
       </Section>
     </>
   )
@@ -83,7 +83,7 @@ function TermsEn() {
         <p>The Company may update these Terms. Material changes will be communicated to the User. Continued use of the Service after an update constitutes acceptance of the new terms.</p>
       </Section>
       <Section title="10. Governing Law and Contact">
-        <p>These terms are governed by the laws of the Republic of Türkiye. Questions: captsertacgul@gmail.com</p>
+        <p>These terms are governed by the laws of the Republic of Türkiye. Questions: info@ataolai.tech</p>
       </Section>
     </>
   )
