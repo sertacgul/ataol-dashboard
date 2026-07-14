@@ -50,6 +50,26 @@ export default function OutreachList() {
 
   useEffect(() => { loadEmails() }, [status])
 
+  function exportCsv() {
+    const cols = ['email', 'first_name', 'company', 'subject', 'body']
+    const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`
+    const rows = emails.map(e => [
+      e.contact_email || '',
+      (e.contact_name || '').split(' ')[0] || '',
+      e.company_name || '',
+      e.subject || '',
+      e.body || '',
+    ].map(esc).join(','))
+    const csv = [cols.join(','), ...rows].join('\r\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'outreach-export.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   async function handleAutoOutreach(e) {
     e?.preventDefault()
     if (!aoQuery.trim() && !aoSector && !aoSize && !aoLocation.trim()) { setAoError(t('En az bir kriter girin')); return }
@@ -82,12 +102,21 @@ export default function OutreachList() {
             {emails.length} email
           </span>
         </div>
-        <Link
-          to="/app/outreach/new"
-          className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
-        >
-          + {t('Yeni Email')}
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportCsv}
+            disabled={emails.length === 0}
+            className="text-xs font-medium text-[#374151] border border-[#E5E7EB] hover:bg-[#F9FAFB] disabled:opacity-50 rounded-md px-3 py-1.5"
+          >
+            {t('CSV İndir')}
+          </button>
+          <Link
+            to="/app/outreach/new"
+            className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-md px-3 py-1.5"
+          >
+            + {t('Yeni Email')}
+          </Link>
+        </div>
       </div>
 
       {/* Auto-Outreach section */}
@@ -337,7 +366,7 @@ export default function OutreachList() {
                     </Link>
                   </td>
                   <td className="px-4 py-2.5">
-                    <Badge status={email.opened ? 'opened' : email.status} />
+                    <Badge status={email.status} />
                   </td>
                   <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">
                     {email.created_at ? new Date(email.created_at).toLocaleDateString('tr-TR') : '-'}

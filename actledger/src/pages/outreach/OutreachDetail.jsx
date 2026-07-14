@@ -39,11 +39,19 @@ export default function OutreachDetail() {
     }
   }
 
-  async function handleSend() {
+  function openInGmail() {
+    const to = encodeURIComponent(email.contact_email || '')
+    const su = encodeURIComponent(email.subject || '')
+    const body = encodeURIComponent(email.body || '')
+    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${su}&body=${body}`
+    window.open(url, '_blank', 'noopener')
+  }
+
+  async function markAsSent() {
     setActionLoading(true)
     setError('')
     try {
-      await api.post(`/outreach/${id}/send`, {})
+      await api.put(`/outreach/${id}`, { status: 'sent' })
       setEmail(prev => ({ ...prev, status: 'sent', sent_at: new Date().toISOString() }))
     } catch (e) {
       setError(e.message)
@@ -84,7 +92,7 @@ export default function OutreachDetail() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-base font-semibold text-[#111827]">{email.company_name || '-'}</span>
-              <Badge status={email.opened ? 'opened' : email.status} />
+              <Badge status={email.status} />
             </div>
             {email.contact_name && (
               <div className="text-xs text-[#6B7280]">{email.contact_name}</div>
@@ -100,6 +108,12 @@ export default function OutreachDetail() {
               className="text-xs font-medium text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB] rounded-md px-3 py-1.5"
             >
               {copied ? t('Kopyalandı') : t('Kopyala')}
+            </button>
+            <button
+              onClick={openInGmail}
+              className="text-xs font-medium text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB] rounded-md px-3 py-1.5"
+            >
+              {t('Gmail\'de Aç')}
             </button>
             {email.status === 'pending' && (
               <>
@@ -121,11 +135,11 @@ export default function OutreachDetail() {
             )}
             {email.status === 'approved' && (
               <button
-                onClick={handleSend}
+                onClick={markAsSent}
                 disabled={actionLoading}
-                className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-3 py-1.5"
+                className="text-xs font-medium text-white bg-[#059669] hover:bg-[#047857] disabled:opacity-50 rounded-md px-3 py-1.5"
               >
-                {actionLoading ? t('Gönderiliyor...') : t('Gönder')}
+                {actionLoading ? t('İşaretleniyor...') : t('Gönderildi olarak işaretle')}
               </button>
             )}
           </div>
@@ -141,21 +155,14 @@ export default function OutreachDetail() {
           </div>
         </div>
 
-        {(email.sent_at || email.opened) && (
+        {email.sent_at && (
           <div className="border-t border-[#E5E7EB] mt-4 pt-4 flex items-center gap-4">
-            {email.sent_at && (
-              <div>
-                <span className="text-xs text-[#9CA3AF]">{t('Gönderildi')}: </span>
-                <span className="text-xs text-[#111827]">
-                  {new Date(email.sent_at).toLocaleDateString('tr-TR')}
-                </span>
-              </div>
-            )}
-            {email.opened && (
-              <div>
-                <span className="text-xs text-[#5B21B6] font-medium">{t('Email açıldı')}</span>
-              </div>
-            )}
+            <div>
+              <span className="text-xs text-[#9CA3AF]">{t('Gönderildi olarak işaretlendi')}: </span>
+              <span className="text-xs text-[#111827]">
+                {new Date(email.sent_at).toLocaleDateString('tr-TR')}
+              </span>
+            </div>
           </div>
         )}
       </div>

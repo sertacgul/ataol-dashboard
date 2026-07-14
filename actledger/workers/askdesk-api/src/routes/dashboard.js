@@ -11,11 +11,10 @@ dashboard.get('/stats', async (c) => {
   const where = isSuper ? '' : 'WHERE user_id = ?'
   const bind = isSuper ? [] : [userId]
 
-  const [companies, emails, sent, opened] = await Promise.all([
+  const [companies, emails, sent] = await Promise.all([
     c.env.DB.prepare(`SELECT COUNT(*) as count FROM companies ${where}`).bind(...bind).first(),
     c.env.DB.prepare(`SELECT COUNT(*) as count FROM emails ${where}`).bind(...bind).first(),
     c.env.DB.prepare(`SELECT COUNT(*) as count FROM emails ${where ? where + ' AND' : 'WHERE'} status = 'sent'`).bind(...bind).first(),
-    c.env.DB.prepare(`SELECT COUNT(*) as count FROM emails ${where ? where + ' AND' : 'WHERE'} opened = 1`).bind(...bind).first(),
   ])
 
   const recentEmails = await c.env.DB.prepare(
@@ -29,8 +28,6 @@ dashboard.get('/stats', async (c) => {
     total_leads: companies.count,
     total_emails: emails.count,
     total_sent: sent.count,
-    total_opened: opened.count,
-    open_rate: sent.count > 0 ? ((opened.count / sent.count) * 100).toFixed(1) : '0',
     recent_emails: recentEmails.results,
   })
 })

@@ -97,7 +97,15 @@ export default function OutreachNew() {
 
       const prompt = `${contactInfo ? contactInfo + '\n' : ''}Alıcı Firma: ${company.name}${company.sector ? ` - ${company.sector}` : ''}${company.country ? ` - ${company.country}` : ''}${profileContext}
 
-Bu firmaya profesyonel bir tanıtım emaili yaz. Türkçe olsun, kısa ve etkili olsun. Gönderen firma bilgilerini kullanarak kişiselleştirilmiş bir email oluştur.
+Yukarıdaki alıcı firmaya soğuk bir tanıtım emaili yaz. Türkçe yaz.
+
+Kurallar:
+- Gövde 60-120 kelime arası. Daha uzun yazma; email mobilde okunacak.
+- Konu satırı 4-7 kelime; merak uyandırsın ama spam gibi durmasın.
+- Tek bir net call-to-action olsun (örnegin kısa bir görüşme öner). Birden fazla istek yapma.
+- Kişiselleştirme alıcı firmaya özgü gerçek bir detaydan gelsin: ürünleri, sektöründeki güncel bir durum ya da yakın zamandaki bir gelişme. Elinde gerçek bir detay yoksa detay uydurma; sektörel bağlamdan yararlan.
+- Her email'de tekrar eden kalıp ifadeler kullanma (klişe övgüler, jenerik referans cümleleri, "firmanızı takdir ediyoruz" gibi). Bunlar alıcıya şablon olduğunu belli eder.
+- Doğal ve insan gibi yaz. Uzun tire, yıldız veya diyez işareti kullanma.
 
 Aşağıdaki formatta yanıt ver:
 KONU: [email konusu]

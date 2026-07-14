@@ -12,10 +12,10 @@ const FEATURES = [
   },
   {
     icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-    titleTr: 'Tam Otomatik Outreach',
-    titleEn: 'Fully Automated Outreach',
-    descTr: 'Firma adını girin, AI sektör analizi yapsın, karar vericileri bulsun ve 300-500 kelimelik sektöre özel kişiselleştirilmiş email otomatik oluştursun. Açılma takibi dahil.',
-    descEn: 'Enter a company name. AI analyzes the sector, finds decision-makers, and auto-composes a 300-500 word sector-specific personalized email. Open tracking included.',
+    titleTr: 'Outreach Hazırlığı',
+    titleEn: 'Outreach, Ready to Send',
+    descTr: 'Firma adını girin, AI sektör analizi yapsın, karar vericileri bulsun ve sektöre özel, kısa ve kişiselleştirilmiş bir email hazırlasın. Kopyalayın veya Gmail\'de açıp kendi gelen kutunuzdan gönderin.',
+    descEn: 'Enter a company name. AI analyzes the sector, finds decision-makers, and drafts a short, personalized email. Copy it or open in Gmail and send from your own inbox.',
   },
   {
     icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
@@ -56,8 +56,8 @@ const FEATURES = [
     icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
     titleTr: 'Analytics Dashboard',
     titleEn: 'Analytics Dashboard',
-    descTr: 'Email gönderim trendi, açılma oranları, sosyal medya dağılımı, pipeline aşamaları ve içerik üretim istatistikleri.',
-    descEn: 'Email sending trends, open rates, social media distribution, pipeline stages, and content production statistics.',
+    descTr: 'Email üretim trendi, yanıt oranları, sosyal medya dağılımı, pipeline aşamaları ve içerik üretim istatistikleri.',
+    descEn: 'Email production trends, reply rates, social media distribution, pipeline stages, and content production statistics.',
   },
   {
     icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
@@ -84,8 +84,8 @@ const FEATURES = [
     icon: 'M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2',
     titleTr: 'Newsletter & Bülten',
     titleEn: 'Newsletter',
-    descTr: 'Abonelerinize düzenli bülten gönderin. AI ile içerik üretin, açılma oranlarını ve etkileşimi takip edin.',
-    descEn: 'Send regular newsletters to your subscribers. Generate content with AI and track open rates and engagement.',
+    descTr: 'AI ile bülten içeriği üretin, düzenleyin ve kendi bülten aracınızdan yayınlamak için hazır hale getirin.',
+    descEn: 'Generate and edit newsletter content with AI, ready to publish from your own newsletter tool.',
   },
 ]
 
@@ -98,8 +98,8 @@ const STATS = [
 
 const STEPS = [
   { num: '01', titleTr: 'Firma Adını Girin', titleEn: 'Enter a Company', descTr: 'Hedef firma adı veya domain girin. AI firmayı analiz edip sektör, karar vericiler ve iletişim bilgilerini otomatik bulsun.', descEn: 'Enter a target company name or domain. AI analyzes the company, finds sector, decision-makers, and contact info automatically.' },
-  { num: '02', titleTr: 'AI Email Yazsın', titleEn: 'AI Writes the Email', descTr: 'Sektöre özel sorunları tespit eden, çözüm sunan ve ticaret odası referansı içeren 300-500 kelimelik profesyonel email otomatik oluşturulsun.', descEn: 'Auto-generate a 300-500 word professional email that identifies sector-specific pain points, proposes solutions, and includes trade chamber references.' },
-  { num: '03', titleTr: 'Gönderin ve Takip Edin', titleEn: 'Send & Track', descTr: 'Emaili onaylayıp gönderin. Açılma takibi ile kimin okuduğunu, ne zaman açtığını görün.', descEn: 'Approve and send. Track who opened your email and when with real-time open tracking.' },
+  { num: '02', titleTr: 'AI Email Yazsın', titleEn: 'AI Writes the Email', descTr: 'Sektöre özel sorunu tespit eden, tek net çağrı içeren kısa ve kişiselleştirilmiş bir email otomatik oluşsun.', descEn: 'Auto-generate a short, personalized email that identifies the sector-specific pain point and makes a single clear call to action.' },
+  { num: '03', titleTr: 'Kopyala ve Gönder', titleEn: 'Copy & Send', descTr: 'Emaili kopyalayın veya tek tıkla Gmail\'de açın, kendi gelen kutunuzdan gönderin. CSV olarak dışa aktarıp dilediğiniz araca aktarabilirsiniz.', descEn: 'Copy the email or open it in Gmail with one click and send from your own inbox. Export to CSV to use it in any tool you like.' },
   { num: '04', titleTr: 'Pipeline ile Yönetin', titleEn: 'Manage with Pipeline', descTr: 'Yanıt alan leadleri CRM pipeline ile takip edin. Analytics ile kampanya performansını ölçün.', descEn: 'Follow up on responding leads with CRM pipeline. Measure campaign performance with analytics.' },
 ]
 
@@ -266,8 +266,8 @@ function ScreenOutreach() {
     { icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9', label: 'acmetech.com', sub: 'Domain entered', done: true },
     { icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z', label: 'AI Sector Analysis', sub: 'SaaS / B2B identified', done: true },
     { icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', label: '3 Decision-Makers', sub: 'CEO, CTO, Sales Dir.', done: true },
-    { icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', label: 'AI Composing Email', sub: '478 words, personalized', active: true },
-    { icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', label: 'Send & Track', sub: 'Open tracking ready' },
+    { icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', label: 'AI Composing Email', sub: '~90 words, personalized', active: true },
+    { icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', label: 'Copy & Send', sub: 'Open in your inbox' },
   ]
   return (
     <div className="p-5">
@@ -294,7 +294,7 @@ function ScreenOutreach() {
         <div className="flex items-center justify-between mb-2">
           <div className="text-[10px] font-medium text-[#6B7280]">AI-Generated Preview</div>
           <div className="flex gap-1">
-            <span className="text-[10px] bg-[#EFF6FF] text-[#2563EB] px-1.5 py-0.5 rounded">478 words</span>
+            <span className="text-[10px] bg-[#EFF6FF] text-[#2563EB] px-1.5 py-0.5 rounded">~90 words</span>
             <span className="text-[10px] bg-[#ECFDF5] text-[#059669] px-1.5 py-0.5 rounded">Personalized</span>
           </div>
         </div>
@@ -1103,8 +1103,8 @@ export default function Landing() {
           </h1>
           <p className="text-base text-[#6B7280] mb-8 max-w-xl mx-auto leading-relaxed">
             {isEn
-              ? 'For B2B founders without a sales team: Find the target company, get the verified email, and complete the personalized first touch in a single flow.'
-              : 'Satış ekibi olmayan B2B kurucular için: Hedef şirketi bul, doğrulanmış e‑postaya ulaş ve kişiselleştirilmiş ilk temayı tek akışta tamamla.'}
+              ? 'For B2B founders without a sales team: find the right company, let AI write the email, and send it from your own inbox.'
+              : 'Satış ekibi olmayan B2B kurucular için: doğru kişiyi bul, AI sana e‑postayı yazsın, kendi gelen kutundan gönder.'}
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../lib/api'
 import StatCard from '../../components/StatCard'
+import Badge from '../../components/Badge'
 import HelpButton from '../../components/HelpButton'
 import { useT } from '../../contexts/LanguageContext'
 import {
@@ -72,10 +73,6 @@ export default function Analytics() {
       .finally(() => setLoading(false))
   }, [period])
 
-  const openRate = overview
-    ? (overview.open_rate ?? 0) + '%'
-    : '-'
-
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -101,10 +98,9 @@ export default function Analytics() {
         <div className="text-xs text-[#9CA3AF] py-8 text-center">{t('Yükleniyor...')}</div>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-4">
             <StatCard label={t('Toplam Lead')} value={overview?.total_companies ?? '-'} />
-            <StatCard label={t('Gönderilen Email')} value={overview?.sent_emails ?? '-'} />
-            <StatCard label={t('Açılma Oranı (%)')} value={openRate} />
+            <StatCard label={t('Gönderildi İşaretli')} value={overview?.sent_emails ?? '-'} />
             <StatCard label={t('Dönüşüm')} value={overview?.total_companies ?? '-'} />
             <StatCard label={t('Yanıt')} value={overview?.reply_count ?? '-'} />
           </div>
@@ -191,7 +187,7 @@ export default function Analytics() {
                   <tr className="border-b border-[#E5E7EB]">
                     <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Firma')}</th>
                     <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Konu')}</th>
-                    <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Açıldı')}</th>
+                    <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Durum')}</th>
                     <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Tarih')}</th>
                   </tr>
                 </thead>
@@ -201,13 +197,7 @@ export default function Analytics() {
                       <td className="px-4 py-2.5 text-xs text-[#6B7280]">{email.company_name || '-'}</td>
                       <td className="px-4 py-2.5 text-xs text-[#111827]">{email.subject || t('(konu yok)')}</td>
                       <td className="px-4 py-2.5">
-                        {email.opened ? (
-                          <span className="text-xs font-medium text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded">
-                            {t('Açıldı')}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-[#9CA3AF]">-</span>
-                        )}
+                        <Badge status={email.status} />
                       </td>
                       <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">
                         {email.created_at
