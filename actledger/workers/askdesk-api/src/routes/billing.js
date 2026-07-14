@@ -71,6 +71,16 @@ async function verifySignature(rawBody, signature, secret) {
   return diff === 0
 }
 
+async function logOrder(db, { userId, email, event, plan, pack, amount, currency }) {
+  try {
+    await db.prepare(
+      `INSERT INTO orders (id, user_id, email, event, plan, pack, amount, currency)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(crypto.randomUUID(), userId, email || null, event, plan || null, pack || null,
+      amount ?? null, currency || 'USD').run()
+  } catch { /* orders table not migrated yet; ignore */ }
+}
+
 billing.post('/webhook', async (c) => {
   const raw = await c.req.text()
   const signature = c.req.header('X-Signature') || ''
@@ -91,6 +101,9 @@ billing.post('/webhook', async (c) => {
       const status = attrs.status
       if (variant?.plan && (status === 'active' || status === 'on_trial')) {
         await setPlanAndReset(c.env.DB, userId, variant.plan)
+        if (event === 'subscription_created') {
+          await logOrder(c.env.DB, { userId, email: attrs.user_email, event, plan: variant.plan, amount: attrs.total != null ? attrs.total / 100 : null, currency: attrs.currency })
+        }
       } else if (status === 'expired' || status === 'unpaid') {
         await setPlanAndReset(c.env.DB, userId, 'free')
       }
@@ -102,6 +115,7 @@ billing.post('/webhook', async (c) => {
       const variant = VARIANTS[String(variantId)]
       if (variant?.kind === 'onetime') {
         await addCredits(c.env.DB, userId, variant.pool, variant.amount)
+        await logOrder(c.env.DB, { userId, email: attrs.user_email, event, pack: `${variant.pool}+${variant.amount}`, amount: attrs.total != null ? attrs.total / 100 : null, currency: attrs.currency })
       }
     }
   } catch { /* never fail the webhook on a downstream error */ }

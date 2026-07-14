@@ -17,6 +17,7 @@ export default function Register() {
   const { t, lang } = useT()
   const isEn = lang === 'en'
   const [form, setForm] = useState({ name: '', email: '', password: '', company_name: '', discount_code: '' })
+  const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const { register } = useAuth()
@@ -44,9 +45,13 @@ export default function Register() {
     e.preventDefault()
     setError('')
     if (!validateEmail()) return
+    if (!agreed) {
+      setError(isEn ? 'Please accept the Terms of Use to continue.' : 'Devam etmek için Kullanım Koşulları\'nı kabul edin.')
+      return
+    }
     setSubmitting(true)
     try {
-      await register(form.email, form.password, form.name, form.company_name, form.discount_code)
+      await register(form.email, form.password, form.name, form.company_name, form.discount_code, agreed)
       navigate('/app/dashboard')
     } catch (err) {
       setError(err.message)
@@ -111,7 +116,23 @@ export default function Register() {
                 className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent uppercase"
                 placeholder={isEn ? 'Optional' : 'İsteğe bağlı'} />
             </div>
-            <button type="submit" disabled={submitting}
+            <div className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-[#D1D5DB] text-[#2563EB] focus:ring-[#2563EB]"
+              />
+              <label htmlFor="terms" className="text-xs text-[#6B7280]">
+                {isEn ? (
+                  <>I have read and agree to the <Link to="/terms" target="_blank" className="text-[#2563EB] font-medium">Terms of Use</Link>.</>
+                ) : (
+                  <><Link to="/terms" target="_blank" className="text-[#2563EB] font-medium">Kullanım Koşulları</Link>'nı okudum ve kabul ediyorum.</>
+                )}
+              </label>
+            </div>
+            <button type="submit" disabled={submitting || !agreed}
               className="w-full py-2 text-sm font-medium text-white bg-[#2563EB] rounded-md hover:bg-[#1D4ED8] disabled:opacity-50">
               {submitting ? t('Kayıt yapılıyor...') : t('Kayıt Ol')}
             </button>

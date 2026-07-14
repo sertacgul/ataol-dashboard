@@ -36,6 +36,8 @@ import Competitors from './pages/competitors/Competitors'
 import EmailFinder from './pages/email-finder/EmailFinder'
 import Guide from './pages/Guide'
 import History from './pages/history/History'
+import Terms from './pages/Terms'
+import Admin from './pages/Admin'
 
 function App() {
   const [splashDone, setSplashDone] = useState(false)
@@ -48,6 +50,7 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/terms" element={<Terms />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<Dashboard />} />
@@ -78,6 +81,7 @@ function App() {
         <Route path="guide" element={<Guide />} />
         <Route path="history" element={<History />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="admin" element={<Admin />} />
         <Route path="onboarding" element={<Onboarding />} />
       </Route>
       </Routes>
