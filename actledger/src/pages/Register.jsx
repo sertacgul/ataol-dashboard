@@ -61,7 +61,7 @@ export default function Register() {
     }
   }
 
-  const inputCls = 'w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent'
+  const inputCls = 'w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent'
 
   return (
     <AuthLayout
@@ -108,22 +108,22 @@ export default function Register() {
             id="terms"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-[#D1D5DB] text-[#7C3AED] focus:ring-[#7C3AED]"
+            className="mt-0.5 h-4 w-4 rounded border-[#D1D5DB] text-[#2563EB] focus:ring-[#2563EB]"
           />
           <label htmlFor="terms" className="text-xs text-[#6B7280]">
             {isEn ? (
-              <>I have read and agree to the <Link to="/terms" target="_blank" className="text-[#7C3AED] font-medium">Terms of Use</Link>.</>
+              <>I have read and agree to the <Link to="/terms" target="_blank" className="text-[#2563EB] font-medium">Terms of Use</Link>.</>
             ) : (
-              <><Link to="/terms" target="_blank" className="text-[#7C3AED] font-medium">Kullanım Koşulları</Link>'nı okudum ve kabul ediyorum.</>
+              <><Link to="/terms" target="_blank" className="text-[#2563EB] font-medium">Kullanım Koşulları</Link>'nı okudum ve kabul ediyorum.</>
             )}
           </label>
         </div>
 
         <button type="submit" disabled={submitting || !agreed}
           className="w-full py-2.5 text-sm font-semibold text-white rounded-md disabled:opacity-50 transition-colors"
-          style={{ background: '#7C3AED' }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = '#6D28D9')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = '#7C3AED')}>
+          style={{ background: '#2563EB' }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = '#1D4ED8')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = '#2563EB')}>
           {submitting ? t('Kayıt yapılıyor...') : t('Kayıt Ol')}
         </button>
       </form>

@@ -46,7 +46,7 @@ export default function Login() {
         <div>
           <label className="block text-sm font-medium text-[#374151] mb-1">{t('Email')}</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
-            className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent"
+            className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
             placeholder="ornek@firma.com" />
         </div>
         <div>
@@ -55,14 +55,14 @@ export default function Login() {
         </div>
         <button type="submit" disabled={submitting}
           className="w-full py-2.5 text-sm font-semibold text-white rounded-md disabled:opacity-50 transition-colors"
-          style={{ background: '#7C3AED' }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = '#6D28D9')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = '#7C3AED')}>
+          style={{ background: '#2563EB' }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = '#1D4ED8')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = '#2563EB')}>
           {submitting ? t('Giriş yapılıyor...') : t('Giriş Yap')}
         </button>
       </form>
       <div className="mt-3 text-center">
-        <Link to="/forgot-password" className="text-xs text-[#6B7280] hover:text-[#7C3AED] transition-colors">
+        <Link to="/forgot-password" className="text-xs text-[#6B7280] hover:text-[#2563EB] transition-colors">
           {t('Şifremi Unuttum')}
         </Link>
       </div>

@@ -17,11 +17,11 @@ export default function AuthLayout({ title, subtitle, children, altText, altLink
       {/* Brand panel */}
       <div
         className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden text-white"
-        style={{ background: 'linear-gradient(150deg, #4c1d95 0%, #7e14ff 46%, #47bfff 100%)' }}
+        style={{ background: 'linear-gradient(150deg, #1e3a8a 0%, #2563EB 48%, #60A5FA 100%)' }}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="absolute -top-24 -left-16 w-80 h-80 rounded-full" style={{ background: 'rgba(255,255,255,0.12)', filter: 'blur(48px)' }} />
-          <div className="absolute -bottom-24 -right-16 w-[26rem] h-[26rem] rounded-full" style={{ background: 'rgba(71,191,255,0.35)', filter: 'blur(64px)' }} />
+          <div className="absolute -bottom-24 -right-16 w-[26rem] h-[26rem] rounded-full" style={{ background: 'rgba(147,197,253,0.40)', filter: 'blur(64px)' }} />
         </div>
 
         <Link to="/" className="relative inline-flex items-center gap-2.5 w-fit">
@@ -59,7 +59,7 @@ export default function AuthLayout({ title, subtitle, children, altText, altLink
             <img src="/assets/logo.svg" alt="AskDesk" className="w-7 h-7" />
             <span className="text-base font-semibold tracking-tight text-[#111827]">AskDesk</span>
           </Link>
-          <Link to="/" className="text-sm text-[#6B7280] hover:text-[#7C3AED] transition-colors">
+          <Link to="/" className="text-sm text-[#6B7280] hover:text-[#2563EB] transition-colors">
             ← {t('Ana Sayfa')}
           </Link>
         </header>
@@ -73,14 +73,14 @@ export default function AuthLayout({ title, subtitle, children, altText, altLink
 
             {altText && (
               <p className="text-sm text-[#6B7280] text-center mt-6">
-                {altText} <Link to={altLinkTo} className="text-[#7C3AED] font-medium hover:underline">{altLinkText}</Link>
+                {altText} <Link to={altLinkTo} className="text-[#2563EB] font-medium hover:underline">{altLinkText}</Link>
               </p>
             )}
 
             <div className="flex items-center justify-center gap-4 mt-6 text-xs text-[#9CA3AF]">
-              <Link to="/terms" className="hover:text-[#7C3AED]">{t('Kullanım Koşulları')}</Link>
+              <Link to="/terms" className="hover:text-[#2563EB]">{t('Kullanım Koşulları')}</Link>
               <span>·</span>
-              <Link to="/privacy" className="hover:text-[#7C3AED]">{t('Gizlilik')}</Link>
+              <Link to="/privacy" className="hover:text-[#2563EB]">{t('Gizlilik')}</Link>
             </div>
           </div>
         </div>
