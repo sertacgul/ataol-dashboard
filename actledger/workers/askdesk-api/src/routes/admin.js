@@ -111,4 +111,15 @@ admin.get('/overview', async (c) => {
   })
 })
 
+// ─── GET /activity ── recent activity across all users ───────────────────────
+admin.get('/activity', async (c) => {
+  const limit = Math.min(parseInt(c.req.query('limit') || '150', 10) || 150, 300)
+  const rows = await c.env.DB.prepare(
+    `SELECT a.id, a.module, a.action, a.title, a.created_at, u.email, u.name
+     FROM activity_log a JOIN users u ON u.id = a.user_id
+     ORDER BY a.created_at DESC LIMIT ?`
+  ).bind(limit).all()
+  return c.json({ activity: rows.results || [] })
+})
+
 export default admin

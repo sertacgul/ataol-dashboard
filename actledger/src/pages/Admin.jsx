@@ -7,6 +7,28 @@ function money(n) {
   return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
 }
 
+const ACTION_LABELS = {
+  'auth/login': 'Giriş yaptı',
+  'email-finder/search': 'Firma aradı',
+  'email-finder/reveal': 'E-posta açtı',
+  'email-finder/auto-outreach': 'Otomatik outreach',
+  'outreach/compose': 'Mail oluşturdu',
+  'maps/search': 'Google Maps araması',
+  'ataol/compose': 'ATAOL mail oluşturdu',
+  'ai/generate': 'AI içerik üretti',
+  'competitors/analyze': 'Rakip analizi',
+  'seo/generate': 'SEO içerik',
+  'social/generate': 'Sosyal medya içeriği',
+}
+function actionLabel(module, action) {
+  return ACTION_LABELS[`${module}/${action}`] || `${module} · ${action}`
+}
+function whenText(iso) {
+  if (!iso) return '-'
+  const d = new Date(iso.replace(' ', 'T') + (iso.includes('Z') ? '' : 'Z'))
+  return d.toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
 function Stat({ label, value, sub, accent }) {
   return (
     <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
@@ -21,6 +43,7 @@ export default function Admin() {
   const { t } = useT()
   const { user } = useAuth()
   const [data, setData] = useState(null)
+  const [activity, setActivity] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -30,6 +53,9 @@ export default function Admin() {
       .then(setData)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
+    api.get('/admin/activity')
+      .then(d => setActivity(d.activity || []))
+      .catch(() => {})
   }, [user])
 
   if (user && user.role !== 'superadmin') {
@@ -139,6 +165,37 @@ export default function Admin() {
           </div>
         </>
       )}
+
+      {/* Kullanıcı hareketleri */}
+      <div className="text-xs font-semibold text-[#374151] mb-2">{t('Kullanıcı Hareketleri')} ({activity.length})</div>
+      <div className="bg-white border border-[#E5E7EB] rounded-md overflow-hidden mb-6">
+        {activity.length === 0 ? (
+          <div className="text-xs text-[#9CA3AF] text-center py-6">{t('Henüz hareket kaydı yok.')}</div>
+        ) : (
+          <div className="max-h-96 overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-[#F9FAFB]">
+                <tr className="border-b border-[#E5E7EB]">
+                  <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Kullanıcı')}</th>
+                  <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('İşlem')}</th>
+                  <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Detay')}</th>
+                  <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Zaman')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activity.map(a => (
+                  <tr key={a.id} className="border-b border-[#E5E7EB] last:border-0 hover:bg-[#F9FAFB]">
+                    <td className="px-4 py-2 text-xs text-[#111827] whitespace-nowrap">{a.email}</td>
+                    <td className="px-4 py-2 text-xs text-[#374151] whitespace-nowrap">{actionLabel(a.module, a.action)}</td>
+                    <td className="px-4 py-2 text-xs text-[#9CA3AF] max-w-[220px] truncate" title={a.title || ''}>{a.title || '-'}</td>
+                    <td className="px-4 py-2 text-xs text-[#9CA3AF] whitespace-nowrap">{whenText(a.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Kayıtlı kullanıcılar */}
       <div className="text-xs font-semibold text-[#374151] mb-2">{t('Kayıtlar')} ({users.list.length})</div>

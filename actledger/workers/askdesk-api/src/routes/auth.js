@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { createToken } from '../middleware/auth.js'
 import { sendEmail, passwordResetEmail, welcomeEmail } from '../lib/mail.js'
+import { logActivity } from '../lib/activity.js'
 
 const auth = new Hono()
 
@@ -110,6 +111,7 @@ auth.post('/login', async (c) => {
 
   const token = await createToken(user.id, user.role, c.env.JWT_SECRET)
   c.header('Set-Cookie', `askdesk_token=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=604800`)
+  c.executionCtx.waitUntil(logActivity(c.env.DB, user.id, { module: 'auth', action: 'login', title: user.email }))
   return c.json({
     id: user.id, email: user.email, name: user.name,
     company_name: user.company_name, role: user.role,
