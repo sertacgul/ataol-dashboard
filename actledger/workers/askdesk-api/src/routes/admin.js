@@ -122,4 +122,11 @@ admin.get('/activity', async (c) => {
   return c.json({ activity: rows.results || [] })
 })
 
+// ─── POST /run-trial-reminders ── manual trigger for verification ────────────
+admin.post('/run-trial-reminders', async (c) => {
+  const { runTrialReminders } = await import('../lib/trial-reminders.js')
+  const r = await runTrialReminders(c.env)
+  return c.json(r)
+})
+
 export default admin

@@ -80,6 +80,43 @@ export function welcomeEmail(name, trialEndDate) {
   }
 }
 
+// Hook-driven trial reminder. kind: '24h' (1 gün kala) or '1h' (son 1 saat).
+export function trialReminderEmail(name, kind) {
+  const urgent = kind === '1h'
+  const subject = urgent
+    ? 'Son 1 saat: AskDesk denemeniz bitiyor'
+    : '24 saat sonra AskDesk erişiminiz kapanıyor'
+  const hook = urgent ? 'Son 1 saat kaldı.' : 'Momentumu şimdi kaybetmeyin.'
+  const line = urgent
+    ? 'Ücretsiz denemeniz 1 saat içinde sona eriyor. Bulduğunuz e-postalara, hazırladığınız outreach\'e ve pipeline\'ınıza erişimi kesintisiz sürdürmek için hemen bir plan seçin.'
+    : 'Ücretsiz denemenizin bitmesine 24 saat kaldı. Bulduğunuz e-postalar, hazırladığınız outreach ve pipeline\'ınız; bir plan seçtiğiniz an kaldığı yerden devam eder.'
+  const accent = urgent ? '#B91C1C' : '#1D4ED8'
+  const bg = urgent ? '#FEF2F2' : '#EFF6FF'
+  const border = urgent ? '#FECACA' : '#BFDBFE'
+  return {
+    subject,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://askdesk.app/assets/favicon-192.png" alt="AskDesk" width="40" height="40" style="display:inline-block; vertical-align:middle; border:0;" />
+          <span style="color:#111827; font-weight:bold; font-size:18px; vertical-align:middle; margin-left:8px;">AskDesk</span>
+        </div>
+        <div style="background: ${bg}; border: 1px solid ${border}; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px;">
+          <p style="color: ${accent}; font-size: 16px; font-weight: 700; margin: 0;">${hook}</p>
+        </div>
+        <p style="color: #111827; font-size: 15px;">Merhaba ${name},</p>
+        <p style="color: #6B7280; font-size: 14px; line-height: 1.6;">${line}</p>
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="https://askdesk.app/app/settings" style="display: inline-block; background: #2563EB; color: white; text-decoration: none; padding: 12px 32px; border-radius: 6px; font-size: 14px; font-weight: 600;">Planımı Seç</a>
+        </div>
+        <p style="color: #9CA3AF; font-size: 12px; text-align: center;">Otomatik ödeme yoktur; planı siz seçersiniz.</p>
+        <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 24px 0;" />
+        <p style="color: #9CA3AF; font-size: 12px; text-align: center;">ATAOL AI Techs - askdesk.app</p>
+      </div>
+    `,
+  }
+}
+
 export function trialExpiryReminderEmail(name, daysLeft) {
   return {
     subject: `AskDesk - Deneme sürenizin bitmesine ${daysLeft} gün kaldı`,

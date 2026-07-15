@@ -7,6 +7,10 @@ routes = [
   { pattern = "api.askdesk.app/*", zone_name = "askdesk.app" }
 ]
 
+# Trial-ending reminder emails run every 15 minutes.
+[triggers]
+crons = ["*/15 * * * *"]
+
 [vars]
 CORS_ORIGIN = "https://askdesk.app"
 

@@ -19,6 +19,7 @@ import competitorsRoutes from './routes/competitors.js'
 import blogRoutes from './routes/blog.js'
 import adminRoutes from './routes/admin.js'
 import ataolRoutes from './routes/ataol.js'
+import { runTrialReminders } from './lib/trial-reminders.js'
 import emailFinderRoutes from './routes/email-finder.js'
 import activityRoutes from './routes/activity.js'
 import billingRoutes from './routes/billing.js'
@@ -61,4 +62,8 @@ app.route('/payments', billingRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
-export default app
+// Cloudflare Worker entry: HTTP (Hono) + scheduled (cron) handlers.
+export default {
+  fetch: (request, env, ctx) => app.fetch(request, env, ctx),
+  scheduled: (event, env, ctx) => ctx.waitUntil(runTrialReminders(env)),
+}

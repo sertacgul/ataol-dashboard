@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
   reset_token TEXT,
   reset_token_expires TEXT,
   terms_accepted_at TEXT,
+  reminder_24h_sent_at TEXT,
+  reminder_1h_sent_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
