@@ -66,6 +66,31 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://askdesk.app/blog/eposta-bulucu-outreach-araclari-secimi</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://askdesk.app/blog/apollo-alternatifi</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://askdesk.app/blog/hunter-alternatifi</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://askdesk.app/blog/startuplar-icin-uygun-crm</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://askdesk.app/blog/kendi-gelen-kutundan-gonderim</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://askdesk.app/login</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
