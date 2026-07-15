@@ -40,6 +40,8 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Admin from './pages/Admin'
 import Ataol from './pages/Ataol'
+import BlogList from './pages/blog/BlogList'
+import BlogPost from './pages/blog/BlogPost'
 
 function App() {
   const [splashDone, setSplashDone] = useState(false)
@@ -54,6 +56,8 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/blog" element={<BlogList />} />
+      <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<Dashboard />} />
