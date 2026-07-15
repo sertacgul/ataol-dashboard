@@ -1,3 +1,15 @@
+# Canonicalize www to the apex domain.
+https://www.askdesk.app/* https://askdesk.app/:splat 301!
+
+# Retire legacy pages that Google still has indexed (no longer part of the app).
+/pazarlama https://askdesk.app/ 301
+/pazarlama/* https://askdesk.app/ 301
+/en https://askdesk.app/ 301
+/en/* https://askdesk.app/ 301
+
+# Static SEO files.
 /sitemap.xml /sitemap.xml 200
 /robots.txt /robots.txt 200
+
+# SPA fallback (keep last).
 /* /index.html 200
