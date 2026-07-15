@@ -16,6 +16,7 @@ export function cleanAiText(text) {
     .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')  // `kod` -> kod
     .replace(/`/g, '')                      // kalan backtick
     .replace(/[—–]/g, '-')        // em/en dash -> tire
+    .replace(/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2B00}-\u{2BFF}\u{1F000}-\u{1F0FF}️]/gu, '') // emoji temizle
     .replace(/[ \t]+\n/g, '\n')             // satır sonu boşlukları
     .replace(/\n{3,}/g, '\n\n')
     .trim()
