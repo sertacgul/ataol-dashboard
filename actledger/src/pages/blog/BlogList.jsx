@@ -39,7 +39,6 @@ export default function BlogList() {
                 to={`/blog/${post.slug}`}
                 className="block bg-white border border-[#E5E7EB] rounded-xl p-6 hover:border-[#BFDBFE] hover:shadow-[0_8px_24px_rgba(37,99,235,0.06)] transition-all"
               >
-                <div className="text-xs text-[#9CA3AF] mb-2">{post.date}</div>
                 <h2 className="text-lg font-semibold text-[#111827] mb-2 leading-snug">{post.title}</h2>
                 <p className="text-sm text-[#6B7280] leading-relaxed">{post.excerpt}</p>
                 <span className="inline-block mt-3 text-sm font-medium text-[#2563EB]">Devamını oku</span>

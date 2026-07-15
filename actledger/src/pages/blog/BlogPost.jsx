@@ -12,6 +12,24 @@ function Block({ block }) {
       {content.map((it, i) => <li key={i} className="leading-relaxed">{it}</li>)}
     </ul>
   )
+  if (type === 'table') return (
+    <div className="my-4 overflow-x-auto">
+      <table className="w-full text-sm border border-[#E5E7EB] rounded-md">
+        <thead>
+          <tr className="bg-[#F9FAFB]">
+            {content.head.map((h, i) => <th key={i} className="text-left font-medium text-[#374151] px-3 py-2 border-b border-[#E5E7EB]">{h}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {content.rows.map((r, i) => (
+            <tr key={i} className="border-b border-[#E5E7EB] last:border-0">
+              {r.map((cell, j) => <td key={j} className="px-3 py-2 text-[#374151]">{cell}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
   return <p className="my-3 leading-relaxed text-[#374151]">{content}</p>
 }
 
@@ -27,8 +45,6 @@ export default function BlogPost() {
       '@type': 'Article',
       headline: post.title,
       description: post.metaDescription,
-      datePublished: post.dateISO,
-      dateModified: post.dateISO,
       author: { '@type': 'Organization', name: post.author },
       publisher: {
         '@type': 'Organization',
@@ -78,7 +94,7 @@ export default function BlogPost() {
 
       <main className="flex-1 py-12 px-4">
         <article className="max-w-2xl mx-auto">
-          <div className="text-xs text-[#9CA3AF] mb-3">{post.date} · {post.author}</div>
+          <div className="text-xs text-[#9CA3AF] mb-3">{post.author}</div>
           <h1 className="text-3xl font-bold text-[#111827] mb-6 leading-tight tracking-tight">{post.title}</h1>
 
           <div>
@@ -96,6 +112,19 @@ export default function BlogPost() {
                   </div>
                 ))}
               </div>
+            </section>
+          )}
+
+          {post.related?.length > 0 && (
+            <section className="mt-10 pt-8 border-t border-[#E5E7EB]">
+              <h2 className="text-xl font-bold text-[#111827] mb-4">İlgili Rehberler</h2>
+              <ul className="space-y-2">
+                {post.related.map(slug => getPost(slug)).filter(Boolean).map(rp => (
+                  <li key={rp.slug}>
+                    <Link to={`/blog/${rp.slug}`} className="text-sm font-medium text-[#2563EB] hover:underline">{rp.title}</Link>
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
 
