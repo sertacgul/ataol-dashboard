@@ -113,11 +113,28 @@ maps.post('/sentiment', async (c) => {
   if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
 
   const reviewText = reviews.map((r, i) => `${i + 1}. (${r.rating}/5) ${r.text}`).join('\n')
-  const prompt = `"${company_name || 'Firma'}" için Google yorumlarını analiz et ve kısa bir duygu analizi yap (Türkçe):
+  const prompt = `Aşağıda "${company_name || 'Firma'}" için Google yorumları var. Bunları analiz et ve TEMİZ, KISA ve DÜZENLİ bir çıktı üret.
 
+YORUMLAR:
 ${reviewText}
 
-Genel kanı pozitif mi, negatif mi, yoksa karışık mı? Satış perspektifinden bu firmaya yaklaşırken nelere dikkat edilmeli?`
+Kurallar:
+- Türkçe yaz.
+- Emoji, yıldız, diyez, markdown veya uzun tire kullanma.
+- Yorumları olduğu gibi kopyalama; sadece kısaca özetle.
+- Her madde tek satır ve en fazla 15 kelime olsun.
+- Tam olarak şu yapıyı kullan (başlıkları aynen koru):
+
+Genel Kanı: [Pozitif / Negatif / Karışık] - [tek cümlelik kısa gerekçe]
+
+Öne Çıkan Temalar:
+- [tema]
+- [tema]
+- [tema]
+
+Satışta Dikkat Edilecekler:
+- [madde]
+- [madde]`
 
   const result = await callGemini(prompt, apiKey)
   await deductCredit(c.env.DB, chk.userId, 'outreach', 1)

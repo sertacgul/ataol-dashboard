@@ -6,6 +6,15 @@ import { api } from '../../lib/api'
 import { useT } from '../../contexts/LanguageContext'
 
 const STORAGE_KEY = 'askdesk_simulator_v2'
+const SAVED_KEY = 'askdesk_simulator_saved_v1'
+
+function loadSaved() {
+  try {
+    const s = localStorage.getItem(SAVED_KEY)
+    if (s) return JSON.parse(s)
+  } catch { /* ignore */ }
+  return []
+}
 
 const SCENARIO_KEYS = ['iyimser', 'gercekci', 'kotumser']
 const SCENARIO_LABELS = { iyimser: 'İyimser', gercekci: 'Gerçekçi', kotumser: 'Kötümser' }
@@ -144,10 +153,38 @@ export default function Simulator() {
   const [activeScenario, setActiveScenario] = useState('gercekci')
   const [aiAnalysis, setAiAnalysis] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
+  const [saved, setSaved] = useState(loadSaved)
+  const [simName, setSimName] = useState('')
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   }, [state])
+
+  useEffect(() => {
+    localStorage.setItem(SAVED_KEY, JSON.stringify(saved))
+  }, [saved])
+
+  function saveSim() {
+    const name = simName.trim() || `${t('Simülasyon')} ${new Date().toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`
+    setSaved(prev => [{ id: crypto.randomUUID(), name, date: new Date().toISOString(), data: state }, ...prev])
+    setSimName('')
+  }
+  function loadSim(entry) {
+    setState(entry.data)
+    setActiveScenario('gercekci')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  function deleteSim(id) {
+    setSaved(prev => prev.filter(e => e.id !== id))
+  }
+  function clearAllSaved() {
+    if (!window.confirm(t('Tüm kayıtlı simülasyonları silmek istediğinize emin misiniz?'))) return
+    setSaved([])
+  }
+  function resetCurrent() {
+    if (!window.confirm(t('Bu senaryodaki girilen verileri silmek istediğinize emin misiniz?'))) return
+    setState(prev => ({ ...prev, [activeScenario]: { ...DEFAULT_INPUTS } }))
+  }
 
   const s = state[activeScenario]
   const metrics = calcMetrics(s)
@@ -226,7 +263,19 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
           <h1 className="text-base font-semibold text-[#111827]">{t('Finansal Simülatör')}</h1>
           <p className="text-xs text-[#6B7280] mt-0.5">{t('3 senaryo ile 12 aylık projeksiyon ve birim ekonomi analizi.')}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <input
+            value={simName}
+            onChange={e => setSimName(e.target.value)}
+            placeholder={t('Simülasyon adı')}
+            className="text-xs border border-[#E5E7EB] rounded-md px-2 py-1.5 w-36 focus:outline-none focus:border-[#2563EB]"
+          />
+          <button onClick={saveSim} className="text-xs px-3 py-1.5 bg-[#059669] text-white rounded-md hover:bg-[#047857]">
+            {t('Kaydet')}
+          </button>
+          <button onClick={resetCurrent} className="text-xs px-3 py-1.5 border border-[#E5E7EB] rounded-md text-[#374151] hover:bg-[#F3F4F6]">
+            {t('Alanları Temizle')}
+          </button>
           <button onClick={handlePrint} className="text-xs px-3 py-1.5 border border-[#E5E7EB] rounded-md text-[#374151] hover:bg-[#F3F4F6]">
             {t('Rapor İndir (PDF)')}
           </button>
@@ -340,6 +389,36 @@ Sektör ortalamalarıyla karsilastir ve gelistirme onerileri sun. Cevabi Türkç
           </div>
         </div>
       </div>
+
+      {/* Kayıtlı Simülasyonlar */}
+      {saved.length > 0 && (
+        <div className="bg-white border border-[#E5E7EB] rounded-md p-4 mb-6 no-print">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-[#111827]">{t('Kayıtlı Simülasyonlar')} ({saved.length})</span>
+            <button onClick={clearAllSaved} className="text-xs font-medium text-[#DC2626] border border-[#FECACA] rounded-md px-2.5 py-1 hover:bg-[#FEF2F2]">
+              {t('Tümünü Sil')}
+            </button>
+          </div>
+          <div className="divide-y divide-[#F3F4F6]">
+            {saved.map(entry => (
+              <div key={entry.id} className="flex items-center justify-between py-2">
+                <div className="min-w-0">
+                  <div className="text-sm text-[#111827] truncate">{entry.name}</div>
+                  <div className="text-xs text-[#9CA3AF]">{new Date(entry.date).toLocaleString('tr-TR')}</div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button onClick={() => loadSim(entry)} className="text-xs font-medium text-[#2563EB] border border-[#BFDBFE] bg-[#EFF6FF] hover:bg-[#DBEAFE] rounded-md px-3 py-1">
+                    {t('Yükle')}
+                  </button>
+                  <button onClick={() => deleteSim(entry.id)} className="text-xs font-medium text-[#DC2626] border border-[#FECACA] hover:bg-[#FEF2F2] rounded-md px-3 py-1">
+                    {t('Sil')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* OperIQ Analysis */}
       {aiAnalysis && (
