@@ -41,6 +41,31 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://askdesk.app/blog/turkiyede-b2b-musteri-bulma</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://askdesk.app/blog/kvkk-iys-soguk-eposta</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://askdesk.app/blog/ihracatta-musteri-bulma</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://askdesk.app/blog/kobi-dijital-musteri-edinme</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://askdesk.app/blog/teknokent-startup-ilk-musteri</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://askdesk.app/login</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
