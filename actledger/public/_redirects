@@ -6,6 +6,8 @@ https://www.askdesk.app/* https://askdesk.app/:splat 301!
 /pazarlama/* https://askdesk.app/ 301
 /en https://askdesk.app/ 301
 /en/* https://askdesk.app/ 301
+/download https://askdesk.app/ 301
+/download/* https://askdesk.app/ 301
 
 # Static SEO files.
 /sitemap.xml /sitemap.xml 200
