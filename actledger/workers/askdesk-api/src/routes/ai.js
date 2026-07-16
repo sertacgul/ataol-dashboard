@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
-import { checkCredits, deductCredit } from '../lib/credits.js'
+import { checkCredits, deductCredit, creditsSnapshot } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
 import { cleanAiText } from '../lib/sanitize.js'
 
@@ -39,7 +39,7 @@ ai.post('/generate', async (c) => {
   const text = await callGemini(fullPrompt, apiKey)
   await deductCredit(c.env.DB, chk.userId, 'content', 1)
   await logActivity(c.env.DB, chk.userId, { module: 'ai', action: 'generate', title: prompt.slice(0, 60), detail: { result: (text || '').slice(0, 500) } })
-  return c.json({ text: cleanAiText(text) })
+  return c.json({ text: cleanAiText(text), credits: await creditsSnapshot(c.env.DB, chk.userId) })
 })
 
 ai.post('/research', async (c) => {
@@ -78,7 +78,7 @@ Sadece JSON formatında yanıt ver, başka açıklama ekleme.`
 
   await deductCredit(c.env.DB, chk.userId, 'content', 1)
   await logActivity(c.env.DB, chk.userId, { module: 'ai', action: 'research', title: company_name, detail: { result: (text || '').slice(0, 500) } })
-  return c.json({ research, raw: text })
+  return c.json({ research, raw: text, credits: await creditsSnapshot(c.env.DB, chk.userId) })
 })
 
 export default ai

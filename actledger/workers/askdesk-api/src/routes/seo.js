@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
-import { checkCredits, deductCredit } from '../lib/credits.js'
+import { checkCredits, deductCredit, creditsSnapshot } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
 import { cleanAiText } from '../lib/sanitize.js'
 
@@ -158,7 +158,7 @@ seo.post('/:id/translate', async (c) => {
 
   await deductCredit(c.env.DB, chk.userId, 'content', 1)
   await logActivity(c.env.DB, userId, { module: 'seo', action: 'translate', title: article.title || id, detail: {} })
-  return c.json({ body_en })
+  return c.json({ body_en, credits: await creditsSnapshot(c.env.DB, chk.userId) })
 })
 
 // POST /:id/check — SEO analysis
@@ -226,7 +226,7 @@ Sadece JSON formatında yanıt ver.`
 
   await deductCredit(c.env.DB, chk.userId, 'content', 1)
   await logActivity(c.env.DB, userId, { module: 'seo', action: 'check', title: article.title || id, detail: { score: seo_score } })
-  return c.json({ score: seo_score, suggestions: result.suggestions || [] })
+  return c.json({ score: seo_score, suggestions: result.suggestions || [], credits: await creditsSnapshot(c.env.DB, chk.userId) })
 })
 
 export default seo

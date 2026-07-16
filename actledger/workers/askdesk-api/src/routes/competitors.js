@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
-import { checkCredits, deductCredit } from '../lib/credits.js'
+import { checkCredits, deductCredit, creditsSnapshot } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
 import { cleanAiText } from '../lib/sanitize.js'
 
@@ -103,7 +103,7 @@ Sadece JSON döndür, başka açıklama ekleme.`
 
   await deductCredit(c.env.DB, chk.userId, 'outreach', 2)
   await logActivity(c.env.DB, userId, { module: 'competitors', action: 'analyze', title: competitor.name || 'Rakip', detail: analysis || analysisStr })
-  return c.json({ analysis })
+  return c.json({ analysis, credits: await creditsSnapshot(c.env.DB, chk.userId) })
 })
 
 competitors.delete('/:id', async (c) => {

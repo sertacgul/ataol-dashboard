@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
-import { checkCredits, deductCredit } from '../lib/credits.js'
+import { checkCredits, deductCredit, creditsSnapshot } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
 import { cleanAiText } from '../lib/sanitize.js'
 
@@ -58,7 +58,7 @@ maps.post('/search', async (c) => {
 
   await deductCredit(c.env.DB, chk.userId, 'outreach', 1)
   await logActivity(c.env.DB, chk.userId, { module: 'maps', action: 'search', title: query, detail: { count: places.length } })
-  return c.json({ places })
+  return c.json({ places, credits: await creditsSnapshot(c.env.DB, chk.userId) })
 })
 
 maps.post('/details', async (c) => {
@@ -99,6 +99,7 @@ maps.post('/details', async (c) => {
       text: rv.text?.text,
       time: rv.relativePublishTimeDescription,
     })),
+    credits: await creditsSnapshot(c.env.DB, chk.userId),
   })
 })
 
@@ -138,7 +139,7 @@ Satışta Dikkat Edilecekler:
 
   const result = await callGemini(prompt, apiKey)
   await deductCredit(c.env.DB, chk.userId, 'outreach', 1)
-  return c.json({ result: cleanAiText(result) })
+  return c.json({ result: cleanAiText(result), credits: await creditsSnapshot(c.env.DB, chk.userId) })
 })
 
 export default maps

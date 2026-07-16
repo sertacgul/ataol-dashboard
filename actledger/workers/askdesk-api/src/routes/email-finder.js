@@ -6,7 +6,7 @@ import {
   saveLearnedPattern,
 } from '../lib/enrichment/free.js'
 import { createEnrichment } from '../lib/enrichment/index.js'
-import { PLAN_LIMITS, getOrCreateCredits, deductCredit, checkCredits, hasCredits } from '../lib/credits.js'
+import { PLAN_LIMITS, getOrCreateCredits, deductCredit, checkCredits, hasCredits, creditsSnapshot } from '../lib/credits.js'
 import { logActivity } from '../lib/activity.js'
 import { cleanAiText } from '../lib/sanitize.js'
 
@@ -243,6 +243,7 @@ router.post('/reveal', async (c) => {
     confidence_score: vConfidence,
     source: person.source || 'pattern',
     credits_remaining: credits.limits.outreach - credits.outreach_used - 1,
+    credits: await creditsSnapshot(c.env.DB, userId),
     already_revealed: false,
   })
 })
@@ -307,20 +308,14 @@ router.post('/bulk-reveal', async (c) => {
     revealed,
     credits_used: revealed.length,
     credits_remaining: available - revealed.length,
+    credits: await creditsSnapshot(c.env.DB, userId),
   })
 })
 
 // ─── GET /credits ────────────────────────────────────────────
 
 router.get('/credits', async (c) => {
-  const userId = c.get('userId')
-  const user = await c.env.DB.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
-  const credits = await getOrCreateCredits(c.env.DB, userId, user?.plan || 'free')
-  return c.json({
-    outreach: { limit: credits.limits.outreach, used: credits.outreach_used, remaining: credits.limits.outreach - credits.outreach_used },
-    content: { limit: credits.limits.content, used: credits.content_used, remaining: credits.limits.content - credits.content_used },
-    reset_date: credits.reset_date, plan: credits.plan,
-  })
+  return c.json(await creditsSnapshot(c.env.DB, c.get('userId')))
 })
 
 // ─── GET /reveals ── User's reveal history ───────────────────
@@ -462,7 +457,7 @@ JSON formatinda don:
         title: `${person_name || 'Yetkili'} · ${company_name || ''}`.trim(),
         detail: { subject: parsed.subject || '', email, company_name },
       })
-      return c.json({ subject: cleanAiText(parsed.subject || ''), body: cleanAiText(parsed.body || '') })
+      return c.json({ subject: cleanAiText(parsed.subject || ''), body: cleanAiText(parsed.body || ''), credits: await creditsSnapshot(c.env.DB, chk.userId) })
     }
     return c.json({ error: 'Email olusturulamadi' }, 500)
   } catch {
@@ -647,6 +642,7 @@ Respond in JSON only:
         body,
         value_proposition: cleanAiText(parsed.value_proposition || ''),
         outreach_id: emailId,
+        credits: await creditsSnapshot(c.env.DB, chk.userId),
       })
     }
     return c.json({ error: 'Email olusturulamadi' }, 500)

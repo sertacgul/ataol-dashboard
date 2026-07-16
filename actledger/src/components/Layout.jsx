@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import Sidebar from './Sidebar'
+import { CreditsProvider } from '../contexts/CreditsContext'
 
 function PageTransition({ children }) {
   const location = useLocation()
@@ -31,6 +32,7 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
+    <CreditsProvider>
     <div className="flex min-h-screen">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -68,5 +70,6 @@ export default function Layout() {
         </main>
       </div>
     </div>
+    </CreditsProvider>
   )
 }

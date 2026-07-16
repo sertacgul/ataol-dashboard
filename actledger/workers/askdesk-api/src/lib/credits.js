@@ -55,6 +55,19 @@ export async function getOrCreateCredits(db, userId, plan) {
   }
 }
 
+// Public-facing balance snapshot, same shape as GET /email-finder/credits.
+// Endpoints that spend credits echo this so the client can update the badge
+// instantly. Looks up the plan itself so callers pass only userId.
+export async function creditsSnapshot(db, userId) {
+  const user = await db.prepare('SELECT plan FROM users WHERE id = ?').bind(userId).first()
+  const c = await getOrCreateCredits(db, userId, user?.plan || 'free')
+  return {
+    outreach: { limit: c.limits.outreach, used: c.outreach_used, remaining: c.limits.outreach - c.outreach_used },
+    content: { limit: c.limits.content, used: c.content_used, remaining: c.limits.content - c.content_used },
+    reset_date: c.reset_date, plan: c.plan,
+  }
+}
+
 export function hasCredits(credits, type, amount = 1) {
   const limit = credits.limits?.[type] ?? 0
   const used = credits[type + '_used'] ?? 0

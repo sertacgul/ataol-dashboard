@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useT } from '../contexts/LanguageContext'
-import { api } from '../lib/api'
+import { useCredits } from '../contexts/CreditsContext'
 
 const navItems = [
   { to: '/app/dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4' },
@@ -70,20 +69,8 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
   const { user, logout } = useAuth()
   const { t, lang, changeLang, languages } = useT()
   const navigate = useNavigate()
-  const [credits, setCredits] = useState(null)
+  const { credits } = useCredits()
   const isAtaol = !!user?.email && user.email.toLowerCase().endsWith('@strategythrust.com')
-
-  useEffect(() => {
-    async function loadCredits() {
-      try {
-        const data = await api.get('/email-finder/credits')
-        setCredits(data)
-      } catch {
-        setCredits(null)
-      }
-    }
-    loadCredits()
-  }, [])
 
   async function handleLogout() {
     onClose()
