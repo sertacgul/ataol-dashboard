@@ -126,6 +126,15 @@ export default function LeadDetail() {
               }
             </dd>
           </div>
+          <div>
+            <dt className="text-xs text-[#9CA3AF]">{t('Telefon')}</dt>
+            <dd className="text-sm mt-0.5">
+              {company.phone
+                ? <a href={`tel:${company.phone}`} className="text-[#2563EB] hover:underline">{company.phone}</a>
+                : '-'
+              }
+            </dd>
+          </div>
           {company.notes && (
             <div className="col-span-2">
               <dt className="text-xs text-[#9CA3AF]">{t('Notlar')}</dt>

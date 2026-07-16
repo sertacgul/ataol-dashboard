@@ -25,6 +25,19 @@ export default function LeadList() {
     setQuery(search)
   }
 
+  function downloadCsv() {
+    const headers = ['Firma', 'Sektör', 'Ülke', 'Telefon', 'Website', 'Kaynak', 'Tarih']
+    const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`
+    const rows = companies.map(c => [c.name, c.sector, c.country, c.phone, c.website, c.source,
+      c.created_at ? new Date(c.created_at).toLocaleDateString('tr-TR') : ''].map(esc).join(','))
+    // BOM so Excel reads UTF-8 Turkish characters correctly.
+    const csv = '﻿' + [headers.map(esc).join(','), ...rows].join('\n')
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
+    const a = document.createElement('a')
+    a.href = url; a.download = 'askdesk-leads.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -35,6 +48,14 @@ export default function LeadList() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {companies.length > 0 && (
+            <button
+              onClick={downloadCsv}
+              className="text-xs text-[#6B7280] border border-[#E5E7EB] rounded-md px-3 py-1.5 hover:bg-[#F9FAFB]"
+            >
+              {t('CSV indir')}
+            </button>
+          )}
           <Link
             to="/app/leads/maps"
             className="text-xs text-[#6B7280] border border-[#E5E7EB] rounded-md px-3 py-1.5 hover:bg-[#F9FAFB]"
@@ -82,6 +103,7 @@ export default function LeadList() {
               <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Firma')}</th>
               <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Sektör')}</th>
               <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Ülke')}</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Telefon')}</th>
               <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Kaynak')}</th>
               <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">{t('Tarih')}</th>
             </tr>
@@ -89,13 +111,13 @@ export default function LeadList() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="text-center text-xs text-[#9CA3AF] py-8">
+                <td colSpan={6} className="text-center text-xs text-[#9CA3AF] py-8">
                   {t('Yükleniyor...')}
                 </td>
               </tr>
             ) : companies.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center text-xs text-[#9CA3AF] py-8">
+                <td colSpan={6} className="text-center text-xs text-[#9CA3AF] py-8">
                   {query ? t('Arama sonucu bulunamadı.') : t('Henüz lead eklenmemiş.')}
                 </td>
               </tr>
@@ -112,6 +134,9 @@ export default function LeadList() {
                   </td>
                   <td className="px-4 py-2.5 text-xs text-[#6B7280]">{c.sector || '-'}</td>
                   <td className="px-4 py-2.5 text-xs text-[#6B7280]">{c.country || '-'}</td>
+                  <td className="px-4 py-2.5 text-xs text-[#6B7280]">
+                    {c.phone ? <a href={`tel:${c.phone}`} className="hover:text-[#2563EB]">{c.phone}</a> : '-'}
+                  </td>
                   <td className="px-4 py-2.5 text-xs text-[#6B7280]">{c.source || '-'}</td>
                   <td className="px-4 py-2.5 text-xs text-[#9CA3AF]">
                     {c.created_at ? new Date(c.created_at).toLocaleDateString('tr-TR') : '-'}

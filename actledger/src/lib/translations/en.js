@@ -467,6 +467,8 @@ export default {
   'Kalan Kredi': 'Credits Left',
   'Aylık krediniz doldu': 'Monthly credits exhausted',
   'Paketinizi yükseltin': 'Upgrade your plan',
+  'Telefon': 'Phone',
+  'CSV indir': 'Download CSV',
   'Krediniz doldu': 'You are out of credits',
   'Kapat': 'Close',
   'İçerik krediniz doldu. Daha fazla içerik üretmek için planınızı yükseltin.': 'You are out of content credits. Upgrade your plan to generate more.',

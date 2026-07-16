@@ -86,6 +86,7 @@ export default function LeadMaps() {
     return {
       name: selected.name,
       website: selected.website || null,
+      phone: selected.phone || null,
       country: selected.address || null,
       sector,
       source: 'maps',

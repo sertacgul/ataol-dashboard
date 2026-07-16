@@ -48,8 +48,8 @@ leads.post('/', async (c) => {
   const companyId = crypto.randomUUID()
 
   await c.env.DB.prepare(
-    'INSERT INTO companies (id, user_id, name, website, sector, country, source, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).bind(companyId, userId, body.name, body.website || null, body.sector || null, body.country || null, body.source || 'manual', body.notes || null).run()
+    'INSERT INTO companies (id, user_id, name, website, sector, country, source, notes, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(companyId, userId, body.name, body.website || null, body.sector || null, body.country || null, body.source || 'manual', body.notes || null, body.phone || null).run()
 
   if (body.contact_name || body.contact_email) {
     const contactId = crypto.randomUUID()
@@ -72,8 +72,8 @@ leads.put('/:id', async (c) => {
   if (role !== 'superadmin' && company.user_id !== userId) return c.json({ error: 'Yetkisiz' }, 403)
 
   await c.env.DB.prepare(
-    'UPDATE companies SET name = ?, website = ?, sector = ?, country = ?, notes = ? WHERE id = ?'
-  ).bind(body.name, body.website || null, body.sector || null, body.country || null, body.notes || null, id).run()
+    'UPDATE companies SET name = ?, website = ?, sector = ?, country = ?, notes = ?, phone = COALESCE(?, phone) WHERE id = ?'
+  ).bind(body.name, body.website || null, body.sector || null, body.country || null, body.notes || null, body.phone ?? null, id).run()
 
   return c.json({ ok: true })
 })
