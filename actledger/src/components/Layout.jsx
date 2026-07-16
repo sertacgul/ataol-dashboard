@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import Sidebar from './Sidebar'
+import CreditWall from './CreditWall'
 import { CreditsProvider } from '../contexts/CreditsContext'
 
 function PageTransition({ children }) {
@@ -70,6 +71,7 @@ export default function Layout() {
         </main>
       </div>
     </div>
+    <CreditWall />
     </CreditsProvider>
   )
 }

@@ -144,7 +144,7 @@ seo.post('/:id/translate', async (c) => {
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
   const chk = await checkCredits(c, 'content', 1)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'content' }, 402)
 
   const profileContext = await getProfileContext(c.env.DB, userId)
 
@@ -175,7 +175,7 @@ seo.post('/:id/check', async (c) => {
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
   const chk = await checkCredits(c, 'content', 1)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'content' }, 402)
 
   const profileContext = await getProfileContext(c.env.DB, userId)
 

@@ -32,7 +32,7 @@ ai.post('/generate', async (c) => {
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
   const chk = await checkCredits(c, 'content', 1)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'content' }, 402)
 
   const fullPrompt = context ? `${context}\n\n${prompt}` : prompt
 
@@ -52,7 +52,7 @@ ai.post('/research', async (c) => {
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
   const chk = await checkCredits(c, 'content', 1)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'content' }, 402)
 
   const prompt = `"${company_name}"${website ? ` (${website})` : ''} şirketi hakkında araştırma yap ve aşağıdaki JSON formatında yanıt ver:
 

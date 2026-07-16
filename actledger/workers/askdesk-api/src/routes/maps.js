@@ -28,7 +28,7 @@ maps.post('/search', async (c) => {
   if (!apiKey) return c.json({ error: 'GOOGLE_MAPS_API_KEY yapılandırılmamış' }, 500)
 
   const chk = await checkCredits(c, 'outreach', 1)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'outreach' }, 402)
 
   // Places API (New) — Text Search
   const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
@@ -69,7 +69,7 @@ maps.post('/details', async (c) => {
   if (!apiKey) return c.json({ error: 'GOOGLE_MAPS_API_KEY yapılandırılmamış' }, 500)
 
   const chk = await checkCredits(c, 'outreach', 1)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'outreach' }, 402)
 
   // Places API (New) — Place Details
   const res = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(place_id)}`, {
@@ -111,7 +111,7 @@ maps.post('/sentiment', async (c) => {
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
   const chk = await checkCredits(c, 'outreach', 1)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'outreach' }, 402)
 
   const reviewText = reviews.map((r, i) => `${i + 1}. (${r.rating}/5) ${r.text}`).join('\n')
   const prompt = `Aşağıda "${company_name || 'Firma'}" için Google yorumları var. Bunları analiz et ve TEMİZ, KISA ve DÜZENLİ bir çıktı üret.

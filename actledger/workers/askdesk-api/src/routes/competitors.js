@@ -49,7 +49,7 @@ competitors.post('/:id/analyze', async (c) => {
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
   const chk = await checkCredits(c, 'outreach', 2)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'outreach' }, 402)
 
   const profileContext = await getProfileContext(c.env.DB, userId)
 

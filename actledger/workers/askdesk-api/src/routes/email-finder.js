@@ -405,7 +405,7 @@ router.post('/compose', async (c) => {
   if (!email || !company_name) return c.json({ error: 'Email ve firma adi gerekli' }, 400)
 
   const chk = await checkCredits(c, 'outreach', 1)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'outreach' }, 402)
 
   const apiKey = c.env.GEMINI_API_KEY
   if (!apiKey) return c.json({ error: 'AI servisi yapilandirilmamis' }, 500)
@@ -491,7 +491,7 @@ Ton: ${profile.tone || 'professional'}` : ''
   if (!q && !hasCriteria) return c.json({ error: 'En az bir kriter girin (firma adi, sektor, buyukluk veya lokasyon)' }, 400)
 
   const chk = await checkCredits(c, 'outreach', 1)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'outreach' }, 402)
 
   // Find company, analyze, and compose targeted email
   let domain = null

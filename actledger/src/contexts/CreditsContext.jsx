@@ -5,10 +5,12 @@ const CreditsContext = createContext(null)
 
 // Holds the user's live credit balance and keeps it in sync. The balance is
 // loaded once on mount and then updated instantly whenever a credit-spending
-// endpoint echoes a fresh `credits` snapshot (see api.onCredits). No page
-// refresh, no per-caller wiring.
+// endpoint echoes a fresh `credits` snapshot (see api.onCredits). A 402 from
+// any call opens the CreditWall top-up prompt. No page refresh, no per-caller
+// wiring.
 export function CreditsProvider({ children }) {
   const [credits, setCredits] = useState(null)
+  const [creditWall, setCreditWall] = useState(null)
 
   const refreshCredits = useCallback(async () => {
     try {
@@ -22,11 +24,12 @@ export function CreditsProvider({ children }) {
   useEffect(() => {
     refreshCredits()
     api.onCredits(setCredits)
-    return () => api.onCredits(null)
+    api.onOutOfCredits(setCreditWall)
+    return () => { api.onCredits(null); api.onOutOfCredits(null) }
   }, [refreshCredits])
 
   return (
-    <CreditsContext.Provider value={{ credits, refreshCredits }}>
+    <CreditsContext.Provider value={{ credits, refreshCredits, creditWall, closeCreditWall: () => setCreditWall(null) }}>
       {children}
     </CreditsContext.Provider>
   )

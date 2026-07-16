@@ -78,7 +78,7 @@ profile.post('/analyze', async (c) => {
   if (!apiKey) return c.json({ error: 'GEMINI_API_KEY yapılandırılmamış' }, 500)
 
   const chk = await checkCredits(c, 'outreach', 1)
-  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.' }, 402)
+  if (!chk.ok) return c.json({ error: 'Yetersiz kredi. Paketinizi yükseltin.', credit_type: 'outreach' }, 402)
 
   const prompt = `"${website}" web sitesini analiz et ve bu şirket için aşağıdaki JSON formatında bir firma profili taslağı oluştur:
 

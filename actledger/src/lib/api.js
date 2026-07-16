@@ -6,6 +6,12 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8787'
 let creditsListener = null
 api.onCredits = (fn) => { creditsListener = fn }
 
+// A 402 means the user ran out of credits. We broadcast it so a global sales
+// prompt (CreditWall) can catch the moment and offer a top-up, instead of the
+// call dead-ending in a plain error. See CreditsContext.
+let outOfCreditsListener = null
+api.onOutOfCredits = (fn) => { outOfCreditsListener = fn }
+
 export async function api(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: 'include',
@@ -13,7 +19,12 @@ export async function api(path, options = {}) {
     ...options,
   })
   const data = await res.json()
-  if (!res.ok) throw new Error(data.error || 'Bir hata oluştu')
+  if (!res.ok) {
+    if (res.status === 402 && outOfCreditsListener) {
+      outOfCreditsListener({ error: data.error, credit_type: data.credit_type })
+    }
+    throw new Error(data.error || 'Bir hata oluştu')
+  }
   if (data && data.credits && creditsListener) creditsListener(data.credits)
   return data
 }
