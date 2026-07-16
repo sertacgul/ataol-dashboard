@@ -12,7 +12,7 @@ export const PLATFORMS = [
 ]
 
 function isAtaol(user) {
-  return !!user?.email && user.email.toLowerCase().endsWith('@strategythrust.com')
+  return !!user?.email && ['@strategythrust.com', '@ataolai.tech'].some(d => user.email.toLowerCase().endsWith(d))
 }
 
 // Shared Google Maps company finder: search -> pick -> return place details.

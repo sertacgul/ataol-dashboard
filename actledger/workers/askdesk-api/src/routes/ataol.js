@@ -6,11 +6,12 @@ import { cleanAiText } from '../lib/sanitize.js'
 const ataol = new Hono()
 ataol.use('*', authMiddleware)
 
-// ─── Gate: only the ATAOL / StrategyThrust team (@strategythrust.com) ────────
+// ─── Gate: only the ATAOL team (@strategythrust.com, @ataolai.tech) ──────────
 ataol.use('*', async (c, next) => {
   const userId = c.get('userId')
   const u = await c.env.DB.prepare('SELECT email FROM users WHERE id = ?').bind(userId).first()
-  if (!u || !String(u.email).toLowerCase().endsWith('@strategythrust.com')) {
+  const email = String(u?.email || '').toLowerCase()
+  if (!u || !['@strategythrust.com', '@ataolai.tech'].some(d => email.endsWith(d))) {
     return c.json({ error: 'Yetkisiz' }, 403)
   }
   c.set('userEmail', u.email)

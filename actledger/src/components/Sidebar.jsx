@@ -70,7 +70,7 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
   const { t, lang, changeLang, languages } = useT()
   const navigate = useNavigate()
   const { credits } = useCredits()
-  const isAtaol = !!user?.email && user.email.toLowerCase().endsWith('@strategythrust.com')
+  const isAtaol = !!user?.email && ['@strategythrust.com', '@ataolai.tech'].some(d => user.email.toLowerCase().endsWith(d))
 
   async function handleLogout() {
     onClose()
