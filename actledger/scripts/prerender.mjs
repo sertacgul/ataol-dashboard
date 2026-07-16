@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url'
 import puppeteer from 'puppeteer'
 import { POSTS } from '../src/content/blog.js'
 
-const ROUTES = ['/', '/blog', ...POSTS.map(p => `/blog/${p.slug}`)]
+const ROUTES = ['/', '/blog', '/lead-listesi', ...POSTS.map(p => `/blog/${p.slug}`)]
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DIST = join(__dirname, '..', 'dist')
 const PORT = 4174

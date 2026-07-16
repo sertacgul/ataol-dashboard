@@ -42,6 +42,7 @@ import Admin from './pages/Admin'
 import Ataol from './pages/Ataol'
 import BlogList from './pages/blog/BlogList'
 import BlogPost from './pages/blog/BlogPost'
+import LeadService from './pages/LeadService'
 
 function App() {
   const [splashDone, setSplashDone] = useState(false)
@@ -58,6 +59,7 @@ function App() {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/blog" element={<BlogList />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
+      <Route path="/lead-listesi" element={<LeadService />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<Dashboard />} />
