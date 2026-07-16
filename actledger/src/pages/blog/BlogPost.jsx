@@ -12,6 +12,12 @@ function Block({ block }) {
       {content.map((it, i) => <li key={i} className="leading-relaxed">{it}</li>)}
     </ul>
   )
+  if (type === 'template') return (
+    <div className="my-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-md p-4">
+      <div className="text-xs font-medium text-[#6B7280] mb-2">Konu: {content.subject}</div>
+      <div className="text-sm text-[#374151] whitespace-pre-line leading-relaxed">{content.body}</div>
+    </div>
+  )
   if (type === 'table') return (
     <div className="my-4 overflow-x-auto">
       <table className="w-full text-sm border border-[#E5E7EB] rounded-md">
