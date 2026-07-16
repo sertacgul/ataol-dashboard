@@ -5,8 +5,8 @@ import { setSeo } from '../lib/seo'
 
 const STEPS = [
   { n: '1', title: 'Kriterinizi söyleyin', text: 'Hedef sektör, bölge ve ulaşmak istediğiniz karar verici unvanlarını iletin.' },
-  { n: '2', title: 'Biz üretip doğrularız', text: 'Doğru firmaları ve karar vericileri buluruz, iş e-postalarını doğrularız.' },
-  { n: '3', title: '48 saatte teslim', text: 'Ad, unvan, firma, doğrulanmış e-posta ve kaynak sütunlu hazır CSV listeniz.' },
+  { n: '2', title: 'Biz üretip doğrularız', text: 'Doğru firmaları ve karar vericileri buluruz; iş e-postasını ve işletme telefonunu doğrularız.' },
+  { n: '3', title: '48 saatte teslim', text: 'Ad, unvan, firma, doğrulanmış e-posta, telefon ve kaynak sütunlu hazır CSV listeniz.' },
 ]
 
 const TIERS = [
@@ -24,8 +24,8 @@ export default function LeadService() {
 
   useEffect(() => {
     setSeo({
-      title: 'Sizin İçin Lead Listesi: 48 Saatte Doğrulanmış B2B Leadler',
-      description: 'Ajanslar ve danışmanlar için hazır hizmet: sektör ve bölge söyleyin, 48 saatte doğrulanmış karar verici lead listesini CSV olarak teslim edelim.',
+      title: 'Sizin İçin Lead Listesi: E-posta ve Telefonla Doğrulanmış B2B Leadler',
+      description: 'Ajanslar ve danışmanlar için hazır hizmet: sektör ve bölge söyleyin, 48 saatte doğrulanmış e-posta ve telefonla karar verici lead listesini CSV olarak teslim edelim.',
       canonical: 'https://askdesk.app/lead-listesi',
     })
   }, [])
@@ -65,10 +65,15 @@ export default function LeadService() {
           <h1 className="text-3xl font-bold text-[#111827] mb-3 tracking-tight leading-tight">
             Doğrulanmış karar verici listesi, 48 saatte hazır
           </h1>
-          <p className="text-[#6B7280] mb-8 leading-relaxed max-w-2xl">
+          <p className="text-[#6B7280] mb-5 leading-relaxed max-w-2xl">
             Ajanslar ve danışmanlar için: lead araştırmasıyla vakit kaybetmeyin. Bize hedef sektör ve bölgeyi söyleyin,
-            doğru karar vericileri bulup iş e-postalarını doğrulayalım ve size hazır bir CSV liste teslim edelim.
+            doğru karar vericileri bulup iş e-postası ve işletme telefonuyla doğrulayalım, size hazır bir CSV liste teslim edelim.
           </p>
+          <div className="flex flex-wrap gap-2 mb-8">
+            {['E-posta + telefon', 'KVKK-güvenli', '48 saatte teslim', 'Hazır CSV'].map(chip => (
+              <span key={chip} className="text-xs font-medium text-[#1D4ED8] bg-[#EFF6FF] border border-[#BFDBFE] rounded-full px-3 py-1">{chip}</span>
+            ))}
+          </div>
 
           <div className="grid sm:grid-cols-3 gap-3 mb-10">
             {STEPS.map(s => (
