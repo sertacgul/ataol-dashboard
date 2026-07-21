@@ -18,12 +18,26 @@ export default function OutreachNew() {
   const [aiLoading, setAiLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Saved email templates the user can apply to the body
+  const [templates, setTemplates] = useState([])
+
   // Inline company search state (when no ?company= param)
   const [companyQuery, setCompanyQuery] = useState('')
   const [companyResults, setCompanyResults] = useState([])
   const [companySearching, setCompanySearching] = useState(false)
   const [selectedCompanyId, setSelectedCompanyId] = useState(null)
   const searchTimeout = useRef(null)
+
+  useEffect(() => {
+    api.get('/templates?category=email')
+      .then(data => setTemplates(data.templates || []))
+      .catch(() => {})
+  }, [])
+
+  function handleApplyTemplate(e) {
+    const tpl = templates.find(tp => tp.id === e.target.value)
+    if (tpl) setBody(tpl.content || '')
+  }
 
   useEffect(() => {
     if (!companyId) return
@@ -232,6 +246,21 @@ KONU: [email konusu]
 
       <div className="bg-white border border-[#E5E7EB] rounded-md p-4 mb-5">
         <div className="space-y-3">
+          {templates.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-[#374151] mb-1">{t('Şablon Kullan')}</label>
+              <select
+                defaultValue=""
+                onChange={handleApplyTemplate}
+                className="w-full text-sm border border-[#E5E7EB] rounded-md px-3 py-1.5 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827]"
+              >
+                <option value="">{t('Şablon seçin...')}</option>
+                {templates.map(tpl => (
+                  <option key={tpl.id} value={tpl.id}>{tpl.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-medium text-[#374151] mb-1">
               {t('Konu')} <span className="text-[#DC2626]">*</span>

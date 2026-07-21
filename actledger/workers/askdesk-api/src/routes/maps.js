@@ -38,7 +38,7 @@ maps.post('/search', async (c) => {
       'X-Goog-Api-Key': apiKey,
       'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.location',
     },
-    body: JSON.stringify({ textQuery: query }),
+    body: JSON.stringify({ textQuery: query, languageCode: 'tr', regionCode: 'TR', pageSize: 20 }),
   })
   const data = await res.json()
 

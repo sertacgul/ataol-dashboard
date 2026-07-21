@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { createEnrichment } from './index.js'
+import { createEnrichment, sortPeople } from './index.js'
 
 vi.mock('./hunter.js', () => ({
   createHunterProvider: () => ({
@@ -29,5 +29,27 @@ describe('createEnrichment waterfall', () => {
     const e = createEnrichment({}, helpers)
     const r = await e.domainSearch('x.com')
     expect(r.provider).toBe('free')
+  })
+})
+
+describe('sortPeople', () => {
+  it('ranks personal decision-maker emails above generic mailboxes and no-email entries', () => {
+    const input = [
+      { name: 'Info', email: 'info@x.com', email_type: 'generic', seniority: 'Staff' },
+      { name: 'Staffer', email: 'joe@x.com', email_type: 'personal', seniority: 'Staff' },
+      { name: 'Nobody', email: null, seniority: 'C-Level' },
+      { name: 'Boss', email: 'ceo@x.com', email_type: 'personal', seniority: 'C-Level' },
+    ]
+    const sorted = sortPeople(input).map(p => p.name)
+    expect(sorted).toEqual(['Boss', 'Staffer', 'Info', 'Nobody'])
+  })
+
+  it('does not mutate the input array', () => {
+    const input = [
+      { name: 'Info', email: 'info@x.com', email_type: 'generic', seniority: 'Staff' },
+      { name: 'Boss', email: 'ceo@x.com', email_type: 'personal', seniority: 'C-Level' },
+    ]
+    sortPeople(input)
+    expect(input[0].name).toBe('Info')
   })
 })

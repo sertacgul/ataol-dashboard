@@ -7,6 +7,28 @@ import { applyPattern } from './patterns.js'
 // verification cost to a few credits).
 const MAX_VERIFY_CANDIDATES = 6
 
+// Decision-makers first. Rank people so the user sees managers/executives with
+// personal emails at the top, generic mailboxes (info@, contact@) at the bottom,
+// and no-email entries last. Sorting here — before results are cached — keeps the
+// `${domain}-${index}` id mapping consistent across /search, /reveal and /bulk-reveal.
+const SENIORITY_RANK = { 'C-Level': 0, 'VP': 1, 'Director': 2, 'Manager': 3, 'Staff': 4 }
+
+export function sortPeople(people) {
+  const groupOf = p => {
+    if (p.email && p.email_type !== 'generic') return 0
+    if (p.email) return 1
+    return 2
+  }
+  return [...people].sort((a, b) => {
+    const ga = groupOf(a), gb = groupOf(b)
+    if (ga !== gb) return ga - gb
+    const ra = SENIORITY_RANK[a.seniority] ?? 5
+    const rb = SENIORITY_RANK[b.seniority] ?? 5
+    if (ra !== rb) return ra - rb
+    return (b.confidence || 0) - (a.confidence || 0)
+  })
+}
+
 export function createEnrichment(env, helpers) {
   const free = createFreeProvider(env, helpers)
   const hunter = env.HUNTER_API_KEY ? createHunterProvider(env.HUNTER_API_KEY, helpers) : null
@@ -63,11 +85,11 @@ export function createEnrichment(env, helpers) {
       if (hunter) {
         try {
           const r = await hunter.domainSearch(domain, opts)
-          if (r.people && r.people.length) return { ...r, provider: 'hunter' }
+          if (r.people && r.people.length) return { ...r, people: sortPeople(r.people), provider: 'hunter' }
         } catch { /* fall back */ }
       }
       const r = await free.domainSearch(domain, opts)
-      return { ...r, provider: 'free' }
+      return { ...r, people: sortPeople(r.people), provider: 'free' }
     },
     async findEmail(first, last, domain) {
       if (hunter) {
