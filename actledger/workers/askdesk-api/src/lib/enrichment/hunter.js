@@ -37,7 +37,11 @@ export function createHunterProvider(apiKey, { classifySeniority, classifyDepart
   }
 
   return {
-    async domainSearch(domain, { limit = 100 } = {}) {
+    // Hunter's Free plan caps domain-search at 10 results and returns HTTP 400
+    // (pagination_error) for any higher limit. A limit >10 made every call fail
+    // and silently fall back to the weaker scrape engine. Keep the default at 10
+    // so Hunter is actually used; raise it only alongside a paid Hunter plan.
+    async domainSearch(domain, { limit = 10 } = {}) {
       const data = await call('/domain-search', { domain, limit })
       const d = data?.data || {}
       const people = (d.emails || []).map(mapEmail)

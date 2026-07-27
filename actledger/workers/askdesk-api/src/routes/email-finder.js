@@ -169,11 +169,25 @@ router.post('/reveal', async (c) => {
 
   const person = cached.people[idx]
   let email = person.email
-  // A website-scraped email is already real. For anything else (a pattern
-  // guess or a missing address) run pattern + verification to return the
-  // real, confirmed email.
-  if (!email || person.source !== 'website') {
-    const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
+  const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
+
+  if (email && person.source !== 'website') {
+    // The provider (Hunter) already returned a real address. Trust it and
+    // confirm deliverability directly with the verifier. Do NOT re-derive from
+    // name patterns: that wastes verifier credits and can pick a wrong format
+    // that differs from the address Hunter actually found.
+    const v = await enrichment.verifyEmail(email)
+    person.verification_status = v.status || person.verification_status || 'unknown'
+    if (typeof v.confidence === 'number') person.confidence = v.confidence
+    if (v.status === 'verified') {
+      await saveLearnedPattern(c.env.DB, domain, [{
+        email, name: person.name, email_type: 'personal',
+        verification_status: 'verified', confidence: person.confidence,
+      }]).catch(() => {})
+    }
+  } else if (!email) {
+    // No address for this person: derive candidates from name patterns and
+    // return the first deliverable one.
     const found = await enrichment.findVerifiedEmail(person.name, domain, c.env.DB)
     if (found?.email) {
       email = found.email
@@ -189,6 +203,7 @@ router.post('/reveal', async (c) => {
     }
     if (!email) return c.json({ error: 'Bu kisi icin email adresi bulunamadi' }, 404)
   }
+  // website-sourced emails are already verified real; reveal as-is.
 
   // Check if already revealed by this user
   const existing = await c.env.DB.prepare(
@@ -515,13 +530,13 @@ Ton: ${profile.tone || 'professional'}` : ''
     if (company_size) criteriaLines.push(`Company size: ${company_size} employees`)
     if (location) criteriaLines.push(`Location: ${location}`)
     try {
-      const discoverPrompt = `Find a real, well-known, active company that matches these criteria:
+      const discoverPrompt = `List real, well-known, active companies that match these criteria:
 ${criteriaLines.join('\n')}
 
 RULES:
-- Choose a REAL, existing company. Do NOT invent or hallucinate.
-- The company must be well-known in that sector and location.
-- Reply with ONLY the company's website domain, nothing else.
+- List 12 DIFFERENT real, existing companies. Do NOT invent or hallucinate.
+- Each must be well-known in that sector and location.
+- Reply with ONLY the website domains, one per line, nothing else.
 - Format: just the domain like "company.com"
 
 Examples of correct answers:
@@ -529,12 +544,16 @@ siemens.com
 toyota.co.jp
 emirates.com`
       const raw = await callGemini(discoverPrompt, apiKey)
-      // Try to extract a valid domain from the response
-      const lines = raw.trim().split('\n')
-      for (const line of lines) {
-        const d = cleanDomain(line.replace(/[`*"']/g, ''))
-        if (d) { domain = d; break }
+      // Extract domain-like tokens from anywhere in the response so numbered
+      // lists ("1. acme.com"), bullets ("- acme.com") or prose still parse.
+      // Then pick one at random so repeated requests with the same criteria
+      // don't keep returning the same company.
+      const domains = []
+      for (const token of raw.match(/[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.[a-z]{2,24}/gi) || []) {
+        const d = cleanDomain(token)
+        if (d && !domains.includes(d)) domains.push(d)
       }
+      if (domains.length) domain = domains[Math.floor(Math.random() * domains.length)]
     } catch {}
   }
   if (!domain) return c.json({ error: 'Kriterlere uygun firma bulunamadi. Firma adi veya domain girin.' }, 400)
@@ -605,49 +624,62 @@ EMAIL RULES:
 - Natural, human tone. No markdown, no # * symbols, no long dashes.
 ${langInstruction}
 
-Respond in JSON only:
-{
-  "subject": "Email subject line",
-  "body": "Full email body text",
-  "value_proposition": "1-2 sentence value proposition specific to this company"
-}`
+Respond in EXACTLY this format and nothing else:
+SUBJECT: <one-line email subject>
+BODY:
+<full email body, may span multiple lines>
+VALUE: <1-2 sentence value proposition specific to this company>`
+
+  let raw
+  try {
+    raw = await callGemini(composePrompt, apiKey)
+  } catch (err) {
+    console.error('[auto-outreach] compose call failed:', err?.message || err)
+    return c.json({ error: 'AI servisine ulasilamadi, tekrar deneyin' }, 502)
+  }
+  if (!raw || !raw.trim()) {
+    return c.json({ error: 'AI yaniti bos dondu, tekrar deneyin' }, 502)
+  }
+
+  // Parse line-delimited response. A multi-line email body breaks JSON when
+  // the model emits unescaped newlines, so we key off SUBJECT/BODY/VALUE markers.
+  const subject = cleanAiText((raw.match(/SUBJECT:\s*(.+)/i)?.[1] || '').trim())
+  const body = cleanAiText((raw.match(/BODY:\s*([\s\S]*?)\s*(?:\nVALUE:|$)/i)?.[1] || '').trim())
+  const value_proposition = cleanAiText((raw.match(/VALUE:\s*([\s\S]+)/i)?.[1] || '').trim())
+
+  if (!subject || !body) {
+    console.error('[auto-outreach] could not parse AI response:', raw.slice(0, 200))
+    return c.json({ error: 'Email olusturulamadi, tekrar deneyin' }, 500)
+  }
 
   try {
-    const raw = await callGemini(composePrompt, apiKey)
-    const jsonMatch = raw.match(/\{[\s\S]*\}/)
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0])
-      const subject = cleanAiText(parsed.subject || '')
-      const body = cleanAiText(parsed.body || '')
+    // Save to outreach as draft
+    const emailId = crypto.randomUUID()
+    await c.env.DB.prepare(
+      `INSERT INTO emails (id, user_id, subject, body, status) VALUES (?, ?, ?, ?, 'draft')`
+    ).bind(emailId, userId, subject, body).run()
 
-      // Save to outreach as draft
-      const emailId = crypto.randomUUID()
-      await c.env.DB.prepare(
-        `INSERT INTO emails (id, user_id, subject, body, status) VALUES (?, ?, ?, ?, 'draft')`
-      ).bind(emailId, userId, subject, body).run()
+    await deductCredit(c.env.DB, chk.userId, 'outreach', 1)
 
-      await deductCredit(c.env.DB, chk.userId, 'outreach', 1)
+    await logActivity(c.env.DB, userId, {
+      module: 'outreach', action: 'compose',
+      title: `${contactName || 'Yetkili'} · ${companyInfo?.name || domain}`,
+      detail: { subject, contact_email: contactEmail, company: companyInfo?.name },
+    })
 
-      await logActivity(c.env.DB, userId, {
-        module: 'outreach', action: 'compose',
-        title: `${contactName || 'Yetkili'} · ${companyInfo?.name || domain}`,
-        detail: { subject, contact_email: contactEmail, company: companyInfo?.name },
-      })
-
-      return c.json({
-        company: companyInfo,
-        contact: { name: contactName, title: contactTitle, email: contactEmail },
-        people_count: peopleList.length,
-        subject,
-        body,
-        value_proposition: cleanAiText(parsed.value_proposition || ''),
-        outreach_id: emailId,
-        credits: await creditsSnapshot(c.env.DB, chk.userId),
-      })
-    }
-    return c.json({ error: 'Email olusturulamadi' }, 500)
-  } catch {
-    return c.json({ error: 'AI servisi hatasi' }, 500)
+    return c.json({
+      company: companyInfo,
+      contact: { name: contactName, title: contactTitle, email: contactEmail },
+      people_count: peopleList.length,
+      subject,
+      body,
+      value_proposition,
+      outreach_id: emailId,
+      credits: await creditsSnapshot(c.env.DB, chk.userId),
+    })
+  } catch (err) {
+    console.error('[auto-outreach] save/finalize failed:', err?.message || err)
+    return c.json({ error: 'Kayit sirasinda hata olustu' }, 500)
   }
 })
 

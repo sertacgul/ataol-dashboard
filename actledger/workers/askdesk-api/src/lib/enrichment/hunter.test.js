@@ -12,6 +12,7 @@ function mockFetch(json, ok = true, status = 200) {
   globalThis.fetch = vi.fn().mockResolvedValue({
     ok, status, json: async () => json,
   })
+  return globalThis.fetch
 }
 
 describe('HunterProvider.domainSearch', () => {
@@ -28,6 +29,14 @@ describe('HunterProvider.domainSearch', () => {
     expect(people[0].department).toBe('Engineering')
     expect(people[0].verification_status).toBe('verified')
     expect(people[0].source).toBe('hunter')
+  })
+
+  it('requests at most 10 results so Hunter Free plan does not 400', async () => {
+    const fetchMock = mockFetch({ data: { organization: 'Acme', emails: [] } })
+    const p = createHunterProvider('key', helpers)
+    await p.domainSearch('acme.com')
+    const url = new URL(fetchMock.mock.calls[0][0])
+    expect(Number(url.searchParams.get('limit'))).toBeLessThanOrEqual(10)
   })
 })
 
