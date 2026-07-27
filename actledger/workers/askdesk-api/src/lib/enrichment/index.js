@@ -7,11 +7,14 @@ import { applyPattern } from './patterns.js'
 // verification cost to a few credits).
 const MAX_VERIFY_CANDIDATES = 6
 
-// Decision-makers first. Rank people so the user sees managers/executives with
-// personal emails at the top, generic mailboxes (info@, contact@) at the bottom,
-// and no-email entries last. Sorting here — before results are cached — keeps the
-// `${domain}-${index}` id mapping consistent across /search, /reveal and /bulk-reveal.
-const SENIORITY_RANK = { 'C-Level': 0, 'VP': 1, 'Director': 2, 'Manager': 3, 'Staff': 4 }
+// Reachable decision-makers first. For cold B2B outreach the useful contact is a
+// function head (Director / VP / Manager) who reads and can act on the email, not
+// the CEO / board of a large company. So the "sweet spot" tiers rank above C-Level;
+// C-Level stays visible just below (right target at small companies / startups),
+// generic mailboxes (info@, contact@) sink to the bottom, no-email entries last.
+// Sorting here — before results are cached — keeps the `${domain}-${index}` id
+// mapping consistent across /search, /reveal and /bulk-reveal.
+const SENIORITY_RANK = { 'Director': 0, 'VP': 1, 'Manager': 2, 'C-Level': 3, 'Staff': 4 }
 
 export function sortPeople(people) {
   const groupOf = p => {

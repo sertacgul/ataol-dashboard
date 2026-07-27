@@ -44,6 +44,16 @@ describe('sortPeople', () => {
     expect(sorted).toEqual(['Boss', 'Staffer', 'Info', 'Nobody'])
   })
 
+  it('ranks reachable decision-makers (Director/Manager) above C-Level', () => {
+    const input = [
+      { name: 'Ceo', email: 'ceo@x.com', email_type: 'personal', seniority: 'C-Level' },
+      { name: 'Dir', email: 'dir@x.com', email_type: 'personal', seniority: 'Director' },
+      { name: 'Mgr', email: 'mgr@x.com', email_type: 'personal', seniority: 'Manager' },
+    ]
+    const sorted = sortPeople(input).map(p => p.name)
+    expect(sorted).toEqual(['Dir', 'Mgr', 'Ceo'])
+  })
+
   it('does not mutate the input array', () => {
     const input = [
       { name: 'Info', email: 'info@x.com', email_type: 'generic', seniority: 'Staff' },

@@ -579,13 +579,13 @@ emirates.com`
     })
   }
 
-  const seniorityOrder = ['C-Level', 'VP', 'Director', 'Manager', 'Staff']
-  let bestPerson = peopleList[0]
-  let bestRank = 99
-  for (const p of peopleList) {
-    const rank = seniorityOrder.indexOf(p.seniority || classifySeniority(p.title))
-    if (rank >= 0 && rank < bestRank) { bestRank = rank; bestPerson = p }
-  }
+  // peopleList is already ranked (sortPeople): reachable decision-makers with
+  // personal emails first. Target the top one with a real personal address
+  // instead of forcing the most senior person — a large-company CEO never reads
+  // cold email. Fall back to any address, then to a generic mailbox.
+  const bestPerson = peopleList.find(p => p.email && p.email_type !== 'generic')
+    || peopleList.find(p => p.email)
+    || peopleList[0]
 
   const contactEmail = bestPerson?.email || `info@${domain}`
   const contactName = bestPerson?.name || 'Yetkili'
