@@ -180,7 +180,7 @@ auth.post('/redeem-code', async (c) => {
     if (res.type === 'free_month') {
       return c.json({ type: 'free_month', code: res.code, redeem_expires_at: res.redeem_expires_at })
     }
-    return c.json({ type: codeRow.type, code: res.code, discount_percent: codeRow.percent || 0, discount_amount_cents: codeRow.amount_cents || 0 })
+    return c.json({ type: codeRow.type, code: res.code, discount_percent: codeRow.percent || 0, discount_amount_cents: codeRow.amount_cents || 0, discount_expires_at: res.discount_expires_at })
   } catch (err) {
     return c.json({ error: err.message || 'Kod kullanılamadı' }, 409)
   }

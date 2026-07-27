@@ -228,6 +228,7 @@ describe('redeemForUser', () => {
       type: 'free_month',
       code: 'FREEMO',
       redeem_expires_at: '2026-10-25T12:00:00.000Z',
+      discount_expires_at: null,
     })
     const red = db._state.redemptions[0]
     expect(red.user_id).toBe('u1')

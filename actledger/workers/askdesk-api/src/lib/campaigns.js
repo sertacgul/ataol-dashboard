@@ -65,13 +65,14 @@ export async function redeemForUser(db, codeRow, userId, nowIso = new Date().toI
   await db.prepare('UPDATE campaign_codes SET redemptions_count = redemptions_count + 1 WHERE id = ?')
     .bind(codeRow.id).run()
 
+  let discountExpires = null
   if (codeRow.type === 'percent' || codeRow.type === 'amount') {
-    const discExpires = codeRow.ends_at || addMonths(nowIso, 12)
+    discountExpires = codeRow.ends_at || addMonths(nowIso, 12)
     await db.prepare('UPDATE users SET discount_percent = ?, discount_expires_at = ?, discount_code = ? WHERE id = ?')
-      .bind(codeRow.percent || 0, discExpires, codeRow.code, userId).run()
+      .bind(codeRow.percent || 0, discountExpires, codeRow.code, userId).run()
   }
 
-  return { type: codeRow.type, code: codeRow.code, redeem_expires_at: redeemExpires }
+  return { type: codeRow.type, code: codeRow.code, redeem_expires_at: redeemExpires, discount_expires_at: discountExpires }
 }
 
 export async function activateVoucher(db, userId, plan, nowIso = new Date().toISOString()) {

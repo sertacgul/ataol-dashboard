@@ -110,7 +110,11 @@ export async function checkCredits(c, type, amount = 1) {
 // Set a user's plan and reset their monthly plan usage (used on subscription
 // activation). Purchased balances are preserved.
 export async function setPlanAndReset(db, userId, plan) {
-  await db.prepare('UPDATE users SET plan = ? WHERE id = ?').bind(plan, userId).run()
+  // Clear any campaign free-month markers: a real plan change (subscription
+  // activation, downgrade) must not leave stale plan_source='campaign' /
+  // plan_expires_at behind, or the expiry cron would later drop a paying
+  // customer to free. activateVoucher re-sets these right after calling this.
+  await db.prepare('UPDATE users SET plan = ?, plan_expires_at = NULL, plan_source = NULL WHERE id = ?').bind(plan, userId).run()
   await getOrCreateCredits(db, userId, plan) // ensure row exists
   await db.prepare('UPDATE user_credits SET outreach_used = 0, content_used = 0, used_this_month = 0, reset_date = ? WHERE user_id = ?')
     .bind(getNextResetDate(), userId).run()
