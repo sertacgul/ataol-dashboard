@@ -20,6 +20,7 @@ import blogRoutes from './routes/blog.js'
 import adminRoutes from './routes/admin.js'
 import ataolRoutes from './routes/ataol.js'
 import { runTrialReminders } from './lib/trial-reminders.js'
+import { runCampaignExpiry } from './lib/campaign-expiry.js'
 import emailFinderRoutes from './routes/email-finder.js'
 import activityRoutes from './routes/activity.js'
 import billingRoutes from './routes/billing.js'
@@ -67,5 +68,8 @@ app.get('/health', (c) => c.json({ status: 'ok' }))
 // Cloudflare Worker entry: HTTP (Hono) + scheduled (cron) handlers.
 export default {
   fetch: (request, env, ctx) => app.fetch(request, env, ctx),
-  scheduled: (event, env, ctx) => ctx.waitUntil(runTrialReminders(env)),
+  scheduled: (event, env, ctx) => ctx.waitUntil(Promise.all([
+    runTrialReminders(env),
+    runCampaignExpiry(env),
+  ])),
 }
