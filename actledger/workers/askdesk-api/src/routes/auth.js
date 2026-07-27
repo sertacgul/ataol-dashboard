@@ -15,6 +15,10 @@ const FREE_EMAIL_DOMAINS = [
   'msn.com', 'windowslive.com', 'mynet.com', 'superonline.com',
 ]
 
+// Domains blocked from registering (competitors who scoped the product on a
+// free account). Rejected with a neutral message so the block is not obvious.
+const BLOCKED_DOMAINS = ['b2bussiness.com']
+
 function getEmailDomain(email) {
   return email.split('@')[1]?.toLowerCase()
 }
@@ -56,6 +60,10 @@ auth.post('/register', async (c) => {
 
   if (isFreeEmailDomain(domain)) {
     return c.json({ error: 'Lütfen kurumsal email adresinizi kullanın. Gmail, Hotmail, Yahoo gibi kişisel email adresleri kabul edilmemektedir.' }, 400)
+  }
+
+  if (BLOCKED_DOMAINS.includes(domain)) {
+    return c.json({ error: 'Kayıt şu anda tamamlanamadı. Lütfen daha sonra tekrar deneyin.' }, 400)
   }
 
   const existing = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first()
