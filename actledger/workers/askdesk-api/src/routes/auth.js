@@ -2,19 +2,9 @@ import { Hono } from 'hono'
 import { createToken } from '../middleware/auth.js'
 import { sendEmail, passwordResetEmail, welcomeEmail } from '../lib/mail.js'
 import { logActivity } from '../lib/activity.js'
+import { getActiveCode, redeemForUser } from '../lib/campaigns.js'
 
 const auth = new Hono()
-
-const DISCOUNT_CODES = { LAUNCH50: { percent: 50, months: 3 } }
-
-function computeDiscount(code) {
-  if (!code) return null
-  const cfg = DISCOUNT_CODES[String(code).trim().toUpperCase()]
-  if (!cfg) return null
-  const exp = new Date()
-  exp.setMonth(exp.getMonth() + cfg.months)
-  return { percent: cfg.percent, expires_at: exp.toISOString(), code: String(code).trim().toUpperCase() }
-}
 
 const FREE_EMAIL_DOMAINS = [
   'gmail.com', 'googlemail.com', 'hotmail.com', 'outlook.com', 'live.com',
@@ -79,8 +69,11 @@ auth.post('/register', async (c) => {
     return c.json({ error: 'Bu domain ile zaten bir ücretsiz hesap bulunuyor. Lütfen mevcut hesabınıza giriş yapın veya bir ücretli plana geçiş yapın.' }, 409)
   }
 
-  const disc = discount_code ? computeDiscount(discount_code) : null
-  if (discount_code && !disc) return c.json({ error: 'Geçersiz indirim kodu' }, 400)
+  let codeRow = null
+  if (discount_code) {
+    codeRow = await getActiveCode(c.env.DB, discount_code)
+    if (!codeRow) return c.json({ error: 'Geçersiz veya süresi dolmuş kampanya kodu' }, 400)
+  }
 
   const id = crypto.randomUUID()
   const password_hash = await hashPassword(password)
@@ -88,7 +81,11 @@ auth.post('/register', async (c) => {
 
   await c.env.DB.prepare(
     'INSERT INTO users (id, email, password_hash, name, company_name, role, email_domain, plan, trial_expires_at, discount_percent, discount_expires_at, discount_code, terms_accepted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  ).bind(id, email, password_hash, name, company_name || null, 'member', domain, 'free', trialExpires, disc?.percent || 0, disc?.expires_at || null, disc?.code || null, new Date().toISOString()).run()
+  ).bind(id, email, password_hash, name, company_name || null, 'member', domain, 'free', trialExpires, 0, null, null, new Date().toISOString()).run()
+
+  if (codeRow) {
+    try { await redeemForUser(c.env.DB, codeRow, id) } catch { /* code raced/invalid; account still created */ }
+  }
 
   const token = await createToken(id, 'member', c.env.JWT_SECRET)
   c.header('Set-Cookie', `askdesk_token=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=604800`)
@@ -97,7 +94,7 @@ auth.post('/register', async (c) => {
   const welcome = welcomeEmail(name, trialExpires)
   c.executionCtx.waitUntil(sendEmail(c.env, { to: email, ...welcome }))
 
-  return c.json({ id, email, name, company_name, role: 'member', plan: 'free', trial_expires_at: trialExpires, discount_percent: disc?.percent || 0, discount_expires_at: disc?.expires_at || null }, 201)
+  return c.json({ id, email, name, company_name, role: 'member', plan: 'free', trial_expires_at: trialExpires, campaign_code: codeRow?.code || null }, 201)
 })
 
 auth.post('/login', async (c) => {
@@ -134,14 +131,23 @@ auth.get('/me', async (c) => {
     const key = new TextEncoder().encode(c.env.JWT_SECRET)
     const { payload } = await jwtVerify(match[1], key)
     const user = await c.env.DB.prepare(
-      'SELECT id, email, name, company_name, role, plan, trial_expires_at, created_at, discount_percent, discount_expires_at, discount_code FROM users WHERE id = ?'
+      'SELECT id, email, name, company_name, role, plan, trial_expires_at, created_at, discount_percent, discount_expires_at, discount_code, plan_expires_at, plan_source FROM users WHERE id = ?'
     ).bind(payload.sub).first()
+    let voucher = null
+    if (user) {
+      voucher = await c.env.DB.prepare(
+        "SELECT code, redeem_expires_at FROM campaign_redemptions WHERE user_id = ? AND type = 'free_month' AND status = 'redeemed' ORDER BY created_at DESC LIMIT 1"
+      ).bind(payload.sub).first()
+    }
     return c.json({
       user: user ? {
         ...user,
         discount_percent: user.discount_percent || 0,
         discount_expires_at: user.discount_expires_at || null,
         discount_code: user.discount_code || null,
+        plan_expires_at: user.plan_expires_at || null,
+        plan_source: user.plan_source || null,
+        pending_voucher: voucher || null,
       } : null,
     })
   } catch {
@@ -167,14 +173,17 @@ auth.post('/redeem-code', async (c) => {
   if (!userId) return c.json({ error: 'Yetkisiz' }, 401)
 
   const { code } = await c.req.json()
-  const existing = await c.env.DB.prepare('SELECT discount_code FROM users WHERE id = ?').bind(userId).first()
-  if (!existing) return c.json({ error: 'Kullanıcı bulunamadı' }, 404)
-  if (existing.discount_code) return c.json({ error: 'Bu hesap indirim kodunu zaten kullandı' }, 409)
-  const disc = computeDiscount(code)
-  if (!disc) return c.json({ error: 'Geçersiz indirim kodu' }, 400)
-  await c.env.DB.prepare('UPDATE users SET discount_percent = ?, discount_expires_at = ?, discount_code = ? WHERE id = ?')
-    .bind(disc.percent, disc.expires_at, disc.code, userId).run()
-  return c.json({ discount_percent: disc.percent, discount_expires_at: disc.expires_at })
+  const codeRow = await getActiveCode(c.env.DB, code)
+  if (!codeRow) return c.json({ error: 'Geçersiz veya süresi dolmuş kampanya kodu' }, 400)
+  try {
+    const res = await redeemForUser(c.env.DB, codeRow, userId)
+    if (res.type === 'free_month') {
+      return c.json({ type: 'free_month', code: res.code, redeem_expires_at: res.redeem_expires_at })
+    }
+    return c.json({ type: codeRow.type, code: res.code, discount_percent: codeRow.percent || 0, discount_amount_cents: codeRow.amount_cents || 0 })
+  } catch (err) {
+    return c.json({ error: err.message || 'Kod kullanılamadı' }, 409)
+  }
 })
 
 // Change password for the current authenticated user
