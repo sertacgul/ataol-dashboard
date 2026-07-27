@@ -152,6 +152,13 @@ admin.post('/campaigns', async (c) => {
   const eligible_plans = Array.isArray(b.eligible_plans) && b.eligible_plans.length
     ? JSON.stringify(b.eligible_plans) : 'all'
 
+  // The admin date inputs send date-only strings ("2026-07-28"); LemonSqueezy
+  // requires full ISO 8601. Normalize once so LS and our DB store the same value
+  // (start of day for starts_at, end of day for ends_at so the range is inclusive).
+  const toIso = (d, endOfDay) => !d ? null : (String(d).includes('T') ? d : `${d}T${endOfDay ? '23:59:59' : '00:00:00'}Z`)
+  const startsAt = toIso(b.starts_at, false)
+  const endsAt = toIso(b.ends_at, true)
+
   // For discount types, create the LS discount first so DB only stores real ones.
   let lsId = null
   if (b.type === 'percent' || b.type === 'amount') {
@@ -159,7 +166,7 @@ admin.post('/campaigns', async (c) => {
       lsId = await createDiscount(c.env, {
         code, type: b.type, percent: b.percent, amount_cents: b.amount_cents,
         duration: b.duration === 'forever' ? 'forever' : 'once',
-        starts_at: b.starts_at || null, ends_at: b.ends_at || null,
+        starts_at: startsAt, ends_at: endsAt,
         max_redemptions: b.max_redemptions || null,
       })
     } catch (err) {
@@ -173,7 +180,7 @@ admin.post('/campaigns', async (c) => {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   ).bind(id, code, b.type, b.percent || null, b.amount_cents || null,
     b.duration === 'forever' ? 'forever' : 'once', b.free_months || null,
-    b.redeem_window_days || null, eligible_plans, b.starts_at || null, b.ends_at || null,
+    b.redeem_window_days || null, eligible_plans, startsAt, endsAt,
     b.max_redemptions || null, lsId).run()
 
   return c.json({ id, code, ls_discount_id: lsId }, 201)
