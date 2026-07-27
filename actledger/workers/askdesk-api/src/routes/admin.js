@@ -1,5 +1,7 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
+import { createDiscount, deactivateDiscount } from '../lib/lemonsqueezy-discounts.js'
+import { normalizeCode } from '../lib/campaigns.js'
 
 const admin = new Hono()
 admin.use('*', authMiddleware)
@@ -127,6 +129,76 @@ admin.post('/run-trial-reminders', async (c) => {
   const { runTrialReminders } = await import('../lib/trial-reminders.js')
   const r = await runTrialReminders(c.env)
   return c.json(r)
+})
+
+// ─── Campaign codes CRUD (super-admin) ───────────────────────────────────────
+admin.get('/campaigns', async (c) => {
+  const rows = await c.env.DB.prepare('SELECT * FROM campaign_codes ORDER BY created_at DESC').all()
+  return c.json({ campaigns: rows.results || [] })
+})
+
+admin.post('/campaigns', async (c) => {
+  const b = await c.req.json()
+  const code = normalizeCode(b.code)
+  if (!code) return c.json({ error: 'Kod gerekli' }, 400)
+  if (!['percent', 'amount', 'free_month'].includes(b.type)) return c.json({ error: 'Geçersiz tip' }, 400)
+  if (b.type === 'percent' && !(b.percent > 0 && b.percent <= 100)) return c.json({ error: 'Yüzde 1-100 olmalı' }, 400)
+  if (b.type === 'amount' && !(b.amount_cents > 0)) return c.json({ error: 'Tutar gerekli' }, 400)
+  if (b.type === 'free_month' && !(b.free_months > 0)) return c.json({ error: 'Ay sayısı gerekli' }, 400)
+
+  const existing = await c.env.DB.prepare('SELECT id FROM campaign_codes WHERE code = ?').bind(code).first()
+  if (existing) return c.json({ error: 'Bu kod zaten var' }, 409)
+
+  const eligible_plans = Array.isArray(b.eligible_plans) && b.eligible_plans.length
+    ? JSON.stringify(b.eligible_plans) : 'all'
+
+  // For discount types, create the LS discount first so DB only stores real ones.
+  let lsId = null
+  if (b.type === 'percent' || b.type === 'amount') {
+    try {
+      lsId = await createDiscount(c.env, {
+        code, type: b.type, percent: b.percent, amount_cents: b.amount_cents,
+        duration: b.duration === 'forever' ? 'forever' : 'once',
+        starts_at: b.starts_at || null, ends_at: b.ends_at || null,
+        max_redemptions: b.max_redemptions || null,
+      })
+    } catch (err) {
+      return c.json({ error: 'LemonSqueezy indirimi oluşturulamadı: ' + err.message }, 500)
+    }
+  }
+
+  const id = crypto.randomUUID()
+  await c.env.DB.prepare(
+    `INSERT INTO campaign_codes (id, code, type, percent, amount_cents, duration, free_months, redeem_window_days, eligible_plans, starts_at, ends_at, max_redemptions, ls_discount_id, active)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
+  ).bind(id, code, b.type, b.percent || null, b.amount_cents || null,
+    b.duration === 'forever' ? 'forever' : 'once', b.free_months || null,
+    b.redeem_window_days || null, eligible_plans, b.starts_at || null, b.ends_at || null,
+    b.max_redemptions || null, lsId).run()
+
+  return c.json({ id, code, ls_discount_id: lsId }, 201)
+})
+
+admin.patch('/campaigns/:id', async (c) => {
+  const id = c.req.param('id')
+  const b = await c.req.json()
+  const fields = []
+  const vals = []
+  for (const k of ['active', 'starts_at', 'ends_at', 'max_redemptions']) {
+    if (k in b) { fields.push(`${k} = ?`); vals.push(b[k]) }
+  }
+  if (!fields.length) return c.json({ error: 'Güncellenecek alan yok' }, 400)
+  vals.push(id)
+  await c.env.DB.prepare(`UPDATE campaign_codes SET ${fields.join(', ')} WHERE id = ?`).bind(...vals).run()
+  return c.json({ ok: true })
+})
+
+admin.delete('/campaigns/:id', async (c) => {
+  const id = c.req.param('id')
+  const row = await c.env.DB.prepare('SELECT ls_discount_id FROM campaign_codes WHERE id = ?').bind(id).first()
+  await c.env.DB.prepare('UPDATE campaign_codes SET active = 0 WHERE id = ?').bind(id).run()
+  if (row?.ls_discount_id) await deactivateDiscount(c.env, row.ls_discount_id)
+  return c.json({ ok: true })
 })
 
 export default admin
