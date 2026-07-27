@@ -46,6 +46,11 @@ export default function Admin() {
   const [activity, setActivity] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [campaigns, setCampaigns] = useState([])
+  const emptyForm = { code: '', type: 'percent', percent: 30, amount_cents: 5000, free_months: 1, redeem_window_days: 90, duration: 'once', eligible_plans: [], starts_at: '', ends_at: '', max_redemptions: '' }
+  const [cForm, setCForm] = useState(emptyForm)
+  const [cErr, setCErr] = useState('')
+  const [cBusy, setCBusy] = useState(false)
 
   useEffect(() => {
     if (user && user.role !== 'superadmin') { setLoading(false); return }
@@ -56,6 +61,7 @@ export default function Admin() {
     api.get('/admin/activity')
       .then(d => setActivity(d.activity || []))
       .catch(() => {})
+    api.get('/admin/campaigns').then(d => setCampaigns(d.campaigns || [])).catch(() => {})
   }, [user])
 
   if (user && user.role !== 'superadmin') {
@@ -66,6 +72,39 @@ export default function Admin() {
   if (!data) return null
 
   const { users, revenue, cost, margin, api: apis, orders } = data
+
+  async function createCampaign(e) {
+    e.preventDefault()
+    setCErr(''); setCBusy(true)
+    try {
+      const body = {
+        code: cForm.code, type: cForm.type,
+        eligible_plans: cForm.eligible_plans,
+        starts_at: cForm.starts_at || null, ends_at: cForm.ends_at || null,
+        max_redemptions: cForm.max_redemptions ? Number(cForm.max_redemptions) : null,
+      }
+      if (cForm.type === 'percent') body.percent = Number(cForm.percent)
+      if (cForm.type === 'amount') body.amount_cents = Math.round(Number(cForm.amount_cents))
+      if (cForm.type !== 'free_month') body.duration = cForm.duration
+      if (cForm.type === 'free_month') { body.free_months = Number(cForm.free_months); body.redeem_window_days = Number(cForm.redeem_window_days) }
+      await api.post('/admin/campaigns', body)
+      setCForm(emptyForm)
+      const d = await api.get('/admin/campaigns'); setCampaigns(d.campaigns || [])
+    } catch (err) { setCErr(err.message) } finally { setCBusy(false) }
+  }
+  async function toggleCampaign(id, active) {
+    await api.patch(`/admin/campaigns/${id}`, { active: active ? 0 : 1 })
+    const d = await api.get('/admin/campaigns'); setCampaigns(d.campaigns || [])
+  }
+  async function deleteCampaign(id) {
+    await api.del(`/admin/campaigns/${id}`)
+    const d = await api.get('/admin/campaigns'); setCampaigns(d.campaigns || [])
+  }
+  function cValue(c) {
+    if (c.type === 'percent') return `%${c.percent}`
+    if (c.type === 'amount') return '$' + (c.amount_cents / 100)
+    return `${c.free_months} ay ücretsiz`
+  }
 
   return (
     <div>
@@ -126,6 +165,95 @@ export default function Admin() {
         <div className="text-xs text-[#9CA3AF] mt-3">{t('Tahmini değerler: reveal başına')} {money(cost.cost_per_reveal)}, {t('sabit gider kodda tanımlı')}.</div>
       </div>
 
+      {/* Kampanya kodları */}
+      <div className="text-xs font-semibold text-[#374151] mb-2">{t('Kampanya Kodları')}</div>
+      <div className="bg-white border border-[#E5E7EB] rounded-md p-4 mb-3">
+        <form onSubmit={createCampaign} className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
+          <label className="text-xs text-[#6B7280]">Kod
+            <input value={cForm.code} onChange={e => setCForm({ ...cForm, code: e.target.value.toUpperCase() })} className="mt-1 w-full border border-[#E5E7EB] rounded-md px-2 py-1.5 text-sm uppercase" placeholder="LAUNCH100" />
+          </label>
+          <label className="text-xs text-[#6B7280]">Tip
+            <select value={cForm.type} onChange={e => setCForm({ ...cForm, type: e.target.value })} className="mt-1 w-full border border-[#E5E7EB] rounded-md px-2 py-1.5 text-sm">
+              <option value="percent">Yüzde indirim</option>
+              <option value="amount">Tutar indirim</option>
+              <option value="free_month">Ücretsiz ay</option>
+            </select>
+          </label>
+          {cForm.type === 'percent' && (
+            <label className="text-xs text-[#6B7280]">Yüzde
+              <input type="number" min="1" max="100" value={cForm.percent} onChange={e => setCForm({ ...cForm, percent: e.target.value })} className="mt-1 w-full border border-[#E5E7EB] rounded-md px-2 py-1.5 text-sm" />
+            </label>
+          )}
+          {cForm.type === 'amount' && (
+            <label className="text-xs text-[#6B7280]">Tutar (cent, USD)
+              <input type="number" min="1" value={cForm.amount_cents} onChange={e => setCForm({ ...cForm, amount_cents: e.target.value })} className="mt-1 w-full border border-[#E5E7EB] rounded-md px-2 py-1.5 text-sm" />
+            </label>
+          )}
+          {cForm.type === 'free_month' && (
+            <>
+              <label className="text-xs text-[#6B7280]">Ay
+                <input type="number" min="1" value={cForm.free_months} onChange={e => setCForm({ ...cForm, free_months: e.target.value })} className="mt-1 w-full border border-[#E5E7EB] rounded-md px-2 py-1.5 text-sm" />
+              </label>
+              <label className="text-xs text-[#6B7280]">Aktivasyon penceresi (gün)
+                <input type="number" min="1" value={cForm.redeem_window_days} onChange={e => setCForm({ ...cForm, redeem_window_days: e.target.value })} className="mt-1 w-full border border-[#E5E7EB] rounded-md px-2 py-1.5 text-sm" />
+              </label>
+            </>
+          )}
+          {cForm.type !== 'free_month' && (
+            <label className="text-xs text-[#6B7280]">Süre
+              <select value={cForm.duration} onChange={e => setCForm({ ...cForm, duration: e.target.value })} className="mt-1 w-full border border-[#E5E7EB] rounded-md px-2 py-1.5 text-sm">
+                <option value="once">Tek seferlik (ilk ödeme)</option>
+                <option value="forever">Her ödeme</option>
+              </select>
+            </label>
+          )}
+          <label className="text-xs text-[#6B7280]">Başlangıç
+            <input type="date" value={cForm.starts_at} onChange={e => setCForm({ ...cForm, starts_at: e.target.value })} className="mt-1 w-full border border-[#E5E7EB] rounded-md px-2 py-1.5 text-sm" />
+          </label>
+          <label className="text-xs text-[#6B7280]">Bitiş
+            <input type="date" value={cForm.ends_at} onChange={e => setCForm({ ...cForm, ends_at: e.target.value })} className="mt-1 w-full border border-[#E5E7EB] rounded-md px-2 py-1.5 text-sm" />
+          </label>
+          <label className="text-xs text-[#6B7280]">Kullanım limiti
+            <input type="number" min="1" value={cForm.max_redemptions} onChange={e => setCForm({ ...cForm, max_redemptions: e.target.value })} className="mt-1 w-full border border-[#E5E7EB] rounded-md px-2 py-1.5 text-sm" placeholder="Sınırsız" />
+          </label>
+          <button type="submit" disabled={cBusy || !cForm.code.trim()} className="text-xs font-medium text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-md px-4 py-2">
+            {cBusy ? 'Ekleniyor...' : 'Kod Ekle'}
+          </button>
+        </form>
+        {cErr && <div className="text-xs text-[#991B1B] bg-[#FEE2E2] border border-[#FECACA] rounded-md px-3 py-2 mt-2">{cErr}</div>}
+      </div>
+      <div className="bg-white border border-[#E5E7EB] rounded-md overflow-x-auto mb-6">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Kod</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Tip</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Değer</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Pencere</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Kullanım</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2">Durum</th>
+              <th className="text-left text-xs font-medium text-[#6B7280] px-4 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {campaigns.length === 0 ? (
+              <tr><td colSpan="7" className="text-xs text-[#9CA3AF] text-center py-6">Henüz kampanya kodu yok.</td></tr>
+            ) : campaigns.map(c => (
+              <tr key={c.id} className="border-b border-[#E5E7EB] last:border-0">
+                <td className="px-4 py-2 text-xs font-medium text-[#111827]">{c.code}</td>
+                <td className="px-4 py-2 text-xs text-[#6B7280]">{c.type}</td>
+                <td className="px-4 py-2 text-xs text-[#111827]">{cValue(c)}</td>
+                <td className="px-4 py-2 text-xs text-[#9CA3AF]">{(c.starts_at || '-')} / {(c.ends_at || '-')}</td>
+                <td className="px-4 py-2 text-xs text-[#6B7280]">{c.redemptions_count}{c.max_redemptions ? ` / ${c.max_redemptions}` : ''}</td>
+                <td className="px-4 py-2 text-xs">
+                  <button onClick={() => toggleCampaign(c.id, c.active)} className={c.active ? 'text-[#059669]' : 'text-[#9CA3AF]'}>{c.active ? 'Aktif' : 'Pasif'}</button>
+                </td>
+                <td className="px-4 py-2 text-xs"><button onClick={() => deleteCampaign(c.id)} className="text-[#DC2626]">Sil</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {/* Plan dağılımı */}
       <div className="text-xs font-semibold text-[#374151] mb-2">{t('Plan Dağılımı')}</div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
