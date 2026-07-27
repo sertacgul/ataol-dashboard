@@ -1,7 +1,8 @@
 import { Hono } from 'hono'
 import { authMiddleware } from '../middleware/auth.js'
 import { setPlanAndReset, addCredits } from '../lib/credits.js'
-import { LS_API, LS_STORE_ID, LS_DISCOUNT_CODE, VARIANTS } from '../lib/billing-config.js'
+import { LS_API, LS_STORE_ID, VARIANTS } from '../lib/billing-config.js'
+import { activateVoucher } from '../lib/campaigns.js'
 
 const billing = new Hono()
 
@@ -15,13 +16,14 @@ billing.post('/checkout', authMiddleware, async (c) => {
   const apiKey = c.env.LEMONSQUEEZY_API_KEY
   if (!apiKey) return c.json({ error: 'Ödeme sistemi yapılandırılmamış' }, 500)
 
-  const user = await c.env.DB.prepare('SELECT email, discount_percent, discount_expires_at FROM users WHERE id = ?')
+  const user = await c.env.DB.prepare('SELECT email, discount_percent, discount_expires_at, discount_code FROM users WHERE id = ?')
     .bind(userId).first()
 
   const checkoutData = { email: user?.email || undefined, custom: { user_id: userId } }
-  // Apply the launch discount if the user redeemed it and it hasn't expired.
-  if (user?.discount_percent && user.discount_expires_at && new Date(user.discount_expires_at) > new Date()) {
-    checkoutData.discount_code = LS_DISCOUNT_CODE
+  // Apply the user's redeemed campaign code (it exists in LS, auto-created by
+  // the admin campaigns module) if it has not expired.
+  if (user?.discount_code && user.discount_expires_at && new Date(user.discount_expires_at) > new Date()) {
+    checkoutData.discount_code = user.discount_code
   }
 
   const payload = {
@@ -121,6 +123,19 @@ billing.post('/webhook', async (c) => {
   } catch { /* never fail the webhook on a downstream error */ }
 
   return c.json({ ok: true })
+})
+
+// ─── POST /activate-voucher (authed) — start a banked free_month voucher ─────
+billing.post('/activate-voucher', authMiddleware, async (c) => {
+  const userId = c.get('userId')
+  const { plan } = await c.req.json()
+  if (!['pro', 'growth', 'team'].includes(plan)) return c.json({ error: 'Geçersiz paket' }, 400)
+  try {
+    const res = await activateVoucher(c.env.DB, userId, plan)
+    return c.json({ ok: true, plan: res.plan, free_until: res.free_until })
+  } catch (err) {
+    return c.json({ error: err.message || 'Voucher aktifleştirilemedi' }, 400)
+  }
 })
 
 export default billing
