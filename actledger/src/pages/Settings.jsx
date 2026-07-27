@@ -206,7 +206,11 @@ export default function Settings() {
     setRedeemError('')
     try {
       const data = await api.post('/auth/redeem-code', { code: redeemCode })
-      setRedeemed({ discount_percent: data.discount_percent, discount_expires_at: data.discount_expires_at })
+      if (data.type === 'free_month') {
+        setRedeemed({ free_month: true, code: data.code, redeem_expires_at: data.redeem_expires_at })
+      } else {
+        setRedeemed({ discount_percent: data.discount_percent, discount_expires_at: data.discount_expires_at })
+      }
     } catch (err) {
       setRedeemError(err.message || (isEn ? 'Invalid discount code' : 'Geçersiz indirim kodu'))
     } finally {
@@ -225,6 +229,17 @@ export default function Settings() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const [voucherPlan, setVoucherPlan] = useState('growth')
+  const [voucherBusy, setVoucherBusy] = useState(false)
+  const [voucherMsg, setVoucherMsg] = useState('')
+  async function activateVoucher() {
+    setVoucherBusy(true); setVoucherMsg('')
+    try {
+      const r = await api.post('/payments/activate-voucher', { plan: voucherPlan })
+      setVoucherMsg((isEn ? 'Free month started on ' : 'Ücretsiz ay başladı: ') + voucherPlan + ', ' + new Date(r.free_until).toLocaleDateString('tr-TR'))
+    } catch (err) { setVoucherMsg(err.message) } finally { setVoucherBusy(false) }
   }
 
   async function handleChangePassword(e) {
@@ -309,6 +324,29 @@ export default function Settings() {
           </form>
         )}
       </div>
+
+      {user?.pending_voucher && (
+        <div className="bg-[#ECFDF5] border border-[#A7F3D0] rounded-md p-4 mb-4">
+          <div className="text-sm font-medium text-[#065F46] mb-2">
+            {isEn ? 'You have 1 free month available' : '1 aylık ücretsiz kullanım hakkınız var'}
+          </div>
+          <div className="text-xs text-[#047857] mb-3">
+            {isEn ? 'Choose a plan and start. Valid until ' : 'Paket seçip başlatın. Son kullanım: '}
+            {new Date(user.pending_voucher.redeem_expires_at).toLocaleDateString('tr-TR')}
+          </div>
+          <div className="flex items-center gap-2">
+            <select value={voucherPlan} onChange={e => setVoucherPlan(e.target.value)} className="border border-[#A7F3D0] rounded-md px-2 py-1.5 text-sm">
+              <option value="pro">Pro</option>
+              <option value="growth">Growth</option>
+              <option value="team">Team</option>
+            </select>
+            <button onClick={activateVoucher} disabled={voucherBusy} className="text-xs font-medium text-white bg-[#059669] hover:bg-[#047857] disabled:opacity-50 rounded-md px-4 py-2">
+              {voucherBusy ? (isEn ? 'Starting...' : 'Başlatılıyor...') : (isEn ? 'Start free month' : 'Ücretsiz ayı başlat')}
+            </button>
+          </div>
+          {voucherMsg && <div className="text-xs text-[#065F46] mt-2">{voucherMsg}</div>}
+        </div>
+      )}
 
       {/* Plan & Faturalama */}
       <div className="bg-white border border-[#E5E7EB] rounded-md p-6 max-w-2xl mb-6">
