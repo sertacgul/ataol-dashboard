@@ -259,9 +259,11 @@ export default function Settings() {
     }
   }
 
-  const discount = redeemed || (user?.discount_code
-    ? { discount_percent: user.discount_percent, discount_expires_at: user.discount_expires_at }
-    : null)
+  const discount = (redeemed && !redeemed.free_month)
+    ? redeemed
+    : (user?.discount_code
+      ? { discount_percent: user.discount_percent, discount_expires_at: user.discount_expires_at }
+      : null)
 
   const inputCls = 'w-full text-sm border border-[#D1D5DB] rounded-md px-3 py-2 focus:outline-none focus:border-[#2563EB] bg-white text-[#111827] placeholder-[#9CA3AF]'
   const textareaCls = inputCls + ' resize-none'
@@ -309,6 +311,10 @@ export default function Settings() {
             {isEn
               ? `${discount.discount_percent}% discount active — until ${new Date(discount.discount_expires_at).toLocaleDateString('en-US')}`
               : `%${discount.discount_percent} indirim aktif — ${new Date(discount.discount_expires_at).toLocaleDateString('tr-TR')} tarihine kadar`}
+          </div>
+        ) : redeemed?.free_month ? (
+          <div className="text-sm text-[#065F46] bg-[#D1FAE5] border border-[#6EE7B7] rounded-md px-3 py-2">
+            {isEn ? '1 free month added. Choose a plan below and start it.' : '1 aylık ücretsiz hak tanımlandı. Aşağıdan paket seçip başlatın.'}
           </div>
         ) : (
           <form onSubmit={handleRedeem} className="flex flex-col gap-3">
