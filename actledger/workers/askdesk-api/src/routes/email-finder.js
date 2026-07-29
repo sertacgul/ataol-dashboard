@@ -30,6 +30,7 @@ async function getCachedDomain(db, domain) {
     emails_raw: JSON.parse(row.emails_raw || '[]'),
     has_catchall: !!row.has_catchall,
     mx_provider: row.mx_provider,
+    provider: row.provider,
   }
 }
 
@@ -207,6 +208,19 @@ router.post('/reveal', async (c) => {
           verification_status: 'verified', confidence: found.confidence,
         }]).catch(() => {})
       }
+      // Persist the resolved address into the domain cache so re-reveals and
+      // future /search calls see it (Hunter emails already live in the cache;
+      // this makes provider-resolved emails behave the same and avoids paying
+      // the provider again on the next reveal of this person).
+      person.email = email
+      await setCachedDomain(c.env.DB, domain, {
+        company_info: cached.company_info,
+        people: cached.people,
+        emails_raw: cached.people.filter(p => p.email).map(p => p.email),
+        has_catchall: cached.has_catchall,
+        mx_provider: cached.mx_provider,
+        provider: cached.provider,
+      }).catch(() => {})
     }
     if (!email) return c.json({ error: 'Bu kisi icin email adresi bulunamadi' }, 404)
   }
@@ -284,26 +298,32 @@ router.post('/bulk-reveal', async (c) => {
   if (!cached) return c.json({ error: 'Once arama yapin' }, 404)
 
   const credits = await getOrCreateCredits(c.env.DB, userId, plan)
+  const available = credits.limits.outreach - credits.outreach_used
 
   // Collect persons to reveal. Persons that already carry a provider email use
   // it directly; Prospeo-sourced persons have no email yet, so resolve it now
-  // via enrich-person (falling back to name patterns). Skip when resolution
+  // via enrich-person (falling back to name patterns) — but only while we can
+  // still back the reveal with an AskDesk credit, so a large batch from a
+  // low-credit user can't burn the shared Prospeo quota. Skip when resolution
   // fails or the resolved email was already revealed by this user.
   const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
   const toReveal = []
+  let cacheDirty = false
   for (const pid of person_ids) {
     const idx = parseInt(pid.split('-').pop())
     const person = cached.people[idx]
     if (!person) continue
     let email = person.email
-    if (!email && person.source === 'prospeo') {
+    if (!email && person.source === 'prospeo' && toReveal.length < available) {
       const found = await enrichment.revealProviderEmail(person).catch(() => null)
         || await enrichment.findVerifiedEmail(person.name, domain, c.env.DB).catch(() => null)
       if (found?.email) {
         email = found.email
+        person.email = email
         person.verification_status = found.verification_status || person.verification_status || 'unknown'
         person.confidence = found.confidence ?? person.confidence
         person.source = found.source || person.source
+        cacheDirty = true
       }
     }
     if (!email) continue
@@ -312,7 +332,17 @@ router.post('/bulk-reveal', async (c) => {
     if (!existing) toReveal.push({ idx, person, email })
   }
 
-  const available = credits.limits.outreach - credits.outreach_used
+  if (cacheDirty) {
+    await setCachedDomain(c.env.DB, domain, {
+      company_info: cached.company_info,
+      people: cached.people,
+      emails_raw: cached.people.filter(p => p.email).map(p => p.email),
+      has_catchall: cached.has_catchall,
+      mx_provider: cached.mx_provider,
+      provider: cached.provider,
+    }).catch(() => {})
+  }
+
   if (toReveal.length > available) {
     return c.json({
       error: `Yetersiz kredi. ${toReveal.length} reveal icin krediniz yok (kalan: ${available}).`,
