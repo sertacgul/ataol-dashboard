@@ -43,6 +43,40 @@ describe('ProspeoProvider.domainSearch', () => {
     const { people } = await p.domainSearch('acme.com')
     expect(people).toEqual([])
   })
+
+  it('maps probe-confirmed vocab: Vice President -> VP and department buckets', async () => {
+    mockFetch({
+      error: false,
+      results: [{
+        person: {
+          person_id: 'p_vp', full_name: 'Vera Poe', current_job_title: 'VP of Growth',
+          job_history: [{ current: true, seniority: 'Vice President', departments: ['Account Management', 'Other Sales'] }],
+        },
+        company: { name: 'Acme' },
+      }],
+    })
+    const p = createProspeoProvider('key', helpers)
+    const { people } = await p.domainSearch('acme.com')
+    expect(people[0].seniority).toBe('VP')
+    expect(people[0].department).toBe('Sales')
+  })
+
+  it('falls back to title classification when department maps to nothing', async () => {
+    mockFetch({
+      error: false,
+      results: [{
+        person: {
+          person_id: 'p_x', full_name: 'Cem Er', current_job_title: 'CTO',
+          job_history: [{ current: true, seniority: 'Director', departments: ['Corporate Strategy'] }],
+        },
+        company: { name: 'Acme' },
+      }],
+    })
+    const p = createProspeoProvider('key', helpers)
+    const { people } = await p.domainSearch('acme.com')
+    // 'Corporate Strategy' matches no bucket -> classifyDepartment('CTO') -> Engineering (test helper)
+    expect(people[0].department).toBe('Engineering')
+  })
 })
 
 describe('ProspeoProvider.revealEmail', () => {

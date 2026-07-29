@@ -3,11 +3,36 @@ import { mapSeniority } from './normalize.js'
 const BASE = 'https://api.prospeo.io'
 
 // Prospeo job_history seniority -> AskDesk vocab (SENIORITY_RANK in index.js).
-// Unmapped values fall through to classifySeniority(title).
+// Values confirmed via the live probe (Director / Senior / Manager / Entry /
+// Partner / Vice President). Unmapped values fall through to classifySeniority(title).
 const PROSPEO_SENIORITY = {
   'C-Suite': 'C-Level', 'Owner': 'C-Level', 'Partner': 'C-Level', 'Founder': 'C-Level',
-  'VP': 'VP', 'Director': 'Director', 'Head': 'Director', 'Manager': 'Manager',
+  'Vice President': 'VP', 'VP': 'VP',
+  'Director': 'Director', 'Head': 'Director', 'Manager': 'Manager',
   'Senior': 'Staff', 'Entry': 'Staff', 'Intern': 'Staff', 'Training': 'Staff',
+}
+
+// Prospeo's department taxonomy (confirmed via the live probe) is large and
+// unlike Hunter's (e.g. "Finance & Banking", "Engineering & Technical",
+// "Account Management"). Bucket the raw department text into AskDesk's vocabulary
+// by keyword; fall back to title classification when nothing matches. Order
+// matters: sales-facing "account management" must beat finance "accounting",
+// and "recruitement" must beat the "it" engineering keyword.
+const PROSPEO_DEPT_RULES = [
+  [/legal|counsel|compliance|attorney/i, 'Legal'],
+  [/recruit|talent|human resource|\bhr\b|compensation|benefits|payroll/i, 'HR'],
+  [/marketing|brand|content|social media|communications|demand gen/i, 'Marketing'],
+  [/engineer|develop|software|\bdata\b|machine learning|artificial intelligence|\bai\b|devops|infrastructure|technical|technology|\bit\b|security|help desk|desktop/i, 'Engineering'],
+  [/financ|accounting|audit|treasur|\btax\b|banking|controller/i, 'Finance'],
+  [/sales|account management|revenue|partnership|business development|customer success/i, 'Sales'],
+  [/operation|support|customer service|logistics|supply|procurement|project management|program management|facilities/i, 'Operations'],
+]
+
+function mapProspeoDept(departments) {
+  const text = (departments || []).join(' ')
+  if (!text) return null
+  for (const [re, dept] of PROSPEO_DEPT_RULES) if (re.test(text)) return dept
+  return null
 }
 
 export function createProspeoProvider(apiKey, { classifySeniority, classifyDepartment }) {
@@ -48,9 +73,9 @@ export function createProspeoProvider(apiKey, { classifySeniority, classifyDepar
       last_name: person.last_name || '',
       name,
       title,
-      // Prospeo's raw department vocabulary is unknown until the Task 4 live
-      // probe; classify from title for now and add a PROSPEO_DEPARTMENT map later.
-      department: classifyDepartment(title),
+      // Prefer Prospeo's own department signal (bucketed to AskDesk vocab);
+      // fall back to title classification when it maps to nothing.
+      department: mapProspeoDept(job.departments) || classifyDepartment(title),
       // mappedSeniority is already in AskDesk vocab; mapSeniority just returns it
       // (first arg null — no raw Hunter seniority to consult here).
       seniority: mapSeniority(null, mappedSeniority),
