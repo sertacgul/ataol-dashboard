@@ -92,4 +92,10 @@ describe('ProspeoProvider errors', () => {
     const p = createProspeoProvider('key', helpers)
     await expect(p.domainSearch('acme.com')).rejects.toMatchObject({ status: 429 })
   })
+
+  it('throws when body signals error on 200', async () => {
+    mockFetch({ error: true, message: 'quota exhausted' }, true, 200)
+    const p = createProspeoProvider('key', helpers)
+    await expect(p.domainSearch('acme.com')).rejects.toThrow()
+  })
 })

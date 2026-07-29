@@ -1,4 +1,4 @@
-import { mapSeniority, mapDepartment } from './normalize.js'
+import { mapSeniority } from './normalize.js'
 
 const BASE = 'https://api.prospeo.io'
 
@@ -22,7 +22,13 @@ export function createProspeoProvider(apiKey, { classifySeniority, classifyDepar
       err.status = res.status
       throw err
     }
-    return res.json()
+    const data = await res.json()
+    if (data && data.error) {
+      const err = new Error('prospeo api error')
+      err.status = res.status
+      throw err
+    }
+    return data
   }
 
   // Pull the current (or first) job entry for title/seniority/department signals.
@@ -42,7 +48,11 @@ export function createProspeoProvider(apiKey, { classifySeniority, classifyDepar
       last_name: person.last_name || '',
       name,
       title,
-      department: mapDepartment((job.departments || [])[0], classifyDepartment(title)),
+      // Prospeo's raw department vocabulary is unknown until the Task 4 live
+      // probe; classify from title for now and add a PROSPEO_DEPARTMENT map later.
+      department: classifyDepartment(title),
+      // mappedSeniority is already in AskDesk vocab; mapSeniority just returns it
+      // (first arg null — no raw Hunter seniority to consult here).
       seniority: mapSeniority(null, mappedSeniority),
       email: null,               // Prospeo search does not return emails
       email_type: 'personal',
