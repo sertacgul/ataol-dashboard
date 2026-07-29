@@ -186,9 +186,16 @@ router.post('/reveal', async (c) => {
       }]).catch(() => {})
     }
   } else if (!email) {
-    // No address for this person: derive candidates from name patterns and
-    // return the first deliverable one.
-    const found = await enrichment.findVerifiedEmail(person.name, domain, c.env.DB)
+    // No address for this person. If Prospeo sourced this record, reveal the
+    // real verified address via enrich-person first; otherwise (or on failure)
+    // derive candidates from name patterns and return the first deliverable one.
+    let found = null
+    if (person.source === 'prospeo') {
+      found = await enrichment.revealProviderEmail(person).catch(() => null)
+    }
+    if (!found?.email) {
+      found = await enrichment.findVerifiedEmail(person.name, domain, c.env.DB)
+    }
     if (found?.email) {
       email = found.email
       person.verification_status = found.verification_status || person.verification_status || 'unknown'
@@ -278,15 +285,31 @@ router.post('/bulk-reveal', async (c) => {
 
   const credits = await getOrCreateCredits(c.env.DB, userId, plan)
 
-  // Filter out already revealed and no-email persons
+  // Collect persons to reveal. Persons that already carry a provider email use
+  // it directly; Prospeo-sourced persons have no email yet, so resolve it now
+  // via enrich-person (falling back to name patterns). Skip when resolution
+  // fails or the resolved email was already revealed by this user.
+  const enrichment = createEnrichment(c.env, { classifySeniority, classifyDepartment })
   const toReveal = []
   for (const pid of person_ids) {
     const idx = parseInt(pid.split('-').pop())
     const person = cached.people[idx]
-    if (!person || !person.email) continue
+    if (!person) continue
+    let email = person.email
+    if (!email && person.source === 'prospeo') {
+      const found = await enrichment.revealProviderEmail(person).catch(() => null)
+        || await enrichment.findVerifiedEmail(person.name, domain, c.env.DB).catch(() => null)
+      if (found?.email) {
+        email = found.email
+        person.verification_status = found.verification_status || person.verification_status || 'unknown'
+        person.confidence = found.confidence ?? person.confidence
+        person.source = found.source || person.source
+      }
+    }
+    if (!email) continue
     const existing = await c.env.DB.prepare('SELECT id FROM email_reveals WHERE user_id = ? AND email = ?')
-      .bind(userId, person.email).first()
-    if (!existing) toReveal.push({ idx, person, email: person.email })
+      .bind(userId, email).first()
+    if (!existing) toReveal.push({ idx, person, email })
   }
 
   const available = credits.limits.outreach - credits.outreach_used
