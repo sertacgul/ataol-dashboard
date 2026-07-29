@@ -1,5 +1,6 @@
 import { createHunterProvider } from './hunter.js'
 import { createFreeProvider, generateEmailPatterns, getLearnedPattern } from './free.js'
+import { createProspeoProvider } from './prospeo.js'
 import { createVerifierProvider } from './millionverifier.js'
 import { applyPattern } from './patterns.js'
 
@@ -35,6 +36,7 @@ export function sortPeople(people) {
 export function createEnrichment(env, helpers) {
   const free = createFreeProvider(env, helpers)
   const hunter = env.HUNTER_API_KEY ? createHunterProvider(env.HUNTER_API_KEY, helpers) : null
+  const prospeo = env.PROSPEO_API_KEY ? createProspeoProvider(env.PROSPEO_API_KEY, helpers) : null
   const verifier = env.MILLIONVERIFIER_API_KEY ? createVerifierProvider(env.MILLIONVERIFIER_API_KEY) : null
 
   // Build the ordered candidate list: a previously learned pattern for this
@@ -91,6 +93,12 @@ export function createEnrichment(env, helpers) {
           if (r.people && r.people.length) return { ...r, people: sortPeople(r.people), provider: 'hunter' }
         } catch { /* fall back */ }
       }
+      if (prospeo) {
+        try {
+          const r = await prospeo.domainSearch(domain, opts)
+          if (r.people && r.people.length) return { ...r, people: sortPeople(r.people), provider: 'prospeo' }
+        } catch { /* fall back */ }
+      }
       const r = await free.domainSearch(domain, opts)
       return { ...r, people: sortPeople(r.people), provider: 'free' }
     },
@@ -101,9 +109,21 @@ export function createEnrichment(env, helpers) {
           if (r && r.email) return r
         } catch { /* fall back */ }
       }
+      if (prospeo) {
+        try {
+          const r = await prospeo.findEmail(first, last, domain)
+          if (r && r.email) return r
+        } catch { /* fall back */ }
+      }
       return free.findEmail(first, last, domain)
     },
     findVerifiedEmail,
+    async revealProviderEmail(person) {
+      if (person?.source === 'prospeo' && prospeo && person.prospeo_person_id) {
+        try { return await prospeo.revealEmail(person) } catch { /* fall back to patterns */ }
+      }
+      return null
+    },
     async verifyEmail(email) {
       if (verifier) {
         try {
