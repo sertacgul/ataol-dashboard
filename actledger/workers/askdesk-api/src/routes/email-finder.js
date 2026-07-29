@@ -31,14 +31,15 @@ async function getCachedDomain(db, domain) {
     has_catchall: !!row.has_catchall,
     mx_provider: row.mx_provider,
     provider: row.provider,
+    scraped_at: row.scraped_at,
   }
 }
 
 async function setCachedDomain(db, domain, data) {
   await db.prepare(`INSERT OR REPLACE INTO domain_cache (domain, company_info, people, emails_raw, has_catchall, mx_provider, provider, scraped_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`)
+    VALUES (?, ?, ?, ?, ?, ?, ?, COALESCE(?, datetime('now')))`)
     .bind(domain, JSON.stringify(data.company_info), JSON.stringify(data.people),
-      JSON.stringify(data.emails_raw), data.has_catchall ? 1 : 0, data.mx_provider || '', data.provider || 'free')
+      JSON.stringify(data.emails_raw), data.has_catchall ? 1 : 0, data.mx_provider || '', data.provider || 'free', data.scraped_at || null)
     .run()
 }
 
@@ -220,6 +221,7 @@ router.post('/reveal', async (c) => {
         has_catchall: cached.has_catchall,
         mx_provider: cached.mx_provider,
         provider: cached.provider,
+        scraped_at: cached.scraped_at,
       }).catch(() => {})
     }
     if (!email) return c.json({ error: 'Bu kisi icin email adresi bulunamadi' }, 404)
@@ -314,6 +316,11 @@ router.post('/bulk-reveal', async (c) => {
     const person = cached.people[idx]
     if (!person) continue
     let email = person.email
+    // Known limitation: this budget gate is checked in person_ids order, so a
+    // batch mixing Prospeo and already-emailed people can still exceed `available`
+    // via the unconditionally-added emailed people and then be 403'd after a
+    // Prospeo credit was already spent. The resolved email is cached, so the
+    // spend self-heals on the next attempt. Acceptable fast-follow.
     if (!email && person.source === 'prospeo' && toReveal.length < available) {
       const found = await enrichment.revealProviderEmail(person).catch(() => null)
         || await enrichment.findVerifiedEmail(person.name, domain, c.env.DB).catch(() => null)
@@ -340,6 +347,7 @@ router.post('/bulk-reveal', async (c) => {
       has_catchall: cached.has_catchall,
       mx_provider: cached.mx_provider,
       provider: cached.provider,
+      scraped_at: cached.scraped_at,
     }).catch(() => {})
   }
 

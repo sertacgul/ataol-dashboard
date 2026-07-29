@@ -1,13 +1,20 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createEnrichment, sortPeople } from './index.js'
+
+const h = vi.hoisted(() => ({ domainSearch: vi.fn(), findEmail: vi.fn() }))
 
 vi.mock('./hunter.js', () => ({
   createHunterProvider: () => ({
-    domainSearch: vi.fn().mockResolvedValue({ company: { name: 'H' }, people: [{ email: 'h@x.com', source: 'hunter' }] }),
-    findEmail: vi.fn().mockResolvedValue({ email: 'h@x.com', confidence: 90, source: 'hunter' }),
+    domainSearch: h.domainSearch,
+    findEmail: h.findEmail,
     verifyEmail: vi.fn().mockResolvedValue({ status: 'verified', confidence: 95, source: 'hunter' }),
   }),
 }))
+
+beforeEach(() => {
+  h.domainSearch.mockReset().mockResolvedValue({ company: { name: 'H' }, people: [{ email: 'h@x.com', source: 'hunter' }] })
+  h.findEmail.mockReset().mockResolvedValue({ email: 'h@x.com', confidence: 90, source: 'hunter' })
+})
 vi.mock('./free.js', () => ({
   createFreeProvider: () => ({
     domainSearch: vi.fn().mockResolvedValue({ company: { name: 'F' }, people: [{ email: 'f@x.com', source: 'website' }] }),
@@ -95,5 +102,30 @@ describe('createEnrichment — Prospeo second tier', () => {
   it('revealProviderEmail returns null for non-prospeo persons', async () => {
     const enrichment = createEnrichment({ PROSPEO_API_KEY: 'p' }, helpers)
     expect(await enrichment.revealProviderEmail({ source: 'hunter', email: 'x@y.com' })).toBeNull()
+  })
+})
+
+describe('createEnrichment — Hunter/Prospeo waterfall priority', () => {
+  const helpers = { classifySeniority: () => 'Staff', classifyDepartment: () => 'Other' }
+
+  it('prefers Hunter over Prospeo when both configured and Hunter returns people', async () => {
+    const enrichment = createEnrichment({ HUNTER_API_KEY: 'h', PROSPEO_API_KEY: 'p' }, helpers)
+    const r = await enrichment.domainSearch('acme.com')
+    expect(r.provider).toBe('hunter')
+  })
+
+  it('falls back to Prospeo when Hunter throws (quota exhausted)', async () => {
+    h.domainSearch.mockRejectedValueOnce(Object.assign(new Error('hunter 429'), { status: 429 }))
+    const enrichment = createEnrichment({ HUNTER_API_KEY: 'h', PROSPEO_API_KEY: 'p' }, helpers)
+    const r = await enrichment.domainSearch('acme.com')
+    expect(r.provider).toBe('prospeo')
+    expect(r.people[0].prospeo_person_id).toBe('p1')
+  })
+
+  it('falls back to Prospeo when Hunter returns no people', async () => {
+    h.domainSearch.mockResolvedValueOnce({ company: { name: 'H' }, people: [] })
+    const enrichment = createEnrichment({ HUNTER_API_KEY: 'h', PROSPEO_API_KEY: 'p' }, helpers)
+    const r = await enrichment.domainSearch('acme.com')
+    expect(r.provider).toBe('prospeo')
   })
 })
