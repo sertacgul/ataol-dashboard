@@ -125,7 +125,7 @@ export default function Admin() {
 
       {/* API bakiyeleri */}
       <div className="text-xs font-semibold text-[#374151] mb-2">{t('API Bakiyeleri')}</div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
           <div className="text-xs text-[#6B7280] mb-1">MillionVerifier</div>
           {apis.millionverifier.configured ? (
@@ -142,6 +142,17 @@ export default function Admin() {
               : <div className="text-sm text-[#111827]">
                   <div><span className="font-semibold">{apis.hunter.searches_used ?? '-'}</span> / {apis.hunter.searches_available ?? '-'} <span className="text-xs text-[#9CA3AF]">{t('arama')}</span></div>
                   <div className="text-xs text-[#9CA3AF] mt-0.5">{apis.hunter.plan || ''}</div>
+                </div>
+          ) : <div className="text-sm text-[#9CA3AF]">{t('Yapılandırılmamış')}</div>}
+        </div>
+        <div className="bg-white border border-[#E5E7EB] rounded-md p-4">
+          <div className="text-xs text-[#6B7280] mb-1">Prospeo</div>
+          {apis.prospeo?.configured ? (
+            apis.prospeo.error
+              ? <div className="text-sm text-[#DC2626]">{t('Bağlantı hatası')}</div>
+              : <div className="text-sm text-[#111827]">
+                  <div><span className="font-semibold">{apis.prospeo.credits_used ?? '-'}</span> / {apis.prospeo.credits_used != null && apis.prospeo.credits_remaining != null ? apis.prospeo.credits_used + apis.prospeo.credits_remaining : '-'} <span className="text-xs text-[#9CA3AF]">{t('kredi')}</span></div>
+                  <div className="text-xs text-[#9CA3AF] mt-0.5">{apis.prospeo.plan || ''}{apis.prospeo.renews_in_days != null ? ` · ${apis.prospeo.renews_in_days} ${t('gün')}` : ''}</div>
                 </div>
           ) : <div className="text-sm text-[#9CA3AF]">{t('Yapılandırılmamış')}</div>}
         </div>

@@ -53,6 +53,28 @@ async function fetchApiBalances(env) {
     out.hunter = { configured: false }
   }
 
+  // Prospeo — account credits (POST + X-KEY header; does not consume a credit).
+  if (env.PROSPEO_API_KEY) {
+    try {
+      const r = await fetch('https://api.prospeo.io/account-information', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-KEY': env.PROSPEO_API_KEY },
+        body: '{}',
+      })
+      const d = await r.json()
+      const p = d?.response
+      out.prospeo = {
+        configured: true,
+        plan: p?.current_plan ?? null,
+        credits_used: p?.used_credits ?? null,
+        credits_remaining: p?.remaining_credits ?? null,
+        renews_in_days: p?.next_quota_renewal_days ?? null,
+      }
+    } catch { out.prospeo = { configured: true, error: true } }
+  } else {
+    out.prospeo = { configured: false }
+  }
+
   // Resend — no public usage endpoint; report configuration status only.
   out.resend = { configured: !!env.RESEND_API_KEY, note: 'no_usage_api' }
 
