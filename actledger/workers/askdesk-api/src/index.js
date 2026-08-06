@@ -28,6 +28,16 @@ import leadRequestsRoutes from './routes/lead-requests.js'
 
 const app = new Hono()
 
+// Nothing on api.askdesk.app belongs in a search index, and Search Console was
+// reporting its root as a 404. robots.txt alone will not do here: the zone serves
+// a Cloudflare-managed robots.txt that already says "User-agent: * / Allow: /",
+// and for two rules of equal path length a crawler keeps the less restrictive
+// one. This header settles it regardless of what robots.txt ends up saying.
+app.use('*', async (c, next) => {
+  await next()
+  c.header('X-Robots-Tag', 'noindex, nofollow')
+})
+
 app.use('*', cors({
   origin: (origin) => {
     if (!origin) return 'https://askdesk.app'
@@ -64,6 +74,10 @@ app.route('/payments', billingRoutes)
 app.route('/lead-requests', leadRequestsRoutes)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
+
+// api.askdesk.app holds nothing indexable, and Search Console was reporting its
+// root as a 404. Keep crawlers off the API host entirely.
+app.get('/robots.txt', (c) => c.text('User-agent: *\nDisallow: /\n'))
 
 // Cloudflare Worker entry: HTTP (Hono) + scheduled (cron) handlers.
 export default {
