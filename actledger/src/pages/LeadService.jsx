@@ -26,7 +26,7 @@ export default function LeadService() {
     setSeo({
       title: 'Sizin İçin Lead Listesi: E-posta ve Telefonla Doğrulanmış B2B Leadler',
       description: 'Ajanslar ve danışmanlar için hazır hizmet: sektör ve bölge söyleyin, 48 saatte doğrulanmış e-posta ve telefonla karar verici lead listesini CSV olarak teslim edelim.',
-      canonical: 'https://askdesk.app/lead-listesi',
+      canonical: 'https://askdesk.app/lead-listesi/',
     })
   }, [])
 

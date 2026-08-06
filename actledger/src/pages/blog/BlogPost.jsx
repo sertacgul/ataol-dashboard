@@ -45,7 +45,7 @@ export default function BlogPost() {
 
   useEffect(() => {
     if (!post) return
-    const url = `https://askdesk.app/blog/${post.slug}`
+    const url = `https://askdesk.app/blog/${post.slug}/`
     const articleLd = {
       '@context': 'https://schema.org',
       '@type': 'Article',

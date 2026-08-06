@@ -8,7 +8,7 @@ export default function BlogList() {
     setSeo({
       title: 'AskDesk Blog: B2B Büyüme, Outbound ve Lead Bulma Rehberleri',
       description: 'Startup ve KOBI kurucuları için B2B e-posta bulma, soğuk outreach, lead generation ve büyüme rehberleri. ATAOL AI Techs tarafından.',
-      canonical: 'https://askdesk.app/blog',
+      canonical: 'https://askdesk.app/blog/',
     })
   }, [])
 
