@@ -36,7 +36,7 @@ export default function BlogList() {
             {POSTS.map(post => (
               <Link
                 key={post.slug}
-                to={`/blog/${post.slug}`}
+                to={`/blog/${post.slug}/`}
                 className="block bg-white border border-[#E5E7EB] rounded-xl p-6 hover:border-[#BFDBFE] hover:shadow-[0_8px_24px_rgba(37,99,235,0.06)] transition-all"
               >
                 <h2 className="text-lg font-semibold text-[#111827] mb-2 leading-snug">{post.title}</h2>

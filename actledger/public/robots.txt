@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+# Cloudflare rewrites the mailto links into /cdn-cgi/l/email-protection, which
+# is on every page and answers 404. Crawling it only burns budget.
+Disallow: /cdn-cgi/
 
 User-agent: GPTBot
 Allow: /

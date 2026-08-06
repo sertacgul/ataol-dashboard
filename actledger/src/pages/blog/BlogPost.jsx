@@ -81,7 +81,7 @@ export default function BlogPost() {
     return (
       <div className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center px-4">
         <div className="text-sm text-[#6B7280] mb-3">Yazı bulunamadı.</div>
-        <Link to="/blog" className="text-sm text-[#2563EB] hover:underline">Blog'a dön</Link>
+        <Link to="/blog/" className="text-sm text-[#2563EB] hover:underline">Blog'a dön</Link>
       </div>
     )
   }
@@ -94,7 +94,7 @@ export default function BlogPost() {
             <img src="/assets/logo.svg" alt="AskDesk" className="w-7 h-7" />
             <span className="text-base font-semibold tracking-tight text-[#111827]">AskDesk</span>
           </Link>
-          <Link to="/blog" className="text-sm text-[#6B7280] hover:text-[#2563EB]">← Blog</Link>
+          <Link to="/blog/" className="text-sm text-[#6B7280] hover:text-[#2563EB]">← Blog</Link>
         </div>
       </header>
 
@@ -127,7 +127,7 @@ export default function BlogPost() {
               <ul className="space-y-2">
                 {post.related.map(slug => getPost(slug)).filter(Boolean).map(rp => (
                   <li key={rp.slug}>
-                    <Link to={`/blog/${rp.slug}`} className="text-sm font-medium text-[#2563EB] hover:underline">{rp.title}</Link>
+                    <Link to={`/blog/${rp.slug}/`} className="text-sm font-medium text-[#2563EB] hover:underline">{rp.title}</Link>
                   </li>
                 ))}
               </ul>
@@ -147,7 +147,7 @@ export default function BlogPost() {
       <footer className="border-t border-[#E5E7EB] bg-white">
         <div className="max-w-3xl mx-auto px-4 py-5 flex items-center justify-between text-xs text-[#9CA3AF]">
           <span>© 2026 ATAOL AI Techs</span>
-          <Link to="/blog" className="hover:text-[#2563EB]">Tüm yazılar</Link>
+          <Link to="/blog/" className="hover:text-[#2563EB]">Tüm yazılar</Link>
         </div>
       </footer>
     </div>

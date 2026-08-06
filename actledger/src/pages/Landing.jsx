@@ -1567,7 +1567,7 @@ export default function Landing() {
               <div className="text-xs font-semibold text-[#111827] uppercase tracking-wider mb-3">{isEn ? 'Company' : 'Şirket'}</div>
               <ul className="space-y-2 text-xs text-[#6B7280]">
                 <li>
-                  <Link to="/blog" className="hover:text-[#111827] transition-colors">Blog</Link>
+                  <Link to="/blog/" className="hover:text-[#111827] transition-colors">Blog</Link>
                 </li>
                 <li>
                   <a href="https://www.ataolai.tech/" target="_blank" rel="noopener noreferrer" className="hover:text-[#111827] transition-colors">ATAOL AI Techs</a>
