@@ -1,9 +1,25 @@
+import { useEffect } from 'react'
 import LegalShell, { LegalSection as Section } from '../components/LegalShell'
 import { useT } from '../contexts/LanguageContext'
+import { setSeo } from '../lib/seo'
 
 export default function Privacy() {
   const { lang } = useT()
   const isEn = lang === 'en'
+
+  // Without this the prerendered page carried the landing page's title and a
+  // canonical pointing at /, so it was indistinguishable from the home page.
+  useEffect(() => {
+    setSeo({
+      title: isEn
+        ? 'Privacy Policy | AskDesk'
+        : 'Gizlilik Politikası ve KVKK Aydınlatma Metni | AskDesk',
+      description: isEn
+        ? 'How AskDesk collects, processes and protects personal data, and the rights you hold over it.'
+        : 'AskDesk kişisel verilerinizi nasıl topluyor, işliyor ve koruyor; KVKK kapsamındaki haklarınız neler.',
+      canonical: 'https://askdesk.app/privacy/',
+    })
+  }, [isEn])
 
   return (
     <LegalShell

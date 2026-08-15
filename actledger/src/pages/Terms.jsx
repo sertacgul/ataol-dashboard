@@ -1,9 +1,21 @@
+import { useEffect } from 'react'
 import LegalShell, { LegalSection as Section } from '../components/LegalShell'
 import { useT } from '../contexts/LanguageContext'
+import { setSeo } from '../lib/seo'
 
 export default function Terms() {
   const { lang } = useT()
   const isEn = lang === 'en'
+
+  useEffect(() => {
+    setSeo({
+      title: isEn ? 'Terms of Use | AskDesk' : 'Kullanım Koşulları | AskDesk',
+      description: isEn
+        ? 'The terms that govern use of AskDesk: subscription, credits, acceptable use and liability.'
+        : 'AskDesk kullanım koşulları: abonelik, kredi kullanımı, kabul edilebilir kullanım ve sorumluluk sınırları.',
+      canonical: 'https://askdesk.app/terms/',
+    })
+  }, [isEn])
 
   return (
     <LegalShell

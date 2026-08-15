@@ -10,7 +10,10 @@ import { fileURLToPath } from 'url'
 import puppeteer from 'puppeteer'
 import { POSTS } from '../src/content/blog.js'
 
-const ROUTES = ['/', '/blog', '/lead-listesi', ...POSTS.map(p => `/blog/${p.slug}`)]
+// /privacy and /terms are here because a policy that only renders client-side is
+// invisible to a crawler: before this they answered with the landing page's
+// title and a canonical pointing at /.
+const ROUTES = ['/', '/blog', '/lead-listesi', '/privacy', '/terms', ...POSTS.map(p => `/blog/${p.slug}`)]
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DIST = join(__dirname, '..', 'dist')
 const PORT = 4174

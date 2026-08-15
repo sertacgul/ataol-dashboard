@@ -1,5 +1,7 @@
-# Canonicalize www to the apex domain.
-https://www.askdesk.app/* https://askdesk.app/:splat 301!
+# www -> apex is NOT here. Cloudflare rejects an absolute URL on the left-hand
+# side ("Only relative URLs are allowed") and skips the line, so the rule that
+# used to sit here never ran. The redirect that is actually live comes from a
+# zone-level Page Rule: www.askdesk.app/* -> https://askdesk.app/$1 (301).
 
 # Retire legacy pages that Google still has indexed (no longer part of the app).
 /pazarlama https://askdesk.app/ 301
@@ -13,5 +15,19 @@ https://www.askdesk.app/* https://askdesk.app/:splat 301!
 /sitemap.xml /sitemap.xml 200
 /robots.txt /robots.txt 200
 
-# SPA fallback (keep last).
-/* /index.html 200
+# SPA fallback, but only for the routes React Router actually has. The old
+# catch-all answered 200 for every unknown path, which is a soft 404: /pricing,
+# /fiyatlandirma and any typo came back as another copy of the landing page, and
+# a removed URL had no way to leave the index. Everything else now falls through
+# to 404.html, which Cloudflare Pages serves with a real 404 status.
+# Prerendered routes (/, /blog, /blog/*, /lead-listesi, /privacy, /terms) are
+# static files and need no rule. Keep this list in step with src/App.jsx.
+#
+# The target is / and not /index.html: Pages strips `/index.html` back to `/`
+# and re-runs the rules, which turns a rule written that way into a 308 to the
+# home page, or into a loop it refuses to load at all.
+/login / 200
+/register / 200
+/forgot-password / 200
+/app / 200
+/app/* / 200
