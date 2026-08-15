@@ -1561,6 +1561,7 @@ export default function Landing() {
                 <li><a href="#features" className="hover:text-[#111827] transition-colors">CRM Pipeline</a></li>
                 <li><a href="#features" className="hover:text-[#111827] transition-colors">{isEn ? 'SEO Content' : 'SEO İçerik'}</a></li>
                 <li><a href="#features" className="hover:text-[#111827] transition-colors">Analytics</a></li>
+                <li><Link to="/lead-listesi/" className="hover:text-[#111827] transition-colors">Sizin İçin Lead Listesi</Link></li>
               </ul>
             </div>
             <div>
